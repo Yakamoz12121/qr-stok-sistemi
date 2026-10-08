@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Üniforma QR Stok Yönetimi</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
     <div class="max-w-5xl mx-auto space-y-8">
         
-        <!-- Header -->
         <header class="flex justify-between items-center border-b border-slate-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok Yönetimi</h1>
@@ -24,63 +20,52 @@
             <span class="bg-slate-800 text-blue-400 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-500/30">Canlı Sistem</span>
         </header>
 
-        <!-- Form Section -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
-            <div class="flex items-center gap-2 mb-6">
-                <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                <h2 class="text-xl font-semibold text-white">Yeni Ürün & QR Kod Ekle</h2>
-            </div>
+            <h2 class="text-xl font-semibold text-white mb-6">Yeni Ürün & QR Kod Ekle</h2>
 
             <form id="productForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Ürün Adı -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Ürün Adı</label>
-                        <input type="text" id="name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <input type="text" id="p_name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     
-                    <!-- Kategori -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Kategori / Alan</label>
-                        <select id="category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <select id="p_category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                             <option value="Sağlık / Tıp / Hemşirelik">Sağlık / Tıp / Hemşirelik</option>
                             <option value="Aşçılık / Mutfak">Aşçılık / Mutfak</option>
                             <option value="Okul / Öğrenci">Okul / Öğrenci</option>
                         </select>
                     </div>
 
-                    <!-- Beden -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Beden / Ölçü</label>
-                        <input type="text" id="size" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <input type="text" id="p_size" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
 
-                    <!-- Fiyat -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Fiyat (TL)</label>
-                        <input type="number" id="price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <input type="number" id="p_price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
 
-                    <!-- Stok -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Stok Adedi</label>
-                        <input type="number" id="stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <input type="number" id="p_stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
 
-                    <!-- Kumaş / Detay -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Kumaş / Ürün Detayı</label>
-                        <input type="text" id="detail" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
+                        <input type="text" id="p_detail" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-[#0ea5e9] hover:bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2">
-                    <span>Ürünü Kaydet ve QR Kodu Üret</span>
+                <button type="submit" id="submitBtn" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 px-4 rounded-lg transition-colors">
+                    Ürünü Kaydet ve QR Kodu Üret
                 </button>
             </form>
         </section>
 
-        <!-- List Section -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <h2 class="text-xl font-semibold text-white mb-6">Mevcut Ürünler ve QR Kod Etiketleri</h2>
             <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -90,20 +75,18 @@
     </div>
 
     <script>
-        // ==========================================
-        // TEK VE DOĞRU SUPABASE BAĞLANTI TANIMI
-        // ==========================================
-        const supabaseUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
-        const supabaseKey = 'BURAYA_KENDI_ANON_KEYINI_YAPISTIR'; // Kendi anahtarını buraya koy
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        // Supabase Bağlantı Bilgileri
+        const dbUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
+        const dbKey = 'BURAYA_KENDI_ANON_KEYINI_YAPISTIR'; 
+        
+        // Tekil ve çakışmasız istemci tanımı
+        const db = window.supabase.createClient(dbUrl, dbKey);
 
-        // Ürünleri Listeleme Fonksiyonu
-        async function fetchProducts() {
+        async function loadProducts() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await db
                     .from('products')
-                    .select('*')
-                    .order('created_at', { ascending: false });
+                    .select('*');
 
                 if (error) throw error;
 
@@ -119,12 +102,12 @@
                     const card = document.createElement('div');
                     card.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center';
                     
-                    const qrContainerId = `qr-${product.id}`;
+                    const qrId = `qr-${product.id}`;
                     
                     card.innerHTML = `
                         <div class="w-full text-left mb-4">
                             <h3 class="font-bold text-white text-lg">${product.name}</h3>
-                            <p class="text-sm text-blue-400">${product.category}</p>
+                            <p class="text-sm text-sky-400">${product.category}</p>
                             <div class="mt-2 text-sm text-slate-400 space-y-1">
                                 <p>Beden: <span class="text-white">${product.size}</span></p>
                                 <p>Stok: <span class="text-white">${product.stock} adet</span></p>
@@ -132,73 +115,46 @@
                             </div>
                         </div>
                         <div class="bg-white p-2 rounded-lg mb-2 inline-block">
-                            <div id="${qrContainerId}"></div>
+                            <div id="${qrId}"></div>
                         </div>
-                        <p class="text-xs text-slate-500">ID: ${product.id}</p>
                     `;
                     productList.appendChild(card);
 
-                    const qrData = JSON.stringify({
-                        id: product.id,
-                        name: product.name,
-                        size: product.size
-                    });
-                    
-                    new QRCode(document.getElementById(qrContainerId), {
-                        text: qrData,
+                    new QRCode(document.getElementById(qrId), {
+                        text: JSON.stringify({ id: product.id, name: product.name }),
                         width: 128,
-                        height: 128,
-                        colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
+                        height: 128
                     });
                 });
-            } catch (error) {
-                console.error("Veri çekme hatası:", error);
-                document.getElementById('productList').innerHTML = `<p class="text-red-400 col-span-full">Veriler yüklenirken bir hata oluştu: ${error.message}</p>`;
+            } catch (err) {
+                console.error("Hata:", err);
             }
         }
 
-        // Yeni Ürün Kaydetme Formu
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const submitBtn = document.getElementById('submitBtn');
-            const originalBtnText = submitBtn.innerHTML;
-            submitBtn.innerHTML = 'Kaydediliyor...';
-            submitBtn.disabled = true;
-
             const newProduct = {
-                name: document.getElementById('name').value,
-                category: document.getElementById('category').value,
-                size: document.getElementById('size').value,
-                price: parseFloat(document.getElementById('price').value),
-                stock: parseInt(document.getElementById('stock').value),
-                detail: document.getElementById('detail').value
+                name: document.getElementById('p_name').value,
+                category: document.getElementById('p_category').value,
+                size: document.getElementById('p_size').value,
+                price: parseFloat(document.getElementById('p_price').value),
+                stock: parseInt(document.getElementById('p_stock').value),
+                detail: document.getElementById('p_detail').value
             };
 
-            try {
-                const { data, error } = await supabase
-                    .from('products')
-                    .insert([newProduct]);
+            const { error } = await db.from('products').insert([newProduct]);
 
-                if (error) throw error;
-
+            if (error) {
+                alert('Hata: ' + error.message);
+            } else {
                 alert('Ürün başarıyla kaydedildi!');
                 document.getElementById('productForm').reset();
-                fetchProducts();
-
-            } catch (error) {
-                console.error("Kaydetme hatası:", error);
-                alert(`Hata oluştu: ${error.message}`);
-            } finally {
-                submitBtn.innerHTML = originalBtnText;
-                submitBtn.disabled = false;
+                loadProducts();
             }
         });
 
-        // Sayfa Yüklendiğinde
-        window.onload = fetchProducts;
+        window.onload = loadProducts;
     </script>
 </body>
 </html>
