@@ -29,12 +29,8 @@
                         <input type="text" id="p_name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Kategori / Alan</label>
-                        <select id="p_category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                            <option value="Sağlık / Tıp / Hemşirelik">Sağlık / Tıp / Hemşirelik</option>
-                            <option value="Aşçılık / Mutfak">Aşçılık / Mutfak</option>
-                            <option value="Okul / Öğrenci">Okul / Öğrenci</option>
-                        </select>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Kategori Adı</label>
+                        <input type="text" id="p_category" required placeholder="Örn: Kıyafetler, İş Kıyafetleri..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-400 mb-2">Beden / Ölçü</label>
@@ -60,7 +56,13 @@
         </section>
 
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
-            <h2 class="text-xl font-semibold text-white mb-6">Mevcut Ürünler ve QR Kod Etiketleri</h2>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h2 class="text-xl font-semibold text-white">Mevcut Ürünler ve Kategoriler</h2>
+            </div>
+            
+            <!-- Kategori Filtre Butonları Buraya Gelecek -->
+            <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4"></div>
+
             <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <p class="text-slate-500 col-span-full">Yükleniyor...</p>
             </div>
@@ -72,62 +74,99 @@
         const hostKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVha2RvaWNocXB5cnRmdGRwcmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTE4OTksImV4cCI6MjEwNzA2Nzg5OX0.tSJF1WgEj2AqRgpGawmFNuurOcQ5-kS0lCtu3cpqOj4'; 
         
         const client = window.supabase.createClient(hostUrl, hostKey);
+        let allProducts = [];
+        let activeCategory = 'TÜMÜ';
 
         async function fetchAll() {
             try {
                 const { data, error } = await client.from('products').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
 
-                const list = document.getElementById('productList');
-                list.innerHTML = '';
-
-                if (!data || data.length === 0) {
-                    list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün yok.</p>';
-                    return;
-                }
-
-                data.forEach(item => {
-                    const box = document.createElement('div');
-                    box.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center justify-between';
-                    const codeId = `qr-${item.id}`;
-                    
-                    box.innerHTML = `
-                        <div class="w-full text-left mb-3">
-                            <h3 class="font-bold text-white text-lg">${item.name}</h3>
-                            <p class="text-sm text-sky-400">${item.category}</p>
-                            <div class="mt-2 text-sm text-slate-400 space-y-1">
-                                <p>Beden: <span class="text-white">${item.size}</span></p>
-                                <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
-                                <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
-                                <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
-                            </div>
-                        </div>
-                        <div class="bg-white p-2 rounded-lg mb-3 inline-block">
-                            <div id="${codeId}"></div>
-                        </div>
-                        <div class="w-full space-y-2 mt-auto">
-                            <div class="flex gap-2">
-                                <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
-                                <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır / İndir</button>
-                                <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50 font-medium">Sil</button>
-                            </div>
-                        </div>
-                        <span class="text-[10px] text-slate-500 mt-2">ID: ${item.id}</span>
-                    `;
-                    list.appendChild(box);
-
-                    new QRCode(document.getElementById(codeId), {
-                        text: JSON.stringify({ id: item.id, name: item.name, size: item.size, price: item.price }),
-                        width: 110,
-                        height: 110
-                    });
-                });
+                allProducts = data || [];
+                renderCategories();
+                renderProducts();
             } catch (err) {
                 console.error("Listeleme Hatası:", err);
             }
+        }
+
+        function renderCategories() {
+            const tabsContainer = document.getElementById('categoryTabs');
+            tabsContainer.innerHTML = '';
+
+            // Benzersiz kategorileri bulalım
+            const categories = ['TÜMÜ', ...new Set(allProducts.map(p => p.category ? p.category.trim() : 'Genel'))];
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                const isActive = activeCategory === cat;
+                btn.className = `px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
+                    isActive 
+                        ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' 
+                        : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-700'
+                }`;
+                btn.textContent = cat;
+                btn.onclick = () => {
+                    activeCategory = cat;
+                    renderCategories();
+                    renderProducts();
+                };
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function renderProducts() {
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+
+            const filtered = activeCategory === 'TÜMÜ' 
+                ? allProducts 
+                : allProducts.filter(item => (item.category ? item.category.trim() : 'Genel') === activeCategory);
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<p class="text-slate-500 col-span-full">Bu kategoride henüz kayıtlı ürün yok.</p>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const box = document.createElement('div');
+                box.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center justify-between';
+                const codeId = `qr-${item.id}`;
+                
+                box.innerHTML = `
+                    <div class="w-full text-left mb-3">
+                        <h3 class="font-bold text-white text-lg">${item.name}</h3>
+                        <span class="inline-block bg-sky-950 text-sky-400 text-xs px-2.5 py-1 rounded-full border border-sky-800/50 mt-1">${item.category}</span>
+                        <div class="mt-3 text-sm text-slate-400 space-y-1">
+                            <p>Beden: <span class="text-white">${item.size}</span></p>
+                            <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
+                            <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
+                            <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-2 rounded-lg mb-3 inline-block">
+                        <div id="${codeId}"></div>
+                    </div>
+                    <div class="w-full space-y-2 mt-auto">
+                        <div class="flex gap-2">
+                            <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
+                            <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır / İndir</button>
+                            <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50 font-medium">Sil</button>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-slate-500 mt-2">ID: ${item.id}</span>
+                `;
+                list.appendChild(box);
+
+                new QRCode(document.getElementById(codeId), {
+                    text: JSON.stringify({ id: item.id, name: item.name, category: item.category, size: item.size, price: item.price }),
+                    width: 110,
+                    height: 110
+                });
+            });
         }
 
         async function updateStock(id, newStock) {
@@ -178,7 +217,7 @@
 
             const payload = {
                 name: document.getElementById('p_name').value,
-                category: document.getElementById('p_category').value,
+                category: document.getElementById('p_category').value.trim(),
                 size: document.getElementById('p_size').value,
                 price: parseFloat(document.getElementById('p_price').value),
                 stock: parseInt(document.getElementById('p_stock').value),
