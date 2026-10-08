@@ -92,27 +92,27 @@
                     const codeId = `qr-${item.id}`;
                     
                     box.innerHTML = `
-                        <div class="w-full text-left mb-4">
+                        <div class="w-full text-left mb-3">
                             <h3 class="font-bold text-white text-lg">${item.name}</h3>
                             <p class="text-sm text-sky-400">${item.category}</p>
                             <div class="mt-2 text-sm text-slate-400 space-y-1">
                                 <p>Beden: <span class="text-white">${item.size}</span></p>
-                                <p>Stok: <span id="stock-text-${item.id}" class="text-white font-bold">${item.stock} adet</span></p>
+                                <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
                                 <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
                                 <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
                             </div>
                         </div>
-                        <div id="qr-container-${item.id}" class="bg-white p-2 rounded-lg mb-4 inline-block">
+                        <div class="bg-white p-2 rounded-lg mb-3 inline-block">
                             <div id="${codeId}"></div>
                         </div>
-                        <div class="w-full space-y-2">
+                        <div class="w-full space-y-2 mt-auto">
                             <div class="flex gap-2">
                                 <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
                                 <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600">Yazdır / İndir</button>
-                                <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50">Sil</button>
+                                <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır / İndir</button>
+                                <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50 font-medium">Sil</button>
                             </div>
                         </div>
                         <span class="text-[10px] text-slate-500 mt-2">ID: ${item.id}</span>
@@ -121,8 +121,8 @@
 
                     new QRCode(document.getElementById(codeId), {
                         text: JSON.stringify({ id: item.id, name: item.name, size: item.size, price: item.price }),
-                        width: 120,
-                        height: 120
+                        width: 110,
+                        height: 110
                     });
                 });
             } catch (err) {
@@ -178,7 +178,6 @@
 
             const payload = {
                 name: document.getElementById('p_name').value,
-                category: document.getElementById('p_category'),
                 category: document.getElementById('p_category').value,
                 size: document.getElementById('p_size').value,
                 price: parseFloat(document.getElementById('p_price').value),
