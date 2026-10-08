@@ -11,7 +11,6 @@
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
     <div class="max-w-5xl mx-auto space-y-8">
-        
         <header class="flex justify-between items-center border-b border-slate-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok Yönetimi</h1>
@@ -25,41 +24,35 @@
 
             <form id="productForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-400">Ürün Adı</label>
-                        <input type="text" id="p_name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Ürün Adı</label>
+                        <input type="text" id="p_name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white">
                     </div>
-                    
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-400">Kategori / Alan</label>
-                        <select id="p_category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Kategori / Alan</label>
+                        <select id="p_category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white">
                             <option value="Sağlık / Tıp / Hemşirelik">Sağlık / Tıp / Hemşirelik</option>
                             <option value="Aşçılık / Mutfak">Aşçılık / Mutfak</option>
                             <option value="Okul / Öğrenci">Okul / Öğrenci</option>
                         </select>
                     </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-400">Beden / Ölçü</label>
-                        <input type="text" id="p_size" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Beden / Ölçü</label>
+                        <input type="text" id="p_size" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white">
                     </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-400">Fiyat (TL)</label>
-                        <input type="number" id="p_price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Fiyat (TL)</label>
+                        <input type="number" id="p_price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white">
                     </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-400">Stok Adedi</label>
-                        <input type="number" id="p_stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Stok Adedi</label>
+                        <input type="number" id="p_stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white">
                     </div>
-
-                    <div class="space-y-2">
-                        <label class="block text-sm font-medium text-slate-400">Kumaş / Ürün Detayı</label>
-                        <input type="text" id="p_detail" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Kumaş / Ürün Detayı</label>
+                        <input type="text" id="p_detail" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white">
                     </div>
                 </div>
-
                 <button type="submit" id="submitBtn" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 px-4 rounded-lg transition-colors">
                     Ürünü Kaydet ve QR Kodu Üret
                 </button>
@@ -69,59 +62,53 @@
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <h2 class="text-xl font-semibold text-white mb-6">Mevcut Ürünler ve QR Kod Etiketleri</h2>
             <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <p class="text-slate-500 col-span-full" id="emptyMessage">Yükleniyor...</p>
+                <p class="text-slate-500 col-span-full">Yükleniyor...</p>
             </div>
         </section>
     </div>
 
     <script>
-        // Supabase Bağlantı Bilgileri
-        const dbUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
-        const dbKey = 'BURAYA_KENDI_ANON_KEYINI_YAPISTIR'; 
+        const hostUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
+        const hostKey = 'sb_publishable_yxNpwo-bKfgJRnF4QMYGrw_RLySV...'; // Kendi anahtarını buraya ekledik
         
-        // Tekil ve çakışmasız istemci tanımı
-        const db = window.supabase.createClient(dbUrl, dbKey);
+        const client = window.supabase.createClient(hostUrl, hostKey);
 
-        async function loadProducts() {
+        async function fetchAll() {
             try {
-                const { data, error } = await db
-                    .from('products')
-                    .select('*');
-
+                const { data, error } = await client.from('products').select('*');
                 if (error) throw error;
 
-                const productList = document.getElementById('productList');
-                productList.innerHTML = '';
+                const list = document.getElementById('productList');
+                list.innerHTML = '';
 
                 if (!data || data.length === 0) {
-                    productList.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün yok.</p>';
+                    list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün yok.</p>';
                     return;
                 }
 
-                data.forEach(product => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center';
+                data.forEach(item => {
+                    const box = document.createElement('div');
+                    box.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center';
+                    const codeId = `qr-${item.id}`;
                     
-                    const qrId = `qr-${product.id}`;
-                    
-                    card.innerHTML = `
+                    box.innerHTML = `
                         <div class="w-full text-left mb-4">
-                            <h3 class="font-bold text-white text-lg">${product.name}</h3>
-                            <p class="text-sm text-sky-400">${product.category}</p>
+                            <h3 class="font-bold text-white text-lg">${item.name}</h3>
+                            <p class="text-sm text-sky-400">${item.category}</p>
                             <div class="mt-2 text-sm text-slate-400 space-y-1">
-                                <p>Beden: <span class="text-white">${product.size}</span></p>
-                                <p>Stok: <span class="text-white">${product.stock} adet</span></p>
-                                <p>Fiyat: <span class="text-white">${product.price} ₺</span></p>
+                                <p>Beden: <span class="text-white">${item.size}</span></p>
+                                <p>Stok: <span class="text-white">${item.stock} adet</span></p>
+                                <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
                             </div>
                         </div>
                         <div class="bg-white p-2 rounded-lg mb-2 inline-block">
-                            <div id="${qrId}"></div>
+                            <div id="${codeId}"></div>
                         </div>
                     `;
-                    productList.appendChild(card);
+                    list.appendChild(box);
 
-                    new QRCode(document.getElementById(qrId), {
-                        text: JSON.stringify({ id: product.id, name: product.name }),
+                    new QRCode(document.getElementById(codeId), {
+                        text: JSON.stringify({ id: item.id, name: item.name }),
                         width: 128,
                         height: 128
                     });
@@ -133,8 +120,7 @@
 
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const newProduct = {
+            const payload = {
                 name: document.getElementById('p_name').value,
                 category: document.getElementById('p_category').value,
                 size: document.getElementById('p_size').value,
@@ -143,18 +129,17 @@
                 detail: document.getElementById('p_detail').value
             };
 
-            const { error } = await db.from('products').insert([newProduct]);
-
+            const { error } = await client.from('products').insert([payload]);
             if (error) {
                 alert('Hata: ' + error.message);
             } else {
                 alert('Ürün başarıyla kaydedildi!');
                 document.getElementById('productForm').reset();
-                loadProducts();
+                fetchAll();
             }
         });
 
-        window.onload = loadProducts;
+        window.onload = fetchAll;
     </script>
 </body>
 </html>
