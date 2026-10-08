@@ -37,7 +37,7 @@
                 <div class="bg-slate-900/50 p-3 rounded-lg"><span class="text-slate-400 block">Hedef Kitle</span><strong id="viewTarget"></strong></div>
             </div>
             <div class="bg-slate-900/50 p-3 rounded-lg text-sm">
-                <span class="text-slate-400 block">Kumaş Bilgisi:</span>
+                <span class="text-slate-400 block">Kumaş Detayı:</span>
                 <p id="viewFabric" class="text-slate-200 mt-1"></p>
             </div>
             <a href="/" class="inline-block text-sky-400 hover:underline text-sm mt-2">← Yönetim Paneline Dön</a>
@@ -52,10 +52,10 @@
                 <form id="addProductForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Ürün Adı</label>
-                        <input type="text" id="pTitle" placeholder="Örn: Tıp Önlüğü (Klasik Kesim)" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
+                        <input type="text" id="pTitle" placeholder="Örn: Tıp Önlüğü, Özel Kıyafet vb." required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Kategori (Meslek)</label>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Kategori / Alan</label>
                         <select id="pCategory" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
                             <option value="1">Sağlık / Tıp / Hemşirelik</option>
                             <option value="2">Havacılık / Pilotaj</option>
@@ -63,11 +63,12 @@
                             <option value="4">Polis / Emniyet / Güvenlik</option>
                             <option value="5">Aşçılık / Gastronomi</option>
                             <option value="6">Teknik / Atölye</option>
+                            <option value="7">Diğer / Farklı Ürünler</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Beden</label>
-                        <input type="text" id="pSize" placeholder="Örn: M, L, XL" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Beden / Ölçü</label>
+                        <input type="text" id="pSize" placeholder="Örn: M, L, Standard" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">Fiyat (TL)</label>
@@ -78,8 +79,8 @@
                         <input type="number" id="pStock" placeholder="Örn: 10" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Kumaş Detayı</label>
-                        <input type="text" id="pFabric" placeholder="Örn: %65 Pamuk Kırışmaz Alpaka" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Kumaş / Ürün Detayı</label>
+                        <input type="text" id="pFabric" placeholder="Örn: %100 Pamuk, Özel Üretim" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:border-sky-500 outline-none">
                     </div>
                     <div class="md:col-span-2">
                         <button type="submit" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg shadow-sky-500/20">
@@ -111,113 +112,20 @@
         
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        const categoryNames = {
+            1: "Sağlık / Tıp",
+            2: "Havacılık",
+            3: "Denizcilik",
+            4: "Polis / Emniyet",
+            5: "Aşçılık / Gastronomi",
+            6: "Teknik / Atölye",
+            7: "Diğer / Farklı Ürün"
+        };
+
         window.onload = async () => {
             const urlParams = new URLSearchParams(window.location.search);
             const qrKey = urlParams.get('qr');
 
             if (qrKey) {
                 document.getElementById('adminView').classList.add('hidden');
-                document.getElementById('customerView').classList.remove('hidden');
-                loadQrProduct(qrKey);
-            } else {
-                loadProducts();
-            }
-        };
-
-        document.getElementById('addProductForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const title = document.getElementById('pTitle').value;
-            const category_id = parseInt(document.getElementById('pCategory').value);
-            const size = document.getElementById('pSize').value;
-            const price = parseFloat(document.getElementById('pPrice').value);
-            const stock_quantity = parseInt(document.getElementById('pStock').value);
-            const fabric_info = document.getElementById('pFabric').value;
-
-            const qr_code_key = 'QR-' + Math.random().toString(36).substring(2, 10).toUpperCase();
-
-            const { data: product, error: err1 } = await _supabase
-                .from('products')
-                .insert([{ title, category_id, fabric_info }])
-                .select().single();
-
-            if (err1) { alert("Hata oluştu: " + err1.message); return; }
-
-            const { error: err2 } = await _supabase
-                .from('product_variants')
-                .insert([{ product_id: product.id, size, price, stock_quantity, qr_code_key }]);
-
-            if (!err2) {
-                alert("Ürün ve QR Kod Başarıyla Oluşturuldu!");
-                document.getElementById('addProductForm').reset();
-                loadProducts();
-            }
-        };
-
-        async function loadProducts() {
-            const { data, error } = await _supabase
-                .from('product_variants')
-                .select('*, products(*)');
-
-            const container = document.getElementById('productList');
-            if (error || !data.length) {
-                container.innerHTML = `<p class="text-slate-500 text-sm">Henüz kayıtlı ürün yok.</p>`;
-                return;
-            }
-
-            container.innerHTML = data.map(v => `
-                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h4 class="font-bold text-white">${v.products.title}</h4>
-                        <div class="text-xs text-slate-400 space-x-2 mt-1">
-                            <span>Beden: <strong class="text-sky-400">${v.size}</strong></span>
-                            <span>•</span>
-                            <span>Stok: <strong class="text-emerald-400">${v.stock_quantity} Adet</strong></span>
-                            <span>•</span>
-                            <span>Fiyat: <strong>${v.price} TL</strong></span>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="printLabel('${v.products.title}', '${v.size}', '${v.price}', '${v.qr_code_key}')" class="bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 px-3 py-2 rounded-lg transition-all">
-                            🖨️ Etiket Yazdır (QR)
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        async function loadQrProduct(qrKey) {
-            const { data, error } = await _supabase
-                .from('product_variants')
-                .select('*, products(*)')
-                .eq('qr_code_key', qrKey)
-                .single();
-
-            if (error || !data) {
-                document.getElementById('viewTitle').innerText = "Ürün Bulunamadı!";
-                return;
-            }
-
-            document.getElementById('viewTitle').innerText = data.products.title;
-            document.getElementById('viewCategory').innerText = "Mesleki Kıyafet";
-            document.getElementById('viewSizePrice').innerText = `${data.size} Beden - ${data.price} TL`;
-            document.getElementById('viewStock').innerText = `${data.stock_quantity} Adet Var`;
-            document.getElementById('viewTarget').innerText = data.products.target_group || "Öğrenci / Stajyer";
-            document.getElementById('viewFabric').innerText = data.products.fabric_info || "Standart Kumaş";
-        }
-
-        function printLabel(title, size, price, qrKey) {
-            const qrUrl = window.location.origin + window.location.pathname + '?qr=' + qrKey;
-            
-            document.getElementById('printTitle').innerText = title;
-            document.getElementById('printSub').innerText = `Beden: ${size}`;
-            document.getElementById('printPrice').innerText = `${price} TL`;
-            
-            const qrContainer = document.getElementById('printQr');
-            qrContainer.innerHTML = "";
-            new QRCode(qrContainer, { text: qrUrl, width: 100, height: 100 });
-
-            setTimeout(() => { window.print(); }, 500);
-        }
-    </script>
-</body>
-</html>
+                document
