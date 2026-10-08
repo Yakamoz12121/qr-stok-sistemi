@@ -88,7 +88,7 @@
 
                 data.forEach(item => {
                     const box = document.createElement('div');
-                    box.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center';
+                    box.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center justify-between';
                     const codeId = `qr-${item.id}`;
                     
                     box.innerHTML = `
@@ -97,22 +97,32 @@
                             <p class="text-sm text-sky-400">${item.category}</p>
                             <div class="mt-2 text-sm text-slate-400 space-y-1">
                                 <p>Beden: <span class="text-white">${item.size}</span></p>
-                                <p>Stok: <span class="text-white">${item.stock} adet</span></p>
+                                <p>Stok: <span id="stock-text-${item.id}" class="text-white font-bold">${item.stock} adet</span></p>
                                 <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
                                 <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
                             </div>
                         </div>
-                        <div class="bg-white p-2 rounded-lg mb-2 inline-block">
+                        <div id="qr-container-${item.id}" class="bg-white p-2 rounded-lg mb-4 inline-block">
                             <div id="${codeId}"></div>
                         </div>
-                        <span class="text-xs text-slate-500">ID: ${item.id}</span>
+                        <div class="w-full space-y-2">
+                            <div class="flex gap-2">
+                                <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
+                                <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600">Yazdır / İndir</button>
+                                <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50">Sil</button>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-slate-500 mt-2">ID: ${item.id}</span>
                     `;
                     list.appendChild(box);
 
                     new QRCode(document.getElementById(codeId), {
-                        text: JSON.stringify({ id: item.id, name: item.name, size: item.size }),
-                        width: 128,
-                        height: 128
+                        text: JSON.stringify({ id: item.id, name: item.name, size: item.size, price: item.price }),
+                        width: 120,
+                        height: 120
                     });
                 });
             } catch (err) {
@@ -120,15 +130,55 @@
             }
         }
 
+        async function updateStock(id, newStock) {
+            if (newStock < 0) return;
+            const { error } = await client.from('products').update({ stock: newStock }).eq('id', id);
+            if (error) {
+                alert('Stok güncellenemedi: ' + error.message);
+            } else {
+                fetchAll();
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return;
+            const { error } = await client.from('products').delete().eq('id', id);
+            if (error) {
+                alert('Silme hatası: ' + error.message);
+            } else {
+                fetchAll();
+            }
+        }
+
+        function printQR(name, size, codeId) {
+            const qrElement = document.getElementById(codeId);
+            const img = qrElement.querySelector('img') || qrElement.querySelector('canvas');
+            if (!img) return;
+
+            const win = window.open('', '_print');
+            win.document.write(`
+                <html>
+                    <head><title>${name} - QR Etiket</title></head>
+                    <body style="text-align:center; font-family:sans-serif; margin-top:50px;">
+                        <h2>${name}</h2>
+                        <p>Beden: ${size}</p>
+                        <img src="${img.src || img.toDataURL()}" style="width:200px; height:200px; margin:20px auto; display:block;" />
+                        <script>window.print(); window.close();<\/script>
+                    </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.textContent = 'Kaydediliyor...';
             submitBtn.disabled = true;
 
             const payload = {
                 name: document.getElementById('p_name').value,
+                category: document.getElementById('p_category'),
                 category: document.getElementById('p_category').value,
                 size: document.getElementById('p_size').value,
                 price: parseFloat(document.getElementById('p_price').value),
@@ -144,7 +194,6 @@
             if (error) {
                 alert('Kayıt Hatası: ' + error.message);
             } else {
-                alert('Ürün başarıyla kaydedildi!');
                 document.getElementById('productForm').reset();
                 fetchAll();
             }
