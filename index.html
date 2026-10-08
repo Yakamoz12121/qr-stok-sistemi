@@ -58,6 +58,10 @@
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-white">Mevcut Ürünler ve Kategoriler</h2>
+                <!-- Arama Çubuğu -->
+                <div class="w-full md:w-72">
+                    <input type="text" id="searchInput" placeholder="Ürün adıyla ara..." oninput="renderProducts()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
+                </div>
             </div>
             
             <!-- Kategori Filtre Butonları -->
@@ -118,27 +122,39 @@
             const list = document.getElementById('productList');
             list.innerHTML = '';
 
-            const filtered = activeCategory === 'TÜMÜ' 
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            let filtered = activeCategory === 'TÜMÜ' 
                 ? allProducts 
                 : allProducts.filter(item => (item.category ? item.category.trim() : 'Genel') === activeCategory);
 
+            if (searchQuery) {
+                filtered = filtered.filter(item => item.name.toLowerCase().includes(searchQuery));
+            }
+
             if (filtered.length === 0) {
-                list.innerHTML = '<p class="text-slate-500 col-span-full">Bu kategoride henüz kayıtlı ürün yok.</p>';
+                list.innerHTML = '<p class="text-slate-500 col-span-full">Aradığınız kriterlere uygun ürün bulunamadı.</p>';
                 return;
             }
 
             filtered.forEach(item => {
                 const box = document.createElement('div');
-                box.className = 'bg-slate-900 p-4 rounded-lg border border-slate-700 flex flex-col items-center text-center justify-between';
+                
+                // Stok 3 veya daha azsa kart kenarlığını kırmızı yapıp dikkat çekelim
+                const isLowStock = item.stock <= 3;
+                box.className = `bg-slate-900 p-4 rounded-lg border ${isLowStock ? 'border-rose-500/80 shadow-lg shadow-rose-950/30' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
                 const codeId = `qr-${item.id}`;
                 
                 box.innerHTML = `
                     <div class="w-full text-left mb-3">
-                        <h3 class="font-bold text-white text-lg">${item.name}</h3>
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-white text-lg">${item.name}</h3>
+                            ${isLowStock ? '<span class="bg-rose-500/20 text-rose-400 text-[10px] px-2 py-0.5 rounded border border-rose-500/30 font-bold animate-pulse">Kritik Stok!</span>' : ''}
+                        </div>
                         <span class="inline-block bg-sky-950 text-sky-400 text-xs px-2.5 py-1 rounded-full border border-sky-800/50 mt-1">${item.category}</span>
                         <div class="mt-3 text-sm text-slate-400 space-y-1">
                             <p>Beden: <span class="text-white">${item.size}</span></p>
-                            <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
+                            <p>Stok: <span class="text-white font-bold ${isLowStock ? 'text-rose-400' : ''}">${item.stock} adet</span></p>
                             <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
                             <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
                         </div>
