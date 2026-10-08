@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Üniforma QR Stok Yönetimi</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- QR Code Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
     <div class="max-w-5xl mx-auto space-y-8">
         
+        <!-- Header -->
         <header class="flex justify-between items-center border-b border-slate-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok Yönetimi</h1>
@@ -20,6 +24,7 @@
             <span class="bg-slate-800 text-blue-400 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-500/30">Canlı Sistem</span>
         </header>
 
+        <!-- Form Section -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <div class="flex items-center gap-2 mb-6">
                 <svg class="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -28,11 +33,13 @@
 
             <form id="productForm" class="space-y-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Ürün Adı -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Ürün Adı</label>
                         <input type="text" id="name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                     </div>
                     
+                    <!-- Kategori -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Kategori / Alan</label>
                         <select id="category" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
@@ -42,21 +49,25 @@
                         </select>
                     </div>
 
+                    <!-- Beden -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Beden / Ölçü</label>
                         <input type="text" id="size" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                     </div>
 
+                    <!-- Fiyat -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Fiyat (TL)</label>
                         <input type="number" id="price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                     </div>
 
+                    <!-- Stok -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Stok Adedi</label>
                         <input type="number" id="stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
                     </div>
 
+                    <!-- Kumaş / Detay -->
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-400">Kumaş / Ürün Detayı</label>
                         <input type="text" id="detail" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors">
@@ -69,6 +80,7 @@
             </form>
         </section>
 
+        <!-- List Section -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <h2 class="text-xl font-semibold text-white mb-6">Mevcut Ürünler ve QR Kod Etiketleri</h2>
             <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -78,29 +90,27 @@
     </div>
 
     <script>
-        // DOĞRU URL EKLENDİ
+        // ==========================================
+        // TEK VE DOĞRU SUPABASE BAĞLANTI TANIMI
+        // ==========================================
         const supabaseUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
-        
-        // BURAYA SUPABASE ANON KEY'İNİ YAPIŞTIRMALISIN
-        const supabaseKey = 'BURAYA_KENDI_ANON_KEYINI_YAPISTIR'; 
-        
+        const supabaseKey = 'BURAYA_KENDI_ANON_KEYINI_YAPISTIR'; // Kendi anahtarını buraya koy
         const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+        // Ürünleri Listeleme Fonksiyonu
         async function fetchProducts() {
             try {
                 const { data, error } = await supabase
-                    .from('products') 
+                    .from('products')
                     .select('*')
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
                 const productList = document.getElementById('productList');
-                const emptyMessage = document.getElementById('emptyMessage');
-                
                 productList.innerHTML = '';
 
-                if (data.length === 0) {
+                if (!data || data.length === 0) {
                     productList.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün yok.</p>';
                     return;
                 }
@@ -149,6 +159,7 @@
             }
         }
 
+        // Yeni Ürün Kaydetme Formu
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -175,7 +186,7 @@
 
                 alert('Ürün başarıyla kaydedildi!');
                 document.getElementById('productForm').reset();
-                fetchProducts(); 
+                fetchProducts();
 
             } catch (error) {
                 console.error("Kaydetme hatası:", error);
@@ -186,6 +197,7 @@
             }
         });
 
+        // Sayfa Yüklendiğinde
         window.onload = fetchProducts;
     </script>
 </body>
