@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Üniforma QR Stok Yönetimi</title>
+    <title>Üniforma QR Stok ve Kasa Yönetimi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -11,14 +11,22 @@
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
     <div class="max-w-5xl mx-auto space-y-8">
-        <header class="flex justify-between items-center border-b border-slate-700 pb-4">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok Yönetimi</h1>
+                <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok & Kasa Yönetimi</h1>
                 <p class="text-slate-400 mt-1">Öğrenci & Mesleki Kıyafet Mağazası</p>
             </div>
-            <span class="bg-slate-800 text-blue-400 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-500/30">Canlı Sistem</span>
+            <div class="flex items-center gap-4">
+                <!-- Kasa / Bakiye Kutusu -->
+                <div class="bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right">
+                    <span class="text-xs text-slate-400 block">Günlük Toplam Kasa</span>
+                    <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
+                </div>
+                <span class="bg-slate-800 text-blue-400 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-500/30 hidden md:inline-block">Canlı Sistem</span>
+            </div>
         </header>
 
+        <!-- Yeni Ürün Ekleme Paneli -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <h2 class="text-xl font-semibold text-white mb-6">Yeni Ürün & QR Kod Ekle</h2>
 
@@ -55,16 +63,15 @@
             </form>
         </section>
 
+        <!-- Ürünler ve Satış Alanı -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-white">Mevcut Ürünler ve Kategoriler</h2>
-                <!-- Arama Çubuğu -->
                 <div class="w-full md:w-72">
                     <input type="text" id="searchInput" placeholder="Ürün adıyla ara..." oninput="renderProducts()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500">
                 </div>
             </div>
             
-            <!-- Kategori Filtre Butonları -->
             <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4"></div>
 
             <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -73,13 +80,51 @@
         </section>
     </div>
 
+    <!-- Şifre ve Satış Modalı (QR Taratıldığında Açılacak Ekran) -->
+    <div id="qrModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold text-white">Ürün Satış ve Doğrulama Ekranı</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+
+            <!-- Adım 1: Şifre Giriş Alanı -->
+            <div id="authStep" class="space-y-4">
+                <p class="text-sm text-slate-300">Bu üründe işlem yapabilmek için işletme şifresini girmeniz gerekmektedir.</p>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">İşletme Şifresi</label>
+                    <input type="password" id="modalPass" placeholder="Şifrenizi girin..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
+            </div>
+
+            <!-- Adım 2: Satış Yapma ve Stok Azaltma Alanı (Şifre Doğruysa Görünecek) -->
+            <div id="saleStep" class="space-y-4 hidden">
+                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-2">
+                    <h4 id="modalProdName" class="font-bold text-white text-base">Ürün Adı</h4>
+                    <p class="text-sm text-slate-400">Mevcut Stok: <span id="modalProdStock" class="text-white font-bold">0</span> adet</p>
+                    <p class="text-sm text-slate-400">Birim Fiyat: <span id="modalProdPrice" class="text-emerald-400 font-bold">0</span> ₺</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-400 mb-1">Satılacak Adet</label>
+                    <input type="number" id="saleQty" value="1" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button onclick="executeSale()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors">Satışı Onayla ve Kasaya Ekle</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const hostUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
         const hostKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVha2RvaWNocXB5cnRmdGRwcmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTE4OTksImV4cCI6MjEwNzA2Nzg5OX0.tSJF1WgEj2AqRgpGawmFNuurOcQ5-kS0lCtu3cpqOj4'; 
         
         const client = window.supabase.createClient(hostUrl, hostKey);
+        const ADMIN_PASS = "1234"; // Buradan işletme şifreni değiştirebilirsin!
+
         let allProducts = [];
         let activeCategory = 'TÜMÜ';
+        let currentActiveProduct = null;
+        let totalRevenue = 0;
 
         async function fetchAll() {
             try {
@@ -87,11 +132,27 @@
                 if (error) throw error;
 
                 allProducts = data || [];
+                calculateBalance();
                 renderCategories();
                 renderProducts();
             } catch (err) {
                 console.error("Listeleme Hatası:", err);
             }
+        }
+
+        // Toplam kasayı hesapla (Tüm ürünlerin fiyat x satılan veya basit toplam değerler üzerinden cirosu)
+        function calculateBalance() {
+            // Şimdilik toplam ciro simülasyonu veya lokal depolamadan alınabilir
+            // Gerçek projede veritabanına satış tablosu eklenebilir ama pratik olması için ciro localStorage tutuluyor
+            const savedRevenue = localStorage.getItem('store_revenue');
+            totalRevenue = savedRevenue ? parseFloat(savedRevenue) : 0;
+            document.getElementById('totalBalance').textContent = totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
+        }
+
+        function addRevenue(amount) {
+            totalRevenue += amount;
+            localStorage.setItem('store_revenue', totalRevenue);
+            document.getElementById('totalBalance').textContent = totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
         }
 
         function renderCategories() {
@@ -139,8 +200,6 @@
 
             filtered.forEach(item => {
                 const box = document.createElement('div');
-                
-                // Stok 3 veya daha azsa kart kenarlığını kırmızı yapıp dikkat çekelim
                 const isLowStock = item.stock <= 3;
                 box.className = `bg-slate-900 p-4 rounded-lg border ${isLowStock ? 'border-rose-500/80 shadow-lg shadow-rose-950/30' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
                 const codeId = `qr-${item.id}`;
@@ -176,12 +235,80 @@
                 `;
                 list.appendChild(box);
 
-                new QRCode(document.getElementById(codeId), {
-                    text: JSON.stringify({ id: item.id, name: item.name, category: item.category, size: item.size, price: item.price }),
+                // QR Kod tıklandığında şifre/satış ekranını açalım (Müşteri okutunca buraya yönlendirilir veya simüle edilir)
+                const qrDiv = document.getElementById(codeId);
+                new QRCode(qrDiv, {
+                    text: `https://${window.location.host}${window.location.pathname}?scan=${item.id}`,
                     width: 110,
                     height: 110
                 });
+                
+                // QR koda tıklandığında test için doğrudan satış ekranını açma kolaylığı
+                qrDiv.style.cursor = 'pointer';
+                qrDiv.onclick = () => openModal(item);
             });
+        }
+
+        // Modal Yönetimi (QR Taratma Simülasyonu)
+        function openModal(item) {
+            currentActiveProduct = item;
+            document.getElementById('modalPass').value = '';
+            document.getElementById('authStep').classList.remove('hidden');
+            document.getElementById('saleStep').classList.add('hidden');
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('qrModal').classList.add('hidden');
+            document.getElementById('qrModal').classList.remove('flex');
+            currentActiveProduct = null;
+        }
+
+        function verifyPassword() {
+            const pass = document.getElementById('modalPass').value;
+            if (pass === ADMIN_PASS) {
+                document.getElementById('authStep').classList.add('hidden');
+                document.getElementById('saleStep').classList.remove('hidden');
+                
+                // Ürün bilgilerini doldur
+                document.getElementById('modalProdName').textContent = currentActiveProduct.name;
+                document.getElementById('modalProdStock').textContent = currentActiveProduct.stock;
+                document.getElementById('modalProdPrice').textContent = currentActiveProduct.price;
+                document.getElementById('saleQty').value = 1;
+            } else {
+                alert('Hatalı Şifre!');
+            }
+        }
+
+        async function executeSale() {
+            const qty = parseInt(document.getElementById('saleQty').value);
+            if (isNaN(qty) || qty <= 0) {
+                alert('Lütfen geçerli bir adet girin.');
+                return;
+            }
+
+            if (qty > currentActiveProduct.stock) {
+                alert('Stokta yeterli ürün yok!');
+                return;
+            }
+
+            const newStock = currentActiveProduct.stock - qty;
+            const earnedMoney = qty * currentActiveProduct.price;
+
+            // Veritabanında stoğu güncelle
+            const { error } = await client.from('products').update({ stock: newStock }).eq('id', currentActiveProduct.id);
+            if (error) {
+                alert('Satış yapılamadı: ' + error.message);
+                return;
+            }
+
+            // Kasaya parayı ekle
+            addRevenue(earnedMoney);
+
+            alert(`Satış başarılı! ${qty} adet ürün satıldı. Kasaya ${earnedMoney} ₺ eklendi.`);
+            closeModal();
+            fetchAll();
         }
 
         async function updateStock(id, newStock) {
@@ -252,7 +379,20 @@
             }
         });
 
-        window.onload = fetchAll;
+        // Sayfa ilk açıldığında otomatik tarama kontrolü veya verileri çekme
+        window.onload = () => {
+            fetchAll();
+            
+            // Eğer QR kod linkiyle (örn: ?scan=ID) açıldıysa direkt şifre ekranını açalım
+            const urlParams = new URLSearchParams(window.location.search);
+            const scanId = urlParams.get('scan');
+            if (scanId) {
+                setTimeout(() => {
+                    const found = allProducts.find(p => p.id == scanId);
+                    if (found) openModal(found);
+                }, 1000);
+            }
+        };
     </script>
 </body>
 </html>
