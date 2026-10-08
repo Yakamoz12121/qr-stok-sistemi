@@ -128,4 +128,110 @@
 
             if (qrKey) {
                 document.getElementById('adminView').classList.add('hidden');
-                document
+                document.getElementById('customerView').classList.remove('hidden');
+                loadQrProduct(qrKey);
+            } else {
+                loadProducts();
+            }
+        };
+
+        document.getElementById('addProductForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('pTitle').value;
+            const category_id = parseInt(document.getElementById('pCategory').value);
+            const size = document.getElementById('pSize').value;
+            const price = parseFloat(document.getElementById('pPrice').value);
+            const stock_quantity = parseInt(document.getElementById('pStock').value);
+            const fabric_info = document.getElementById('pFabric').value;
+
+            const qr_code_key = 'QR-' + Math.random().toString(36).substring(2, 10).toUpperCase();
+
+            const { data: product, error: err1 } = await _supabase
+                .from('products')
+                .insert([{ title, category_id, fabric_info }])
+                .select().single();
+
+            if (err1) { alert("Hata oluştu: " + err1.message); return; }
+
+            const { error: err2 } = await _supabase
+                .from('product_variants')
+                .insert([{ product_id: product.id, size, price, stock_quantity, qr_code_key }]);
+
+            if (!err2) {
+                alert("Ürün ve QR Kod Başarıyla Oluşturuldu!");
+                document.getElementById('addProductForm').reset();
+                loadProducts();
+            }
+        };
+
+        async function loadProducts() {
+            const { data, error } = await _supabase
+                .from('product_variants')
+                .select('*, products(*)');
+
+            const container = document.getElementById('productList');
+            if (error || !data || !data.length) {
+                container.innerHTML = `<p class="text-slate-500 text-sm">Henüz kayıtlı ürün yok.</p>`;
+                return;
+            }
+
+            container.innerHTML = data.map(v => `
+                <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h4 class="font-bold text-white">${v.products.title}</h4>
+                            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700">${categoryNames[v.products.category_id] || 'Genel'}</span>
+                        </div>
+                        <div class="text-xs text-slate-400 space-x-2 mt-1">
+                            <span>Beden: <strong class="text-sky-400">${v.size}</strong></span>
+                            <span>•</span>
+                            <span>Stok: <strong class="text-emerald-400">${v.stock_quantity} Adet</strong></span>
+                            <span>•</span>
+                            <span>Fiyat: <strong>${v.price} TL</strong></span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="printLabel('${v.products.title}', '${v.size}', '${v.price}', '${v.qr_code_key}')" class="bg-slate-700 hover:bg-slate-600 text-xs text-slate-200 px-3 py-2 rounded-lg transition-all">
+                            🖨️ Etiket Yazdır (QR)
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadQrProduct(qrKey) {
+            const { data, error } = await _supabase
+                .from('product_variants')
+                .select('*, products(*)')
+                .eq('qr_code_key', qrKey)
+                .single();
+
+            if (error || !data) {
+                document.getElementById('viewTitle').innerText = "Ürün Bulunamadı!";
+                return;
+            }
+
+            document.getElementById('viewTitle').innerText = data.products.title;
+            document.getElementById('viewCategory').innerText = categoryNames[data.products.category_id] || "Genel Ürün";
+            document.getElementById('viewSizePrice').innerText = `${data.size} Beden - ${data.price} TL`;
+            document.getElementById('viewStock').innerText = `${data.stock_quantity} Adet Var`;
+            document.getElementById('viewTarget').innerText = data.products.target_group || "Genel Kullanım";
+            document.getElementById('viewFabric').innerText = data.products.fabric_info || "Detay Belirtilmedi";
+        }
+
+        function printLabel(title, size, price, qrKey) {
+            const qrUrl = window.location.origin + window.location.pathname + '?qr=' + qrKey;
+            
+            document.getElementById('printTitle').innerText = title;
+            document.getElementById('printSub').innerText = `Beden: ${size}`;
+            document.getElementById('printPrice').innerText = `${price} TL`;
+            
+            const qrContainer = document.getElementById('printQr');
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, { text: qrUrl, width: 100, height: 100 });
+
+            setTimeout(() => { window.print(); }, 500);
+        }
+    </script>
+</body>
+</html>
