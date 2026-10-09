@@ -22,46 +22,58 @@
                     <span class="text-xs text-slate-400 block">Günlük Ortak Kasa (Yönetici)</span>
                     <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
                 </div>
-                <span class="bg-slate-800 text-blue-400 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-500/30 hidden md:inline-block">Canlı Sistem</span>
+                <button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl text-sm transition-colors shadow-lg">📸 Hızlı QR / Kamera Modu</button>
             </div>
         </header>
 
-        <!-- Yeni Ürün Ekleme Paneli -->
-        <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
-            <h2 class="text-xl font-semibold text-white mb-6">Yeni Ürün & QR Kod Ekle</h2>
+        <!-- Ürün Ekleme (Tekli & Toplu Excel/CSV) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Tekli Ürün Ekle -->
+            <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
+                <h2 class="text-xl font-semibold text-white mb-4">Yeni Ürün Ekle</h2>
+                <form id="productForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Ürün Adı</label>
+                        <input type="text" id="p_name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Kategori</label>
+                            <input type="text" id="p_category" required placeholder="Örn: Kıyafet" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Beden</label>
+                            <input type="text" id="p_size" required placeholder="Örn: S, M, L" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Fiyat (₺)</label>
+                            <input type="number" id="p_price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Stok</label>
+                            <input type="number" id="p_stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Detay</label>
+                        <input type="text" id="p_detail" required placeholder="Kumaş bilgisi vb." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <button type="submit" id="submitBtn" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-2.5 rounded-lg transition-colors text-sm">Ürünü Kaydet</button>
+                </form>
+            </section>
 
-            <form id="productForm" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Ürün Adı</label>
-                        <input type="text" id="p_name" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Kategori Adı</label>
-                        <input type="text" id="p_category" required placeholder="Örn: Kıyafetler, Aksesuarlar..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Beden / Ölçü</label>
-                        <input type="text" id="p_size" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Fiyat (TL)</label>
-                        <input type="number" id="p_price" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Stok Adedi</label>
-                        <input type="number" id="p_stock" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-400 mb-2">Kumaş / Ürün Detayı</label>
-                        <input type="text" id="p_detail" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500">
-                    </div>
+            <!-- Toplu Ürün Yükleme (CSV / Excel Metni) -->
+            <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-white mb-2">Toplu Ürün Yükleme (CSV Formatı)</h2>
+                    <p class="text-xs text-slate-400 mb-3">Her satıra sırasıyla: <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Detay</code> yazarak tek seferde toplu ekleyin.</p>
+                    <textarea id="bulkText" rows="6" placeholder="Hemşir Forması, Kıyafet, M, 450, 10, Likralı&#10;Doktor Önlüğü, Önlük, L, 600, 5, Pamuklu" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-xs font-mono focus:outline-none focus:border-blue-500"></textarea>
                 </div>
-                <button type="submit" id="submitBtn" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold py-3 px-4 rounded-lg transition-colors">
-                    Ürünü Kaydet ve QR Kodu Üret
-                </button>
-            </form>
-        </section>
+                <button onclick="handleBulkUpload()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-colors text-sm mt-4">Toplu Ürünleri Yükle</button>
+            </section>
+        </div>
 
         <!-- Ürünler ve Satış Alanı -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
@@ -98,8 +110,24 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
-            <!-- Adım 2B: Yönetici Kasa Ekle/Çıkar Paneli ve Geçmişi -->
+            <!-- Adım 2B: Yönetici Kasa Paneli, Finansal Özet ve Geçmişi -->
             <div id="adminCashStep" class="space-y-6 hidden">
+                <!-- Finansal Özet Tablosu -->
+                <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Aylık Satış</span>
+                        <span id="summarySales" class="text-sm font-bold text-sky-400">0 ₺</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Eklenen</span>
+                        <span id="summaryAdded" class="text-sm font-bold text-emerald-400">0 ₺</span>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Çıkarılan</span>
+                        <span id="summaryRemoved" class="text-sm font-bold text-rose-400">0 ₺</span>
+                    </div>
+                </div>
+
                 <div class="space-y-4 bg-slate-900 p-4 rounded-xl border border-slate-700">
                     <h4 class="font-bold text-emerald-400 text-sm">Manuel Kasa İşlemi Yap</h4>
                     <div>
@@ -121,13 +149,30 @@
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-white text-sm">Kasa İşlem Geçmişi</h4>
                         <select id="monthSelect" onchange="filterTransactionsByMonth()" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500">
-                            <!-- Aylar dinamik olarak buraya eklenecek -->
                         </select>
                     </div>
                     <div id="transactionList" class="bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-48 overflow-y-auto space-y-2 text-xs">
                         <p class="text-slate-500 text-center">Yükleniyor...</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Kamera / Barkod Tarama Simülasyon Modalı -->
+    <div id="scannerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
+            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+                <h3 class="text-lg font-bold text-white">Hızlı Satış / Tarama Modu</h3>
+                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <p class="text-sm text-slate-300">Mağazadaki ürün ID numarasını girerek hızlıca satış yapabilirsiniz:</p>
+            <div class="flex gap-2">
+                <input type="number" id="quickScanId" placeholder="Ürün ID yazın..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                <button onclick="processQuickScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-sm">Satış Yap</button>
+            </div>
+            <div id="quickScanResult" class="text-left text-xs text-slate-400 bg-slate-900 p-3 rounded-xl border border-slate-700 mt-2">
+                Ürün bekleniyor...
             </div>
         </div>
     </div>
@@ -142,9 +187,7 @@
         let allProducts = [];
         let allTransactions = [];
         let activeCategory = 'TÜMÜ';
-        let currentActiveProduct = null;
         let totalRevenue = 0;
-        let modalMode = 'sale';
 
         async function fetchAll() {
             try {
@@ -184,18 +227,12 @@
         }
 
         async function fetchTransactions() {
-            const listEl = document.getElementById('transactionList');
-            listEl.innerHTML = '<p class="text-slate-500 text-center">Yükleniyor...</p>';
-
             const { data, error } = await client.from('transactions').select('*').order('created_at', { ascending: false });
-            if (error) {
-                listEl.innerHTML = '<p class="text-rose-400 text-center">Geçmiş yüklenemedi.</p>';
-                return;
+            if (!error) {
+                allTransactions = data || [];
+                populateMonthDropdown();
+                filterTransactionsByMonth();
             }
-
-            allTransactions = data || [];
-            populateMonthDropdown();
-            filterTransactionsByMonth();
         }
 
         function populateMonthDropdown() {
@@ -210,21 +247,17 @@
             });
 
             const sortedMonths = Array.from(monthsMap).sort().reverse();
-            
             if (sortedMonths.length === 0) {
                 const now = new Date();
-                const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-                sortedMonths.push(currentYM);
+                sortedMonths.push(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
             }
 
             sortedMonths.forEach(ym => {
                 const [year, month] = ym.split('-');
                 const dateObj = new Date(year, month - 1);
-                const monthName = dateObj.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
-
                 const opt = document.createElement('option');
                 opt.value = ym;
-                opt.textContent = monthName;
+                opt.textContent = dateObj.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
                 selectEl.appendChild(opt);
             });
         }
@@ -236,16 +269,20 @@
 
             const filtered = allTransactions.filter(tx => {
                 const date = new Date(tx.created_at);
-                const txYM = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                return txYM === selectedYM;
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` === selectedYM;
             });
 
-            if (filtered.length === 0) {
-                listEl.innerHTML = '<p class="text-slate-500 text-center">Bu ay için kayıt bulunmuyor.</p>';
-                return;
-            }
+            let sumSales = 0, sumAdded = 0, sumRemoved = 0;
 
             filtered.forEach(tx => {
+                if (tx.note.toLowerCase().includes('satış') || tx.type === 'EKLEME' && tx.note.toLowerCase().includes('satış')) {
+                    sumSales += tx.amount;
+                } else if (tx.type === 'EKLEME') {
+                    sumAdded += tx.amount;
+                } else {
+                    sumRemoved += tx.amount;
+                }
+
                 const isAdd = tx.type === 'EKLEME';
                 const dateStr = new Date(tx.created_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
                 
@@ -260,28 +297,29 @@
                 `;
                 listEl.appendChild(div);
             });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<p class="text-slate-500 text-center">Bu ay için kayıt bulunmuyor.</p>';
+            }
+
+            document.getElementById('summarySales').textContent = sumSales.toLocaleString('tr-TR') + ' ₺';
+            document.getElementById('summaryAdded').textContent = sumAdded.toLocaleString('tr-TR') + ' ₺';
+            document.getElementById('summaryRemoved').textContent = sumRemoved.toLocaleString('tr-TR') + ' ₺';
         }
 
         function renderCategories() {
             const tabsContainer = document.getElementById('categoryTabs');
             tabsContainer.innerHTML = '';
-
             const categories = ['TÜMÜ', ...new Set(allProducts.map(p => p.category ? p.category.trim() : 'Genel'))];
 
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 const isActive = activeCategory === cat;
                 btn.className = `px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                    isActive 
-                        ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' 
-                        : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-700'
+                    isActive ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-700'
                 }`;
                 btn.textContent = cat;
-                btn.onclick = () => {
-                    activeCategory = cat;
-                    renderCategories();
-                    renderProducts();
-                };
+                btn.onclick = () => { activeCategory = cat; renderCategories(); renderProducts(); };
                 tabsContainer.appendChild(btn);
             });
         }
@@ -289,19 +327,13 @@
         function renderProducts() {
             const list = document.getElementById('productList');
             list.innerHTML = '';
-
             const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
 
-            let filtered = activeCategory === 'TÜMÜ' 
-                ? allProducts 
-                : allProducts.filter(item => (item.category ? item.category.trim() : 'Genel') === activeCategory);
-
-            if (searchQuery) {
-                filtered = filtered.filter(item => item.name.toLowerCase().includes(searchQuery));
-            }
+            let filtered = activeCategory === 'TÜMÜ' ? allProducts : allProducts.filter(item => (item.category ? item.category.trim() : 'Genel') === activeCategory);
+            if (searchQuery) filtered = filtered.filter(item => item.name.toLowerCase().includes(searchQuery));
 
             if (filtered.length === 0) {
-                list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün bulunmuyor veya aradığınız kriterlere uygun sonuç yok.</p>';
+                list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün bulunmuyor.</p>';
                 return;
             }
 
@@ -330,11 +362,10 @@
                     </div>
                     <div class="w-full space-y-2 mt-auto">
                         <div class="flex gap-2">
-                            <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
-                            <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
+                            <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-bold">Hızlı Sat (-1 Adet)</button>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır / İndir</button>
+                            <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır</button>
                             <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50 font-medium">Sil</button>
                         </div>
                     </div>
@@ -342,13 +373,65 @@
                 `;
                 list.appendChild(box);
 
-                const qrDiv = document.getElementById(codeId);
-                new QRCode(qrDiv, {
+                new QRCode(document.getElementById(codeId), {
                     text: `Ürün: ${item.name} | Beden: ${item.size} | Fiyat: ${item.price} ₺`,
                     width: 110,
                     height: 110
                 });
             });
+        }
+
+        async function quickSellItem(id, qty) {
+            const item = allProducts.find(p => p.id === id);
+            if (!item || item.stock < qty) {
+                alert('Stokta yeterli ürün yok!');
+                return;
+            }
+            const newStock = item.stock - qty;
+            const totalEarned = qty * item.price;
+
+            const { error } = await client.from('products').update({ stock: newStock }).eq('id', id);
+            if (error) {
+                alert('Satış hatası: ' + error.message);
+                return;
+            }
+
+            await addRevenue(totalEarned, `Hızlı Satış: ${item.name} (${qty} Adet)`, 'EKLEME');
+            alert(`Satış başarılı! ${totalEarned} ₺ kasaya eklendi.`);
+            fetchAll();
+        }
+
+        // Toplu Ürün Ekleme (CSV)
+        async function handleBulkUpload() {
+            const text = document.getElementById('bulkText').value.trim();
+            if (!text) {
+                alert('Lütfen yüklenecek ürünleri girin.');
+                return;
+            }
+
+            const lines = text.split('\n');
+            let successCount = 0;
+
+            for (let line of lines) {
+                const parts = line.split(',').map(p => p.trim());
+                if (parts.length >= 6) {
+                    const [name, category, size, price, stock, detail] = parts;
+                    const payload = {
+                        name,
+                        category,
+                        size,
+                        price: parseFloat(price) || 0,
+                        stock: parseInt(stock) || 0,
+                        detail
+                    };
+                    const { error } = await client.from('products').insert([payload]);
+                    if (!error) successCount++;
+                }
+            }
+
+            alert(`${successCount} ürün başarıyla eklendi!`);
+            document.getElementById('bulkText').value = '';
+            fetchAll();
         }
 
         function openAdminPanel() {
@@ -363,18 +446,14 @@
         }
 
         function closeModal() {
-            const modal = document.getElementById('qrModal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
+            document.getElementById('qrModal').classList.remove('flex');
+            document.getElementById('qrModal').classList.add('hidden');
         }
 
         function verifyPassword() {
-            const pass = document.getElementById('modalPass').value;
-            if (pass === ADMIN_PASS) {
+            if (document.getElementById('modalPass').value === ADMIN_PASS) {
                 document.getElementById('authStep').classList.add('hidden');
                 document.getElementById('adminCashStep').classList.remove('hidden');
-                document.getElementById('adminCashAmount').value = '';
-                document.getElementById('adminCashNote').value = '';
                 fetchTransactions();
             } else {
                 alert('Hatalı Şifre!');
@@ -382,72 +461,70 @@
         }
 
         async function executeAdminCash(multiplier) {
-            const amountInput = document.getElementById('adminCashAmount');
-            const noteInput = document.getElementById('adminCashNote');
-            
-            const val = parseFloat(amountInput.value);
-            if (isNaN(val) || val <= 0) {
-                alert('Lütfen geçerli bir tutar girin.');
+            const amount = parseFloat(document.getElementById('adminCashAmount').value);
+            const note = document.getElementById('adminCashNote').value.trim() || (multiplier > 0 ? 'Nakit Ekleme' : 'Masraf/Çıkarma');
+            if (isNaN(amount) || amount <= 0) {
+                alert('Geçerli bir tutar girin.');
                 return;
             }
-
-            const finalAmount = val * multiplier;
-            const noteText = noteInput.value.trim() ? noteInput.value.trim() : (multiplier > 0 ? 'Nakit Ekleme' : 'Kasadan Çıkarma');
-            const type = multiplier > 0 ? 'EKLEME' : 'ÇIKARMA';
-
-            await addRevenue(finalAmount, noteText, type);
-
-            alert(`İşlem başarılı! Kasadan ${Math.abs(finalAmount)} ₺ ${multiplier > 0 ? 'eklendi' : 'çıkarıldı'}.`);
+            await addRevenue(amount * multiplier, note, multiplier > 0 ? 'EKLEME' : 'ÇIKARMA');
+            alert('İşlem kaydedildi.');
             closeModal();
             fetchAll();
         }
 
+        function openScannerModal() {
+            document.getElementById('scannerModal').classList.remove('hidden');
+            document.getElementById('scannerModal').classList.add('flex');
+            document.getElementById('quickScanId').value = '';
+            document.getElementById('quickScanResult').textContent = 'Ürün bekleniyor...';
+        }
+
+        function closeScannerModal() {
+            document.getElementById('scannerModal').classList.remove('flex');
+            document.getElementById('scannerModal').classList.add('hidden');
+        }
+
+        function processQuickScan() {
+            const id = parseInt(document.getElementById('quickScanId').value);
+            const item = allProducts.find(p => p.id === id);
+            const resEl = document.getElementById('quickScanResult');
+
+            if (!item) {
+                resEl.innerHTML = '<span class="text-rose-400">Bu ID ile eşleşen ürün bulunamadı!</span>';
+                return;
+            }
+
+            resEl.innerHTML = `
+                <p class="font-bold text-white">${item.name} (${item.size})</p>
+                <p>Fiyat: <span class="text-emerald-400">${item.price} ₺</span> | Stok: ${item.stock}</p>
+                <button onclick="quickSellItem(${item.id}, 1); closeScannerModal();" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded text-xs">Bu Ürünü Sat (Onayla)</button>
+            `;
+        }
+
         async function updateStock(id, newStock) {
             if (newStock < 0) return;
-            const { error } = await client.from('products').update({ stock: newStock }).eq('id', id);
-            if (error) {
-                alert('Stok güncellenemedi: ' + error.message);
-            } else {
-                fetchAll();
-            }
+            await client.from('products').update({ stock: newStock }).eq('id', id);
+            fetchAll();
         }
 
         async function deleteProduct(id) {
-            if (!confirm('Bu ürünü silmek istediğinize emin misiniz?')) return;
-            const { error } = await client.from('products').delete().eq('id', id);
-            if (error) {
-                alert('Silme hatası: ' + error.message);
-            } else {
-                fetchAll();
-            }
+            if (!confirm('Silmek istediğinize emin misiniz?')) return;
+            await client.from('products').delete().eq('id', id);
+            fetchAll();
         }
 
         function printQR(name, size, codeId) {
             const qrElement = document.getElementById(codeId);
             const img = qrElement.querySelector('img') || qrElement.querySelector('canvas');
             if (!img) return;
-
             const win = window.open('', '_print');
-            win.document.write(`
-                <html>
-                    <head><title>${name} - QR Etiket</title></head>
-                    <body style="text-align:center; font-family:sans-serif; margin-top:50px;">
-                        <h2>${name}</h2>
-                        <p>Beden: ${size}</p>
-                        <img src="${img.src || img.toDataURL()}" style="width:200px; height:200px; margin:20px auto; display:block;" />
-                        <script>window.print(); window.close();<\/script>
-                    </body>
-                </html>
-            `);
+            win.document.write(`<html><head><title>${name}</title></head><body style="text-align:center; margin-top:50px;"><h2>${name}</h2><p>Beden: ${size}</p><img src="${img.src || img.toDataURL()}" style="width:200px; height:200px;" /><script>window.print(); window.close();<\/script></body></html>`);
             win.document.close();
         }
 
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.textContent = 'Kaydediliyor...';
-            submitBtn.disabled = true;
-
             const payload = {
                 name: document.getElementById('p_name').value,
                 category: document.getElementById('p_category').value.trim(),
@@ -456,16 +533,9 @@
                 stock: parseInt(document.getElementById('p_stock').value),
                 detail: document.getElementById('p_detail').value
             };
-
             const { error } = await client.from('products').insert([payload]);
-            
-            submitBtn.textContent = 'Ürünü Kaydet ve QR Kodu Üret';
-            submitBtn.disabled = false;
-
-            if (error) {
-                alert('Kayıt Hatası: ' + error.message);
-            } else {
-                document.getElementById('productForm'.reset());
+            if (!error) {
+                document.getElementById('productForm').reset();
                 fetchAll();
             }
         });
