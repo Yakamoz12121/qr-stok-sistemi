@@ -92,7 +92,7 @@
         </section>
     </div>
 
-    <!-- Ortak Şifre ve İşlem Modalı (Yönetici Paneli veya QR Satış Ekranı İçin) -->
+    <!-- Ortak Şifre ve İşlem Modalı -->
     <div id="qrModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
@@ -195,7 +195,7 @@
         let activeCategory = 'TÜMÜ';
         let totalRevenue = 0;
         let pendingScanProductId = null;
-        let currentModalMode = null; // 'admin' veya 'qr_sell'
+        let currentModalMode = null;
 
         async function fetchAll() {
             try {
@@ -215,10 +215,9 @@
                 renderCategories();
                 renderProducts();
 
-                // URL'de ?id=X var mı kontrol et (QR taratılıp açıldıysa)
                 const urlParams = new URLSearchParams(window.location.search);
                 const scannedId = urlParams.get('id');
-                if (scannedId) {
+                if (scannedId && !pendingScanProductId) {
                     pendingScanProductId = parseInt(scannedId);
                     openPasswordModalForQRSell();
                 }
@@ -421,14 +420,18 @@
             }
 
             await addRevenue(totalEarned, `Hızlı Satış: ${item.name} (${qty} Adet)`, 'EKLEME');
+            
+            // Satış başarılı uyarısı ve modal/URL temizliği
             alert(`Satış başarılı! ${totalEarned} ₺ kasaya eklendi.`);
             
-            // Eğer QR taratılıp URL'den açıldıysa işlem sonrası URL'yi temizle ve modalı kapat
+            pendingScanProductId = null;
             if (window.location.search.includes('id=')) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
             closeModal();
-            fetchAll();
+            
+            // Verileri ve arayüzü anında yeniden yükle
+            await fetchAll();
         }
 
         async function handleBulkUpload() {
@@ -492,6 +495,7 @@
         function closeModal() {
             document.getElementById('qrModal').classList.remove('flex');
             document.getElementById('qrModal').classList.add('hidden');
+            pendingScanProductId = null;
             if (window.location.search.includes('id=')) {
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
