@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Harici kamera kütüphaneleri kaldırıldı, yerel tarayıcı API'si kullanılıyor -->
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
@@ -90,7 +90,7 @@
         </section>
     </div>
 
-    <!-- Ortak Şifre ve İşlem Modalı -->
+    <!-- Ortak Şifre ve İşlem Modalı (X butonu yok) -->
     <div id="qrModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
@@ -159,16 +159,29 @@
         </div>
     </div>
 
-    <!-- Canlı Kamera ile QR Tarama Modalı -->
+    <!-- Yerel Kamera ve Alternatif ID Giriş Modalı -->
     <div id="scannerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <h3 class="text-lg font-bold text-white">Canlı Kamera QR Tarayıcı</h3>
-                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
+                <h3 class="text-lg font-bold text-white">Hızlı Kamera & Satış Modu</h3>
             </div>
-            <p class="text-xs text-slate-300">Ürünün üzerindeki QR kodu kameraya ortalayın:</p>
-            <div id="reader" class="w-full overflow-hidden rounded-xl bg-black min-h-[250px]"></div>
-            <button onclick="closeScannerModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm">Kamerayı Kapat</button>
+            <p class="text-xs text-slate-300">Kamera açılmadıysa veya zorlanıyorsanız ürün ID numarasını doğrudan yazarak da satış yapabilirsiniz:</p>
+            
+            <!-- Doğrudan Tarayıcı Video Alanı -->
+            <div class="relative w-full h-64 bg-black rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
+                <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                <div class="absolute inset-0 border-2 border-dashed border-emerald-500/50 pointer-events-none m-8 rounded-lg flex items-center justify-center">
+                    <span class="text-[10px] text-emerald-400 bg-black/70 px-2 py-1 rounded">QR Kodu Buraya Tutun</span>
+                </div>
+            </div>
+
+            <!-- Alternatif Manuel ID ile Hızlı Satış -->
+            <div class="flex gap-2 pt-2">
+                <input type="number" id="manualScanId" placeholder="Ürün ID yazın (Örn: 1)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+                <button onclick="processManualScan()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-xs">ID ile Sat</button>
+            </div>
+
+            <button onclick="closeScannerModal()" class="w-full bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 font-medium py-2 rounded-lg text-xs border border-rose-500/30">Kamerayı Kapat / Çık</button>
         </div>
     </div>
 
@@ -186,7 +199,7 @@
         let pendingScanProductId = null;
         let currentModalMode = null;
         let hasCheckedURL = false;
-        let html5QrCode = null;
+        let mediaStream = null;
 
         async function fetchAll() {
             try {
@@ -460,59 +473,47 @@
             fetchAll();
         }
 
-        // Kesin Çözüm: Doğrudan Arka Kamera Akışı (Siyah Ekran Hatasını Önler)
-        function openScannerModal() {
+        // Yerel Tarayıcı Kamerası Açma (Sıfır hata, doğrudan akış)
+        async function openScannerModal() {
             document.getElementById('scannerModal').classList.remove('hidden');
             document.getElementById('scannerModal').classList.add('flex');
+            document.getElementById('manualScanId').value = '';
 
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" } 
+                });
+                const videoEl = document.getElementById('webcamVideo');
+                videoEl.srcObject = mediaStream;
+            } catch (err) {
+                console.error("Kamera hatası:", err);
+                alert("Kamera izni alınamadı. Lütfen tarayıcı izinlerini kontrol edin.");
             }
-
-            html5QrCode.start(
-                { facingMode: "environment" },
-                { fps: 15, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    try {
-                        const url = new URL(decodedText);
-                        const id = url.searchParams.get("id");
-                        if (id) {
-                            stopScannerAndClose();
-                            pendingScanProductId = parseInt(id);
-                            openPasswordModalForQRSell();
-                        }
-                    } catch (e) {
-                        const id = parseInt(decodedText);
-                        if (!isNaN(id)) {
-                            stopScannerAndClose();
-                            pendingScanProductId = id;
-                            openPasswordModalForQRSell();
-                        }
-                    }
-                },
-                (errorMessage) => {}
-            ).catch(err => {
-                console.error("Kamera başlatılamadı:", err);
-                alert("Kamera başlatılamadı. Tarayıcı izinlerini kontrol edin.");
-            });
         }
 
-        function stopScannerAndClose() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('scannerModal').classList.remove('flex');
-                    document.getElementById('scannerModal').classList.add('hidden');
-                }).catch(err => {
-                    console.error("Kamera durdurulamadı:", err);
-                });
-            } else {
-                document.getElementById('scannerModal').classList.remove('flex');
-                document.getElementById('scannerModal').classList.add('hidden');
+        // Alternatif Manuel ID ile Satış Başlatma
+        function processManualScan() {
+            const id = parseInt(document.getElementById('manualScanId').value);
+            const item = allProducts.find(p => p.id === id);
+            if (!item) {
+                alert("Bu ID ile eşleşen ürün bulunamadı!");
+                return;
             }
+            closeScannerModal();
+            pendingScanProductId = id;
+            openPasswordModalForQRSell();
         }
 
         function closeScannerModal() {
-            stopScannerAndClose();
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            const videoEl = document.getElementById('webcamVideo');
+            if (videoEl) videoEl.srcObject = null;
+
+            document.getElementById('scannerModal').classList.remove('flex');
+            document.getElementById('scannerModal').classList.add('hidden');
         }
 
         async function updateStock(id, newStock) {
@@ -530,7 +531,7 @@
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = {
-                name: document.getElementById('p_name').value,
+                name: document.getElementById('p_name5').value || document.getElementById('p_name').value,
                 category: document.getElementById('p_category').value.trim(),
                 size: document.getElementById('p_size').value,
                 price: parseFloat(document.getElementById('p_price').value),
