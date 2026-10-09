@@ -158,18 +158,18 @@
         </div>
     </div>
 
-    <!-- Kamera & Manuel ID Modalı -->
+    <!-- Arka Kamera Doğrudan Çalışma Modalı -->
     <div id="scannerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <h3 class="text-lg font-bold text-white">Hızlı Kamera & Satış Modu</h3>
+                <h3 class="text-lg font-bold text-white">Arka Kamera & Hızlı Satış</h3>
             </div>
-            <p class="text-xs text-slate-300">Kamera akışı veya ürün ID ile hızlı işlem yapın:</p>
+            <p class="text-xs text-slate-300">Arka kamera açıldı. Ürünün ID numarasını girerek hızlıca işlem yapabilirsiniz:</p>
             
             <div class="relative w-full h-64 bg-black rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
-                <video id="webcamVideo" autoplay playsinline class="w-full h-full object-cover"></video>
+                <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
                 <div class="absolute inset-0 border-2 border-dashed border-emerald-500/50 pointer-events-none m-8 rounded-lg flex items-center justify-center">
-                    <span class="text-[10px] text-emerald-400 bg-black/70 px-2 py-1 rounded">Kamera Aktif</span>
+                    <span class="text-[10px] text-emerald-400 bg-black/70 px-2 py-1 rounded">Arka Kamera Aktif</span>
                 </div>
             </div>
 
@@ -178,7 +178,7 @@
                 <button onclick="processManualScan()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-xs">ID ile Sat</button>
             </div>
 
-            <button onclick="closeScannerModal()" class="w-full bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 font-medium py-2 rounded-lg text-xs border border-rose-500/30">Kamerayı Kapat / Çık</button>
+            <button onclick="closeScannerModal()" class="w-full bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 font-medium py-2 rounded-lg text-xs border border-rose-500/30">Kapat / Çık</button>
         </div>
     </div>
 
@@ -470,19 +470,23 @@
             fetchAll();
         }
 
+        // Arka Kamerayı Doğrudan Açan Fonksiyon
         async function openScannerModal() {
-            document.getElementById('scannerModal').classList.remove('flex'); // sıfırla
-            document.getElementById('scannerModal').classList.add('flex');
+            const modal = document.getElementById('scannerModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
             document.getElementById('manualScanId').value = '';
 
             try {
+                // Arka kamerayı zorla (desteklemeyen cihazlarda genel video açar)
                 mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "environment" } 
+                    video: { facingMode: { ideal: "environment" } } 
                 });
                 const videoEl = document.getElementById('webcamVideo');
                 videoEl.srcObject = mediaStream;
             } catch (err) {
                 console.error("Kamera hatası:", err);
+                alert("Kamera izni verilmedi veya cihazda kamera bulunamadı.");
             }
         }
 
