@@ -362,7 +362,11 @@
                     </div>
                     <div class="w-full space-y-2 mt-auto">
                         <div class="flex gap-2">
-                            <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-bold">Hızlı Sat (-1 Adet)</button>
+                            <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
+                            <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1 Adet)</button>
                         </div>
                         <div class="flex gap-2">
                             <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır</button>
@@ -401,7 +405,6 @@
             fetchAll();
         }
 
-        // Toplu Ürün Ekleme (CSV)
         async function handleBulkUpload() {
             const text = document.getElementById('bulkText').value.trim();
             if (!text) {
