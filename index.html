@@ -92,7 +92,7 @@
         </section>
     </div>
 
-    <!-- Şifre ve Yönetici Kasa Paneli Modalı -->
+    <!-- Ortak Şifre ve İşlem Modalı (Yönetici Paneli veya QR Satış Ekranı İçin) -->
     <div id="qrModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
@@ -110,9 +110,16 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
-            <!-- Adım 2: Yönetici Kasa Paneli, Finansal Özet ve Geçmişi -->
+            <!-- Adım 2A: QR Taratılan Ürünü Satma Ekranı -->
+            <div id="qrProductSellStep" class="space-y-4 hidden">
+                <div id="scannedProductDetails" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-sm space-y-2">
+                    <!-- Ürün bilgileri buraya dolacak -->
+                </div>
+                <button id="confirmScanSellBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors text-sm">Bu Ürünü Sat ve Kasaya Ekle (-1)</button>
+            </div>
+
+            <!-- Adım 2B: Yönetici Kasa Paneli, Finansal Özet ve Geçmişi -->
             <div id="adminCashStep" class="space-y-6 hidden">
-                <!-- Finansal Özet Tablosu -->
                 <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center">
                     <div>
                         <span class="text-[10px] text-slate-400 block">Aylık Satış</span>
@@ -144,7 +151,6 @@
                     </div>
                 </div>
 
-                <!-- Kasa İşlem Geçmişi ve Ay Seçici -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-white text-sm">Kasa İşlem Geçmişi</h4>
@@ -188,6 +194,8 @@
         let allTransactions = [];
         let activeCategory = 'TÜMÜ';
         let totalRevenue = 0;
+        let pendingScanProductId = null;
+        let currentModalMode = null; // 'admin' veya 'qr_sell'
 
         async function fetchAll() {
             try {
@@ -206,6 +214,14 @@
                 updateBalanceDisplay();
                 renderCategories();
                 renderProducts();
+
+                // URL'de ?id=X var mı kontrol et (QR taratılıp açıldıysa)
+                const urlParams = new URLSearchParams(window.location.search);
+                const scannedId = urlParams.get('id');
+                if (scannedId) {
+                    pendingScanProductId = parseInt(scannedId);
+                    openPasswordModalForQRSell();
+                }
             } catch (err) {
                 console.error("Veri Çekme Hatası:", err);
             }
@@ -406,6 +422,12 @@
 
             await addRevenue(totalEarned, `Hızlı Satış: ${item.name} (${qty} Adet)`, 'EKLEME');
             alert(`Satış başarılı! ${totalEarned} ₺ kasaya eklendi.`);
+            
+            // Eğer QR taratılıp URL'den açıldıysa işlem sonrası URL'yi temizle ve modalı kapat
+            if (window.location.search.includes('id=')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            closeModal();
             fetchAll();
         }
 
@@ -442,10 +464,25 @@
         }
 
         function openAdminPanel() {
+            currentModalMode = 'admin';
             document.getElementById('modalTitle').textContent = 'Yönetici Kasa Paneli';
             document.getElementById('modalPass').value = '';
             document.getElementById('authStep').classList.remove('hidden');
             document.getElementById('adminCashStep').classList.add('hidden');
+            document.getElementById('qrProductSellStep').classList.add('hidden');
+            
+            const modal = document.getElementById('qrModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openPasswordModalForQRSell() {
+            currentModalMode = 'qr_sell';
+            document.getElementById('modalTitle').textContent = 'QR Ürün Satış Onayı';
+            document.getElementById('modalPass').value = '';
+            document.getElementById('authStep').classList.remove('hidden');
+            document.getElementById('adminCashStep').classList.add('hidden');
+            document.getElementById('qrProductSellStep').classList.add('hidden');
             
             const modal = document.getElementById('qrModal');
             modal.classList.remove('hidden');
@@ -455,13 +492,39 @@
         function closeModal() {
             document.getElementById('qrModal').classList.remove('flex');
             document.getElementById('qrModal').classList.add('hidden');
+            if (window.location.search.includes('id=')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
 
         function verifyPassword() {
             if (document.getElementById('modalPass').value === ADMIN_PASS) {
                 document.getElementById('authStep').classList.add('hidden');
-                document.getElementById('adminCashStep').classList.remove('hidden');
-                fetchTransactions();
+                
+                if (currentModalMode === 'admin') {
+                    document.getElementById('adminCashStep').classList.remove('hidden');
+                    fetchTransactions();
+                } else if (currentModalMode === 'qr_sell') {
+                    document.getElementById('qrProductSellStep').classList.remove('hidden');
+                    
+                    const item = allProducts.find(p => p.id === pendingScanProductId);
+                    const detailsEl = document.getElementById('scannedProductDetails');
+                    const sellBtn = document.getElementById('confirmScanSellBtn');
+
+                    if (item) {
+                        detailsEl.innerHTML = `
+                            <p class="text-white font-bold text-base">Ürün: ${item.name}</p>
+                            <p>Kategori: ${item.category} | Beden: <span class="text-white font-bold">${item.size}</span></p>
+                            <p>Fiyat: <span class="text-emerald-400 font-bold">${item.price} ₺</span></p>
+                            <p>Mevcut Stok: <span class="text-sky-400 font-bold">${item.stock} adet</span></p>
+                            <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
+                        `;
+                        sellBtn.onclick = () => quickSellItem(item.id, 1);
+                    } else {
+                        detailsEl.innerHTML = `<p class="text-rose-400">Ürün bulunamadı veya ID geçersiz.</p>`;
+                        sellBtn.classList.add('hidden');
+                    }
+                }
             } else {
                 alert('Hatalı Şifre!');
             }
