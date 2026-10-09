@@ -125,12 +125,10 @@
 
         async function fetchAll() {
             try {
-                // Ürünleri çek
                 const prodRes = await client.from('products').select('*').order('created_at', { ascending: false });
                 if (prodRes.error) throw prodRes.error;
                 allProducts = prodRes.data || [];
 
-                // Kasayı çek (Hata verirse çökmesin diye ayrı kontrol)
                 const settingsRes = await client.from('settings').select('*').eq('key', 'total_revenue').maybeSingle();
                 if (settingsRes.data) {
                     totalRevenue = parseFloat(settingsRes.data.value) || 0;
@@ -142,6 +140,16 @@
                 updateBalanceDisplay();
                 renderCategories();
                 renderProducts();
+
+                // Sayfa yüklendiğinde URL'de scan parametresi varsa (örn: ?scan=5) direkt şifre ekranını aç
+                const urlParams = new URLSearchParams(window.location.search);
+                const scanId = urlParams.get('scan');
+                if (scanId) {
+                    const found = allProducts.find(p => p.id == scanId);
+                    if (found) {
+                        openModal(found);
+                    }
+                }
             } catch (err) {
                 console.error("Veri Çekme Hatası:", err);
                 document.getElementById('productList').innerHTML = `<p class="text-rose-400 col-span-full">Veriler yüklenirken hata oluştu: ${err.message}</p>`;
@@ -374,18 +382,7 @@
             }
         });
 
-        window.onload = () => {
-            fetchAll();
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const scanId = urlParams.get('scan');
-            if (scanId) {
-                setTimeout(() => {
-                    const found = allProducts.get(p => p.id == scanId);
-                    if (found) openModal(found);
-                }, 1000);
-            }
-        };
+        window.onload = fetchAll;
     </script>
 </body>
 </html>
