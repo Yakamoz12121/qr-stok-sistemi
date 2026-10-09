@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Kesin Çözüm İçin Resmi QR Kamera Kütüphanesi -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
@@ -158,27 +160,24 @@
         </div>
     </div>
 
-    <!-- Arka Kamera Doğrudan Çalışma Modalı -->
+    <!-- Gerçek Arka Kamera QR Okuyucu Modalı -->
     <div id="scannerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <h3 class="text-lg font-bold text-white">Arka Kamera & Hızlı Satış</h3>
+                <h3 class="text-lg font-bold text-white">Canlı QR Kod Okuyucu</h3>
             </div>
-            <p class="text-xs text-slate-300">Arka kamera açıldı. Ürünün ID numarasını girerek hızlıca işlem yapabilirsiniz:</p>
+            <p class="text-xs text-slate-300">Ürün etiketindeki QR kodu kamera alanına ortalayın:</p>
             
-            <div class="relative w-full h-64 bg-black rounded-xl overflow-hidden border border-slate-700 flex items-center justify-center">
-                <video id="webcamVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                <div class="absolute inset-0 border-2 border-dashed border-emerald-500/50 pointer-events-none m-8 rounded-lg flex items-center justify-center">
-                    <span class="text-[10px] text-emerald-400 bg-black/70 px-2 py-1 rounded">Arka Kamera Aktif</span>
-                </div>
-            </div>
+            <!-- Kamera Motorunun Çalışacağı Alan -->
+            <div id="reader" class="w-full overflow-hidden rounded-xl bg-black"></div>
 
-            <div class="flex gap-2 pt-2">
-                <input type="number" id="manualScanId" placeholder="Ürün ID yazın (Örn: 1)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
+            <!-- Acil Durum / Alternatif ID ile Satış -->
+            <div class="flex gap-2 pt-2 border-t border-slate-700">
+                <input type="number" id="manualScanId" placeholder="ID yaz (Örn: 1)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-blue-500">
                 <button onclick="processManualScan()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-xs">ID ile Sat</button>
             </div>
 
-            <button onclick="closeScannerModal()" class="w-full bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 font-medium py-2 rounded-lg text-xs border border-rose-500/30">Kapat / Çık</button>
+            <button onclick="closeScannerModal()" class="w-full bg-rose-600/30 hover:bg-rose-600/50 text-rose-300 font-medium py-2 rounded-lg text-xs border border-rose-500/30">Kamerayı Kapat / Çık</button>
         </div>
     </div>
 
@@ -196,7 +195,7 @@
         let pendingScanProductId = null;
         let currentModalMode = null;
         let hasCheckedURL = false;
-        let mediaStream = null;
+        let html5QrCode = null;
 
         async function fetchAll() {
             try {
@@ -470,24 +469,46 @@
             fetchAll();
         }
 
-        // Arka Kamerayı Doğrudan Açan Fonksiyon
-        async function openScannerModal() {
+        // Kesin Çalışan Arka Kamera QR Okuyucu Motoru
+        function openScannerModal() {
             const modal = document.getElementById('scannerModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             document.getElementById('manualScanId').value = '';
 
-            try {
-                // Arka kamerayı zorla (desteklemeyen cihazlarda genel video açar)
-                mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: { ideal: "environment" } } 
-                });
-                const videoEl = document.getElementById('webcamVideo');
-                videoEl.srcObject = mediaStream;
-            } catch (err) {
-                console.error("Kamera hatası:", err);
-                alert("Kamera izni verilmedi veya cihazda kamera bulunamadı.");
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
             }
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    // QR okunduğu an otomatik çalışır
+                    try {
+                        const url = new URL(decodedText);
+                        const id = url.searchParams.get("id");
+                        if (id) {
+                            stopScannerAndClose();
+                            pendingScanProductId = parseInt(id);
+                            openPasswordModalForQRSell();
+                        }
+                    } catch (e) {
+                        const id = parseInt(decodedText);
+                        if (!isNaN(id)) {
+                            stopScannerAndClose();
+                            pendingScanProductId = id;
+                            openPasswordModalForQRSell();
+                        }
+                    }
+                },
+                (errorMessage) => {
+                    // Tarama esnasındaki rutin arama logları yoksayılır
+                }
+            ).catch(err => {
+                console.error("Kamera başlatılamadı:", err);
+                alert("Kamera izni verilmedi veya cihazda kamera bulunamadı.");
+            });
         }
 
         function processManualScan() {
@@ -497,21 +518,28 @@
                 alert("Bu ID ile eşleşen ürün bulunamadı!");
                 return;
             }
-            closeScannerModal();
+            stopScannerAndClose();
             pendingScanProductId = id;
             openPasswordModalForQRSell();
         }
 
-        function closeScannerModal() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
+        function stopScannerAndClose() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('scannerModal').classList.remove('flex');
+                    document.getElementById('scannerModal').classList.add('hidden');
+                }).catch(err => {
+                    document.getElementById('scannerModal').classList.remove('flex');
+                    document.getElementById('scannerModal').classList.add('hidden');
+                });
+            } else {
+                document.getElementById('scannerModal').classList.remove('flex');
+                document.getElementById('scannerModal').classList.add('hidden');
             }
-            const videoEl = document.getElementById('webcamVideo');
-            if (videoEl) videoEl.srcObject = null;
+        }
 
-            document.getElementById('scannerModal').classList.remove('flex');
-            document.getElementById('scannerModal').classList.add('hidden');
+        function closeScannerModal() {
+            stopScannerAndClose();
         }
 
         async function updateStock(id, newStock) {
