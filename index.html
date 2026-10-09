@@ -6,7 +6,6 @@
     <title>Üniforma QR Stok ve Kasa Yönetimi</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
@@ -341,8 +340,11 @@
                 const box = document.createElement('div');
                 const isLowStock = item.stock <= 3;
                 box.className = `bg-slate-900 p-4 rounded-lg border ${isLowStock ? 'border-rose-500/80 shadow-lg shadow-rose-950/30' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
-                const codeId = `qr-${item.id}`;
                 
+                // Güvenli QR Kod URL'si (Google QR API)
+                const qrText = encodeURIComponent(`Urun:${item.name}|Beden:${item.size}|Fiyat:${item.price}TL`);
+                const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${qrText}`;
+
                 box.innerHTML = `
                     <div class="w-full text-left mb-3">
                         <div class="flex justify-between items-start">
@@ -358,7 +360,7 @@
                         </div>
                     </div>
                     <div class="bg-white p-2 rounded-lg mb-3 inline-block">
-                        <div id="${codeId}"></div>
+                        <img src="${qrImgUrl}" alt="QR Kod" width="110" height="110" class="block mx-auto" />
                     </div>
                     <div class="w-full space-y-2 mt-auto">
                         <div class="flex gap-2">
@@ -369,23 +371,13 @@
                             <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1 Adet)</button>
                         </div>
                         <div class="flex gap-2">
-                            <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır</button>
+                            <button onclick="printQR('${item.name}', '${item.size}', '${qrImgUrl}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır</button>
                             <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50 font-medium">Sil</button>
                         </div>
                     </div>
                     <span class="text-[10px] text-slate-500 mt-2">ID: ${item.id}</span>
                 `;
                 list.appendChild(box);
-
-                try {
-                    new QRCode(document.getElementById(codeId), {
-                        text: `Urun:${item.name}|Beden:${item.size}|Fiyat:${item.price}TL`,
-                        width: 100,
-                        height: 100
-                    });
-                } catch(e) {
-                    console.error("QR Üretilemedi:", e);
-                }
             });
         }
 
@@ -521,12 +513,9 @@
             fetchAll();
         }
 
-        function printQR(name, size, codeId) {
-            const qrElement = document.getElementById(codeId);
-            const img = qrElement.querySelector('img') || qrElement.querySelector('canvas');
-            if (!img) return;
+        function printQR(name, size, qrImgUrl) {
             const win = window.open('', '_print');
-            win.document.write(`<html><head><title>${name}</title></head><body style="text-align:center; margin-top:50px;"><h2>${name}</h2><p>Beden: ${size}</p><img src="${img.src || img.toDataURL()}" style="width:200px; height:200px;" /><script>window.print(); window.close();<\/script></body></html>`);
+            win.document.write(`<html><head><title>${name}</title></head><body style="text-align:center; margin-top:50px;"><h2>${name}</h2><p>Beden: ${size}</p><img src="${qrImgUrl}" style="width:200px; height:200px;" /><script>window.print(); window.close();<\/script></body></html>`);
             win.document.close();
         }
 
@@ -542,7 +531,7 @@
             };
             const { error } = await client.from('products').insert([payload]);
             if (!error) {
-                document.getElementById('productForm').reset();
+                document.getElementById('productForm'.reset());
                 fetchAll();
             }
         });
