@@ -92,12 +92,12 @@
         </section>
     </div>
 
-    <!-- Şifre ve İşlem Modalı -->
+    <!-- Şifre ve Yönetici Kasa Paneli Modalı -->
     <div id="qrModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
                 <h3 id="modalTitle" class="text-lg font-bold text-white">Yetkilendirme Gerekli</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
             </div>
 
             <!-- Adım 1: Şifre Giriş Alanı -->
@@ -110,7 +110,7 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
-            <!-- Adım 2B: Yönetici Kasa Paneli, Finansal Özet ve Geçmişi -->
+            <!-- Adım 2: Yönetici Kasa Paneli, Finansal Özet ve Geçmişi -->
             <div id="adminCashStep" class="space-y-6 hidden">
                 <!-- Finansal Özet Tablosu -->
                 <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center">
@@ -164,7 +164,7 @@
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold text-white">Hızlı Satış / Tarama Modu</h3>
-                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
             </div>
             <p class="text-sm text-slate-300">Mağazadaki ürün ID numarasını girerek hızlıca satış yapabilirsiniz:</p>
             <div class="flex gap-2">
@@ -377,7 +377,6 @@
                 `;
                 list.appendChild(box);
 
-                // Telefon kamerasının doğrudan siteye ve ürüne yönlendireceği akıllı URL formatı
                 try {
                     new QRCode(document.getElementById(codeId), {
                         text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}`,
