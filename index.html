@@ -80,14 +80,15 @@
         </section>
     </div>
 
-    <!-- Şifre ve Satış Modalı -->
-    <div id="qrModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <!-- Güvenli Şifre ve Satış Modalı (Çarpı butonu kaldırıldı, şifresiz kapatılamaz) -->
+    <div id="qrModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+            <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-white">Ürün Satış ve Doğrulama Ekranı</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+                <button onclick="cancelModal()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-300 px-2.5 py-1 rounded">İptal / Vazgeç</button>
             </div>
 
+            <!-- Adım 1: Şifre Giriş Alanı -->
             <div id="authStep" class="space-y-4">
                 <p class="text-sm text-slate-300">Bu üründe işlem yapabilmek için işletme şifresini girmeniz gerekmektedir.</p>
                 <div>
@@ -97,6 +98,7 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
+            <!-- Adım 2: Satış Yapma ve Stok Azaltma Alanı -->
             <div id="saleStep" class="space-y-4 hidden">
                 <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-2">
                     <h4 id="modalProdName" class="font-bold text-white text-base">Ürün Adı</h4>
@@ -117,7 +119,7 @@
         const hostKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVha2RvaWNocXB5cnRmdGRwcmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTE4OTksImV4cCI6MjEwNzA2Nzg5OX0.tSJF1WgEj2AqRgpGawmFNuurOcQ5-kS0lCtu3cpqOj4'; 
         
         const client = window.supabase.createClient(hostUrl, hostKey);
-        const ADMIN_PASS = "1234";
+        const ADMIN_PASS = "1234"; // İşletme şifreniz
 
         let allProducts = [];
         let activeCategory = 'TÜMÜ';
@@ -126,10 +128,9 @@
 
         async function fetchAll() {
             try {
-                // Ürünleri ve kasayı aynı anda çekelim
                 const [prodRes, settingsRes] = await Promise.all([
                     client.from('products').select('*').order('created_at', { ascending: false }),
-                    client.from('settings').select('*').eq('key', 'total_revenue').single()
+                    client.from('settings').select('*').eq('key', 'total_revenue').maybeSingle()
                 ]);
 
                 if (prodRes.error) throw prodRes.error;
@@ -138,6 +139,10 @@
                 
                 if (settingsRes.data) {
                     totalRevenue = parseFloat(settingsRes.data.value) || 0;
+                } else {
+                    // Eğer ayar kaydı yoksa oluşturalım
+                    await client.from('settings').insert([{ id: 1, key: 'total_revenue', value: '0' }]);
+                    totalRevenue = 0;
                 }
                 
                 updateBalanceDisplay();
@@ -154,10 +159,9 @@
 
         async function addRevenue(amount) {
             totalRevenue += amount;
-            // Ortak veritabanına kaydedelim ki telefonda yapılan satış PC'de de görünsün
             const { error } = await client.from('settings').update({ value: totalRevenue.toString() }).eq('key', 'total_revenue');
             if (error) {
-                console.error("Kasa güncellenemedi:", error.message);
+                alert("Kasa güncellenirken hata oluştu: " + error.message);
             }
             updateBalanceDisplay();
         }
@@ -263,10 +267,14 @@
             document.getElementById('qrModal').classList.add('flex');
         }
 
-        function closeModal() {
+        function cancelModal() {
             document.getElementById('qrModal').classList.add('hidden');
             document.getElementById('qrModal').classList.remove('flex');
             currentActiveProduct = null;
+            // Eğer URL'deki scan parametresi varsa temizleyelim
+            if (window.location.search.includes('scan=')) {
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
         }
 
         function verifyPassword() {
@@ -310,7 +318,7 @@
             await addRevenue(earnedMoney);
 
             alert(`Satış başarılı! ${qty} adet ürün satıldı. Kasaya ${earnedMoney} ₺ eklendi.`);
-            closeModal();
+            cancelModal();
             fetchAll();
         }
 
@@ -377,7 +385,7 @@
             if (error) {
                 alert('Kayıt Hatası: ' + error.message);
             } else {
-                document.getElementById('productForm'].reset();
+                document.getElementById('productForm').reset();
                 fetchAll();
             }
         });
