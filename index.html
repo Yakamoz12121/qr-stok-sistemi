@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f172a">
+<style>body.is-calisan .patron-only{display:none!important}</style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -20,7 +21,7 @@
     <button id="loginBtn" onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg">Giriş Yap</button>
   </div>
 </div>
-<div id="backupWarn" class="hidden max-w-5xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
+<div id="backupWarn" class="patron-only hidden max-w-5xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
 <div class="max-w-5xl mx-auto space-y-8">
   <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
     <div>
@@ -28,27 +29,28 @@
       <p class="text-slate-400 mt-1">Öğrenci & Mesleki Kıyafet Mağazası</p>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
-      <div onclick="openAdminPanel()" class="bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer hover:bg-slate-700 shadow-lg" title="Yönetici Kasa Paneli">
+      <div onclick="openAdminPanel()" class="patron-only bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer hover:bg-slate-700 shadow-lg" title="Yönetici Kasa Paneli">
         <span class="text-xs text-slate-400 block">Günlük Ortak Kasa (Yönetici)</span>
         <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
       </div>
       <button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">📸 Hızlı QR / Kamera</button>
       <button onclick="printAllQR()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">🖨️ QR Etiketlerini Yazdır</button>
+      <span id="roleBadge" class="text-xs text-slate-300"></span>
       <button onclick="doLogout()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">Çıkış</button>
-      <button onclick="exportCSV('stok')" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📥 Stok (CSV)</button>
+      <button onclick="exportCSV('stok')" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📥 Stok (CSV)</button>
       <button onclick="lowStockPrint()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">⚠️ Düşük Stok</button>
-      <button onclick="stockCount()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📋 Sayım</button>
+      <button onclick="stockCount()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📋 Sayım</button>
       <button onclick="undoLastSale()" class="bg-rose-700 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-xl text-sm">↩️ Son Satışı Geri Al</button>
-      <button onclick="salesReport()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📊 Rapor</button>
+      <button onclick="salesReport()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📊 Rapor</button>
       <button onclick="toggleFont()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-3 py-2 rounded-xl text-sm" title="Yazıyı büyüt/küçült">Aa</button>
-      <button onclick="bulkPrice()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💲 Toplu Fiyat</button>
+      <button onclick="bulkPrice()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💲 Toplu Fiyat</button>
       <button onclick="stockMatrix()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">🧮 Stok Matrisi</button>
-      <button onclick="backupJSON()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💾 Yedek</button>
+      <button onclick="backupJSON()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💾 Yedek</button>
       <select id="labelSize" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-xl px-2 py-2"><option value="o">Etiket: Orta</option><option value="k">Etiket: Küçük</option><option value="b">Etiket: Büyük</option></select>
     </div>
   </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="patron-only grid grid-cols-1 md:grid-cols-2 gap-6">
     <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
       <h2 class="text-xl font-semibold text-white mb-4">Yeni Ürün Ekle</h2>
       <form id="productForm" class="space-y-4">
@@ -330,7 +332,7 @@ function renderProducts() {
       <div class="bg-white p-3 rounded-lg mb-2 inline-block"><div id="qr-${item.id}"></div></div>
       <button onclick="downloadQR(${item.id})" class="text-xs text-sky-400 hover:text-sky-300 underline mb-3">QR'ı indir (PNG)</button>
       <div class="w-full space-y-2 mt-auto">
-        <div class="flex gap-2">
+        <div class="patron-only flex gap-2">
           <button onclick="updateStock(${item.id}, ${item.stock - 1})" class="flex-1 bg-red-600/30 text-red-300 text-xs py-1.5 rounded border border-red-500/30">- Stok</button>
           <button onclick="updateStock(${item.id}, ${item.stock + 1})" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30">+ Stok</button>
         </div>
@@ -338,8 +340,8 @@ function renderProducts() {
           <button onclick="quickSellItem(${item.id}, 1)" class="flex-1 bg-indigo-600/30 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1)</button>
           <button onclick="addToCart(${item.id})" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-bold">+ Sepet</button>
         </div>
-        <button onclick="editProduct(${item.id})" class="w-full bg-slate-700/60 text-slate-200 text-xs py-1 rounded border border-slate-600">Düzenle</button>
-        <button onclick="deleteProduct(${item.id})" class="w-full bg-rose-900/40 text-rose-300 text-xs py-1 rounded border border-rose-700/50">Sil</button>
+        <button onclick="editProduct(${item.id})" class="patron-only w-full bg-slate-700/60 text-slate-200 text-xs py-1 rounded border border-slate-600">Düzenle</button>
+        <button onclick="deleteProduct(${item.id})" class="patron-only w-full bg-rose-900/40 text-rose-300 text-xs py-1 rounded border border-rose-700/50">Sil</button>
       </div>`;
     list.appendChild(box);
     makeQR($(`qr-${item.id}`), item.id);
@@ -434,6 +436,7 @@ async function sellCart() {
 }
 
 async function editProduct(id) {
+  if (!needPatron()) return;
   const it = allProducts.find(p => p.id === id);
   if (!it) return;
   const price = prompt('Fiyat (₺):', it.price); if (price === null) return;
@@ -447,6 +450,7 @@ async function editProduct(id) {
 }
 
 function exportCSV(kind) {
+  if (!needPatron()) return;
   const rows = kind === 'stok'
     ? [['ID', 'Ad', 'Kategori', 'Beden', 'Fiyat', 'Stok', 'Detay'], ...allProducts.map(p => [p.id, p.name, p.category, p.size, p.price, p.stock, p.detail])]
     : [['Tarih', 'Tür', 'Tutar', 'Not'], ...allTransactions.map(t => [new Date(t.created_at).toLocaleString('tr-TR'), t.type, t.amount, t.note])];
@@ -458,6 +462,7 @@ function exportCSV(kind) {
 }
 
 async function handleBulkUpload() {
+  if (!needPatron()) return;
   const text = $('bulkText').value.trim();
   if (!text) return alert('Lütfen ürünleri girin.');
   let count = 0;
@@ -483,7 +488,7 @@ function resetModal(mode, title) {
   show($('qrModal'));
   proceedAfterAuth();
 }
-const openAdminPanel = () => resetModal('admin', 'Yönetici Kasa Paneli');
+const openAdminPanel = () => needPatron() && resetModal('admin', 'Yönetici Kasa Paneli');
 const openPasswordModalForQRSell = () => resetModal('qr_sell', 'QR Ürün Satış Onayı');
 
 function closeModal() {
@@ -559,17 +564,21 @@ function processManualScan() {
 }
 
 async function stopScannerAndClose() {
-  try { if (html5QrCode && html5QrCode.isScanning) await html5QrCode.stop(); } catch (e) {}
   hide($('scannerModal'));
+  try {
+    if (html5QrCode && html5QrCode.isScanning) await Promise.race([html5QrCode.stop(), new Promise(r => setTimeout(r, 1500))]);
+  } catch (e) {}
 }
 
 async function updateStock(id, n) {
+  if (!needPatron()) return;
   if (n < 0) return;
   await client.from('products').update({ stock: n }).eq('id', id);
   fetchAll();
 }
 
 async function deleteProduct(id) {
+  if (!needPatron()) return;
   if (!confirm('Silmek istediğinize emin misiniz?')) return;
   await client.from('products').delete().eq('id', id);
   fetchAll();
@@ -577,6 +586,7 @@ async function deleteProduct(id) {
 
 $('productForm').addEventListener('submit', async e => {
   e.preventDefault();
+  if (!needPatron()) return;
   const payload = {
     name: $('p_name').value.trim(), category: $('p_category').value.trim(), size: $('p_size').value.trim(),
     price: parseFloat($('p_price').value), stock: parseInt($('p_stock').value), detail: $('p_detail').value.trim()
@@ -624,6 +634,7 @@ function renderDaily() {
 }
 
 function cashClose() {
+  if (!needPatron()) return;
   const s = dailyStats();
   const open = prompt('Sabah çekmecedeki açılış nakdi (₺):', '0'); if (open === null) return;
   const counted = prompt('Şimdi çekmecede saydığın nakit (₺):', ''); if (counted === null) return;
@@ -643,6 +654,7 @@ function parsePriceChange(txt, price) {
 }
 
 async function bulkPrice() {
+  if (!needPatron()) return;
   const list = visibleProducts();
   if (!list.length) return alert('Ürün yok.');
   const txt = prompt(`${list.length} ürünün fiyatı değişecek (seçili kategori/arama).\n%10 = %10 zam, %-10 = %10 indirim, +50 = 50 ₺ zam, -50 = 50 ₺ indirim`, '');
@@ -691,6 +703,7 @@ function lowStockPrint() {
 }
 
 async function stockCount() {
+  if (!needPatron()) return;
   const list = visibleProducts();
   if (!list.length) return alert('Sayılacak ürün yok.');
   if (!confirm(`${list.length} ürün sayılacak (seçili kategori). Boş bırakırsan "aynı" sayılır, İptal'e basarsan sayım biter. Başlayalım mı?`)) return;
@@ -712,6 +725,7 @@ async function stockCount() {
 }
 
 async function backupJSON() {
+  if (!needPatron()) return;
   try {
     await loadTransactions();
     const blob = new Blob([JSON.stringify({ tarih: new Date().toISOString(), products: allProducts, transactions: allTransactions }, null, 1)], { type: 'application/json' });
@@ -748,6 +762,7 @@ async function undoLastSale() {
 }
 
 function salesReport() {
+  if (!needPatron()) return;
   const sold = {}, last = {}, cutoff = Date.now() - 60 * 86400000;
   allTransactions.forEach(t => {
     const note = t.note || '';
@@ -779,13 +794,24 @@ function beep() {
 function applyFont() { try { document.documentElement.style.fontSize = localStorage.getItem('fs') === 'big' ? '18px' : ''; } catch (e) {} }
 function toggleFont() { try { localStorage.setItem('fs', localStorage.getItem('fs') === 'big' ? 'normal' : 'big'); } catch (e) {} applyFont(); }
 
+let userRole = 'calisan';
+const isPatron = () => userRole === 'patron';
+function needPatron() { if (isPatron()) return true; alert('Bu işlem için patron yetkisi gerekir.'); return false; }
+function applyRole(session) {
+  const meta = session && session.user && session.user.app_metadata;
+  userRole = meta && meta.role === 'patron' ? 'patron' : 'calisan';
+  document.body.classList.toggle('is-calisan', !isPatron());
+  $('roleBadge').textContent = isPatron() ? '👑 Patron' : '👤 Çalışan';
+}
+
 async function doLogin() {
   const err = $('loginError'); err.classList.add('hidden');
   $('loginBtn').disabled = true;
-  const { error } = await client.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPass').value });
+  const { data: lg, error } = await client.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPass').value });
   $('loginBtn').disabled = false;
   if (error) { err.textContent = 'Giriş başarısız: e-posta veya şifre hatalı.'; err.classList.remove('hidden'); return; }
   $('loginPass').value = '';
+  applyRole(lg.session);
   $('loginScreen').classList.add('hidden');
   startIdle(); checkBackup();
   fetchAll();
@@ -799,7 +825,7 @@ async function doLogout() {
 window.onload = async () => {
   applyFont();
   const { data } = await client.auth.getSession();
-  if (data.session) { $('loginScreen').classList.add('hidden'); startIdle(); checkBackup(); fetchAll(); }
+  if (data.session) { applyRole(data.session); $('loginScreen').classList.add('hidden'); startIdle(); checkBackup(); fetchAll(); }
 };
 </script>
 </body>
