@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f172a">
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -36,6 +37,9 @@
       <button onclick="exportCSV('stok')" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📥 Stok (CSV)</button>
       <button onclick="lowStockPrint()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">⚠️ Düşük Stok</button>
       <button onclick="stockCount()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📋 Sayım</button>
+      <button onclick="undoLastSale()" class="bg-rose-700 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-xl text-sm">↩️ Son Satışı Geri Al</button>
+      <button onclick="salesReport()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📊 Rapor</button>
+      <button onclick="toggleFont()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-3 py-2 rounded-xl text-sm" title="Yazıyı büyüt/küçült">Aa</button>
       <button onclick="backupJSON()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💾 Yedek</button>
       <select id="labelSize" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-xl px-2 py-2"><option value="o">Etiket: Orta</option><option value="k">Etiket: Küçük</option><option value="b">Etiket: Büyük</option></select>
     </div>
@@ -147,6 +151,7 @@
       <div class="flex items-center gap-2 text-xs">
         <select id="payType" onchange="updateChange()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white"><option>Nakit</option><option>Kart</option></select>
         <input type="number" id="cashGiven" oninput="updateChange()" placeholder="Alınan ₺" class="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
+        <input type="number" id="discPct" oninput="renderCart()" min="0" max="100" placeholder="İndirim %" class="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white">
         <span id="changeInfo" class="text-amber-400 font-bold"></span>
       </div>
     </div>
@@ -297,6 +302,8 @@ function renderProducts() {
   const filtered = visibleProducts();
   if (!filtered.length) { list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün bulunmuyor.</p>'; return; }
 
+  const sizeMap = {};
+  allProducts.forEach(p => (sizeMap[p.name] = sizeMap[p.name] || []).push(`${p.size}:${p.stock}`));
   filtered.forEach(item => {
     const low = item.stock <= 3;
     const box = document.createElement('div');
@@ -313,6 +320,7 @@ function renderProducts() {
           <p>Beden: <span class="text-white">${esc(item.size)}</span></p>
           <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
           <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
+          ${sizeMap[item.name].length > 1 ? `<p class="text-xs text-slate-500">Tüm bedenler: ${esc(sizeMap[item.name].join("  "))}</p>` : ''}
         </div>
       </div>
       <div class="bg-white p-3 rounded-lg mb-2 inline-block"><div id="qr-${item.id}"></div></div>
@@ -381,9 +389,12 @@ async function sellItems(list, opts = {}) {
       done.push({ id, old: item.stock });
       total += qty * item.price; names.push(`${item.name} x${qty}`); lines.push({ name: item.name, size: item.size, qty, price: item.price });
     }
-    try { await addRevenue(total, 'Satış [' + pay + ']: ' + names.join(', '), 'EKLEME'); }
+    const gross = total, pct = Math.min(Math.max(parseFloat(opts.discPct) || 0, 0), 100);
+    total = Math.round(gross * (100 - pct)) / 100;
+    try { await addRevenue(total, 'Satış [' + pay + ']' + (pct ? ` (-%${pct})` : '') + ': ' + names.join(', '), 'EKLEME'); }
     catch (e) { await rollback(done); alert('Kasa kaydı yapılamadı, satış iptal edildi: ' + e.message); return false; }
-    if (confirm(`Satış başarılı! ${total} ₺ kasaya eklendi (${pay}).\n\nFiş yazdırılsın mı?`)) printReceipt({ lines, total, pay, given: opts.given || 0 });
+    try { localStorage.setItem('lastSale', JSON.stringify({ items: list.map(x => ({ id: x.id, qty: x.qty })), total, pay, names: names.join(', ') })); } catch (e) {}
+    if (confirm(`Satış başarılı! ${total} ₺ kasaya eklendi (${pay}).\n\nFiş yazdırılsın mı?`)) printReceipt({ lines, total, pay, given: opts.given || 0, pct, gross });
     return true;
   } finally { busy = false; }
 }
@@ -407,14 +418,15 @@ function renderCart() {
   $('cartBar').classList.toggle('hidden', !live.length);
   const total = live.reduce((t, r) => t + cart[r.it.id] * r.it.price, 0);
   $('cartInfo').innerHTML = 'Sepet: ' + live.map(r => `${esc(r.it.name)} (${esc(r.it.size)}) x${cart[r.it.id]}`).join(', ') + ` — <b class="text-emerald-400">${total} ₺</b>`;
-  cartTotal = total; updateChange();
+  const dp = Math.min(Math.max(parseFloat($('discPct').value) || 0, 0), 100);
+  cartTotal = Math.round(total * (100 - dp)) / 100; updateChange();
 }
 async function sellCart() {
   const list = Object.keys(cart).map(id => ({ id: Number(id), qty: cart[id] })).filter(x => x.qty > 0);
   if (!list.length) return;
   const pay = $('payType').value, given = parseFloat($('cashGiven').value) || 0;
   if (pay === 'Nakit' && given && given < cartTotal) return alert('Alınan tutar toplamdan az!');
-  if (await sellItems(list, { pay, given })) { cart = {}; $('cashGiven').value = ''; await fetchAll(); }
+  if (await sellItems(list, { pay, given, discPct: $('discPct').value })) { cart = {}; $('cashGiven').value = ''; $('discPct').value = ''; await fetchAll(); }
 }
 
 async function editProduct(id) {
@@ -517,7 +529,7 @@ function handleScanResult(text) {
   try { id = new URL(text).searchParams.get('id'); } catch (e) { id = text; }
   id = parseInt(id);
   if (isNaN(id)) return;
-  scanHandled = true;
+  scanHandled = true; beep();
   stopScannerAndClose().then(() => { pendingScanProductId = id; openPasswordModalForQRSell(); });
 }
 
@@ -572,9 +584,10 @@ $('productForm').addEventListener('submit', async e => {
 });
 
 function updateChange() {
-  const el = $('changeInfo'), given = parseFloat($('cashGiven').value);
-  if ($('payType').value !== 'Nakit' || !given) { el.textContent = ''; return; }
-  el.textContent = given < cartTotal ? `Eksik: ${cartTotal - given} ₺` : `Para üstü: ${given - cartTotal} ₺`;
+  const given = parseFloat($('cashGiven').value);
+  let t = `Net: ${cartTotal} ₺ `;
+  if ($('payType').value === 'Nakit' && given) t += given < cartTotal ? `· Eksik: ${Math.round((cartTotal - given) * 100) / 100} ₺` : `· Para üstü: ${Math.round((given - cartTotal) * 100) / 100} ₺`;
+  $('changeInfo').textContent = t;
 }
 
 function printReceipt(r) {
@@ -582,7 +595,7 @@ function printReceipt(r) {
   if (!w) return alert('Açılır pencere engellendi, izin verin.');
   const rows = r.lines.map(l => `<tr><td>${esc(l.name)} (${esc(l.size)}) x${l.qty}</td><td style="text-align:right">${l.qty * l.price} ₺</td></tr>`).join('');
   const chg = r.pay === 'Nakit' && r.given && r.given >= r.total ? `<p>Alınan: ${r.given} ₺<br>Para üstü: ${r.given - r.total} ₺</p>` : '';
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiş</title><style>body{font-family:monospace;width:72mm;margin:4mm;font-size:12px}table{width:100%}</style></head><body><h3 style="text-align:center;margin:0">SATIŞ FİŞİ</h3><p style="text-align:center;margin:2px">${new Date().toLocaleString('tr-TR')}</p><hr><table>${rows}</table><hr><p><b>TOPLAM: ${r.total} ₺</b><br>Ödeme: ${r.pay}</p>${chg}<p style="text-align:center">Teşekkürler</p><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiş</title><style>body{font-family:monospace;width:72mm;margin:4mm;font-size:12px}table{width:100%}</style></head><body><h3 style="text-align:center;margin:0">SATIŞ FİŞİ</h3><p style="text-align:center;margin:2px">${new Date().toLocaleString('tr-TR')}</p><hr><table>${rows}</table><hr>${r.pct ? `<p>Ara toplam: ${r.gross} ₺<br>İndirim: %${r.pct}</p>` : ''}<p><b>TOPLAM: ${r.total} ₺</b><br>Ödeme: ${r.pay}</p>${chg}<p style="text-align:center">Teşekkürler</p><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`);
   w.document.close();
 }
 
@@ -639,6 +652,62 @@ async function backupJSON() {
   } catch (e) { alert('Yedek alınamadı: ' + e.message); }
 }
 
+async function undoLastSale() {
+  if (busy) return;
+  let ls = null;
+  try { ls = JSON.parse(localStorage.getItem('lastSale') || 'null'); } catch (e) {}
+  if (!ls) return alert('Bu cihazda geri alınacak satış yok.');
+  if (!confirm(`Son satış geri alınsın mı?\n${ls.names}\nTutar: ${ls.total} ₺ (${ls.pay})`)) return;
+  busy = true;
+  const done = [];
+  try {
+    for (const it of ls.items) {
+      const p = allProducts.find(x => x.id === it.id);
+      if (!p) continue;
+      const { data, error } = await client.from('products').update({ stock: p.stock + it.qty }).eq('id', it.id).eq('stock', p.stock).select();
+      if (error || !data || !data.length) { await rollback(done); alert('Stok güncellenemedi (başka cihaz değiştirmiş olabilir). Hiçbir şey değişmedi, tekrar dene.'); await fetchAll(); return; }
+      done.push({ id: it.id, old: p.stock });
+    }
+    try { await addRevenue(ls.total, `İade [${ls.pay}]: ${ls.names}`, 'ÇIKARMA'); }
+    catch (e) { await rollback(done); return alert('Kasa kaydı yapılamadı, iade iptal edildi: ' + e.message); }
+    try { localStorage.removeItem('lastSale'); } catch (e) {}
+    alert('Satış geri alındı, stok ve kasa düzeltildi.');
+  } finally { busy = false; }
+  await fetchAll();
+}
+
+function salesReport() {
+  const sold = {}, last = {}, cutoff = Date.now() - 60 * 86400000;
+  allTransactions.forEach(t => {
+    const note = t.note || '';
+    if (t.type !== 'EKLEME' || !note.toLowerCase().includes('satış')) return;
+    const ts = new Date(t.created_at).getTime();
+    note.slice(note.indexOf(':') + 1).trim().split(', ').forEach(part => {
+      const m = part.match(/^(.*) x(\d+)$/) || part.match(/^(.*) \((\d+) Adet\)$/);
+      if (!m) return;
+      sold[m[1]] = (sold[m[1]] || 0) + Number(m[2]);
+      if (!last[m[1]] || ts > last[m[1]]) last[m[1]] = ts;
+    });
+  });
+  const top = Object.entries(sold).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const slow = [...new Set(allProducts.filter(p => p.stock > 0 && (!last[p.name] || last[p.name] < cutoff)).map(p => p.name))];
+  const w = window.open('', '_blank');
+  if (!w) return alert('Açılır pencere engellendi, izin verin.');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Satış Raporu</title><style>body{font-family:sans-serif;margin:10mm}td,th{border:1px solid #999;padding:4px 8px;font-size:13px;text-align:left}table{border-collapse:collapse}</style></head><body><h3>En çok satan 10 ürün</h3><table><tr><th>Ürün</th><th>Adet</th></tr>${top.map(([n, q]) => `<tr><td>${esc(n)}</td><td>${q}</td></tr>`).join('') || '<tr><td colspan=2>Veri yok</td></tr>'}</table><h3>Son 60 gündür satılmayan (stokta olan) ürünler</h3><p>${slow.map(esc).join(', ') || 'Yok'}</p><p style="color:#666;font-size:12px">Not: Rapor satış notlarındaki ürün adından hesaplanır; aynı adlı bedenler birlikte sayılır.</p></body></html>`);
+  w.document.close();
+}
+
+function beep() {
+  try {
+    const c = new (window.AudioContext || window.webkitAudioContext)(), o = c.createOscillator();
+    o.frequency.value = 880; o.connect(c.destination); o.start();
+    setTimeout(() => { o.stop(); c.close(); }, 120);
+  } catch (e) {}
+}
+
+function applyFont() { try { document.documentElement.style.fontSize = localStorage.getItem('fs') === 'big' ? '18px' : ''; } catch (e) {} }
+function toggleFont() { try { localStorage.setItem('fs', localStorage.getItem('fs') === 'big' ? 'normal' : 'big'); } catch (e) {} applyFont(); }
+
 async function doLogin() {
   const err = $('loginError'); err.classList.add('hidden');
   $('loginBtn').disabled = true;
@@ -656,6 +725,7 @@ async function doLogout() {
 }
 
 window.onload = async () => {
+  applyFont();
   const { data } = await client.auth.getSession();
   if (data.session) { $('loginScreen').classList.add('hidden'); fetchAll(); }
 };
