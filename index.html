@@ -167,7 +167,7 @@
                 <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
             </div>
             <p class="text-xs text-slate-300">Ürünün üzerindeki QR kodu kameraya ortalayın:</p>
-            <div id="reader" class="w-full overflow-hidden rounded-xl bg-black"></div>
+            <div id="reader" class="w-full overflow-hidden rounded-xl bg-black min-h-[250px]"></div>
             <button onclick="closeScannerModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm">Kamerayı Kapat</button>
         </div>
     </div>
@@ -186,7 +186,7 @@
         let pendingScanProductId = null;
         let currentModalMode = null;
         let hasCheckedURL = false;
-        let html5QrCodeScanner = null;
+        let html5QrCode = null;
 
         async function fetchAll() {
             try {
@@ -460,49 +460,59 @@
             fetchAll();
         }
 
-        // Optimize Edilmiş Hazır Tarayıcı (Tek İzin Sorma ve Hızlı Okuma)
+        // Kesin Çözüm: Doğrudan Arka Kamera Akışı (Siyah Ekran Hatasını Önler)
         function openScannerModal() {
             document.getElementById('scannerModal').classList.remove('hidden');
             document.getElementById('scannerModal').classList.add('flex');
 
-            if (!html5QrCodeScanner) {
-                html5QrCodeScanner = new Html5QrcodeScanner(
-                    "reader", 
-                    { fps: 20, qrbox: { width: 250, height: 250 } },
-                    false
-                );
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
             }
 
-            html5QrCodeScanner.render((decodedText) => {
-                try {
-                    const url = new URL(decodedText);
-                    const id = url.searchParams.get("id");
-                    if (id) {
-                        closeScannerModal();
-                        pendingScanProductId = parseInt(id);
-                        openPasswordModalForQRSell();
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 15, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    try {
+                        const url = new URL(decodedText);
+                        const id = url.searchParams.get("id");
+                        if (id) {
+                            stopScannerAndClose();
+                            pendingScanProductId = parseInt(id);
+                            openPasswordModalForQRSell();
+                        }
+                    } catch (e) {
+                        const id = parseInt(decodedText);
+                        if (!isNaN(id)) {
+                            stopScannerAndClose();
+                            pendingScanProductId = id;
+                            openPasswordModalForQRSell();
+                        }
                     }
-                } catch (e) {
-                    const id = parseInt(decodedText);
-                    if (!isNaN(id)) {
-                        closeScannerModal();
-                        pendingScanProductId = id;
-                        openPasswordModalForQRSell();
-                    }
-                }
-            }, (error) => {
-                // Tarama esnasındaki rutin hataları yoksay
+                },
+                (errorMessage) => {}
+            ).catch(err => {
+                console.error("Kamera başlatılamadı:", err);
+                alert("Kamera başlatılamadı. Tarayıcı izinlerini kontrol edin.");
             });
         }
 
-        function closeScannerModal() {
-            if (html5QrCodeScanner) {
-                html5QrCodeScanner.clear().catch(error => {
-                    console.error("Tarayıcı kapatılamadı:", error);
+        function stopScannerAndClose() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('scannerModal').classList.remove('flex');
+                    document.getElementById('scannerModal').classList.add('hidden');
+                }).catch(err => {
+                    console.error("Kamera durdurulamadı:", err);
                 });
+            } else {
+                document.getElementById('scannerModal').classList.remove('flex');
+                document.getElementById('scannerModal').classList.add('hidden');
             }
-            document.getElementById('scannerModal').classList.remove('flex');
-            document.getElementById('scannerModal').classList.add('hidden');
+        }
+
+        function closeScannerModal() {
+            stopScannerAndClose();
         }
 
         async function updateStock(id, newStock) {
