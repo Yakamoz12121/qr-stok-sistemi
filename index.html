@@ -9,7 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
-<body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
+<body class="bg-slate-900 text-gray-200 min-h-screen p-4 pb-28 md:p-8 font-sans">
 <div id="loginScreen" class="fixed inset-0 bg-slate-900 z-[60] flex items-center justify-center p-4">
   <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
     <h2 class="text-xl font-bold text-blue-400 text-center">Üniforma Stok - Giriş</h2>
@@ -33,6 +33,7 @@
       <button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">📸 Hızlı QR / Kamera</button>
       <button onclick="printAllQR()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">🖨️ QR Etiketlerini Yazdır</button>
       <button onclick="doLogout()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">Çıkış</button>
+      <button onclick="exportCSV('stok')" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📥 Stok (CSV)</button>
     </div>
   </header>
 
@@ -91,6 +92,7 @@
     <div id="qrProductSellStep" class="space-y-4 hidden">
       <div id="scannedProductDetails" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-sm space-y-2"></div>
       <button id="confirmScanSellBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm">Bu Ürünü Sat ve Kasaya Ekle (-1)</button>
+      <button id="cartScanBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg text-sm">Sepete Ekle</button>
     </div>
     <div id="adminCashStep" class="space-y-6 hidden">
       <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center">
@@ -110,6 +112,7 @@
       <div class="space-y-3">
         <div class="flex justify-between items-center">
           <h4 class="font-bold text-white text-sm">Kasa İşlem Geçmişi</h4>
+          <button onclick="exportCSV('kasa')" class="text-xs text-sky-400 underline">CSV indir</button>
           <select id="monthSelect" onchange="filterTransactionsByMonth()" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5"></select>
         </div>
         <div id="transactionList" class="bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-48 overflow-y-auto space-y-2 text-xs"></div>
@@ -132,6 +135,15 @@
   </div>
 </div>
 
+<div id="cartBar" class="fixed bottom-0 inset-x-0 bg-slate-800 border-t border-emerald-500/40 p-3 z-40 hidden">
+  <div class="max-w-5xl mx-auto flex flex-wrap items-center gap-3 justify-between">
+    <div id="cartInfo" class="text-sm text-slate-200"></div>
+    <div class="flex gap-2">
+      <button onclick="clearCart()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs px-4 py-2 rounded-lg">Temizle</button>
+      <button onclick="sellCart()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-lg">Satışı Tamamla</button>
+    </div>
+  </div>
+</div>
 <script>
 const hostUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
 const hostKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVha2RvaWNocXB5cnRmdGRwcmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTE4OTksImV4cCI6MjEwNzA2Nzg5OX0.tSJF1WgEj2AqRgpGawmFNuurOcQ5-kS0lCtu3cpqOj4';
@@ -157,11 +169,8 @@ async function fetchAll() {
     if (prodRes.error) throw prodRes.error;
     allProducts = prodRes.data || [];
 
-    const s = await client.from('settings').select('*').eq('key', 'total_revenue').maybeSingle();
-    if (s.data) totalRevenue = parseFloat(s.data.value) || 0;
-    else { await client.from('settings').insert([{ id: 1, key: 'total_revenue', value: '0' }]); totalRevenue = 0; }
-
-    updateBalanceDisplay(); renderCategories(); renderProducts();
+    await loadTransactions();
+    renderCategories(); renderProducts(); renderCart();
 
     if (!hasCheckedURL) {
       hasCheckedURL = true;
@@ -178,16 +187,29 @@ function updateBalanceDisplay() {
   $('totalBalance').textContent = totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 }) + ' ₺';
 }
 
-async function addRevenue(amount, note = 'Satış', type = 'EKLEME') {
-  totalRevenue += amount;
-  await client.from('settings').update({ value: totalRevenue.toString() }).eq('key', 'total_revenue');
-  await client.from('transactions').insert([{ type, amount: Math.abs(amount), note }]);
+async function loadTransactions() {
+  let all = [], from = 0;
+  while (true) {
+    const { data, error } = await client.from('transactions').select('*').order('created_at', { ascending: false }).range(from, from + 999);
+    if (error) throw error;
+    all = all.concat(data || []);
+    if (!data || data.length < 1000) break;
+    from += 1000;
+  }
+  allTransactions = all;
+  totalRevenue = all.reduce((sum, t) => sum + (t.type === 'EKLEME' ? t.amount : -t.amount), 0);
   updateBalanceDisplay();
 }
 
+async function addRevenue(amount, note = 'Satış', type = 'EKLEME') {
+  const { error } = await client.from('transactions').insert([{ type, amount: Math.abs(amount), note }]);
+  if (error) throw error;
+  await loadTransactions();
+}
+
 async function fetchTransactions() {
-  const { data, error } = await client.from('transactions').select('*').order('created_at', { ascending: false });
-  if (!error) { allTransactions = data || []; populateMonthDropdown(); filterTransactionsByMonth(); }
+  try { await loadTransactions(); populateMonthDropdown(); filterTransactionsByMonth(); }
+  catch (e) { alert('Hata: ' + e.message); }
 }
 
 const ym = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -288,7 +310,11 @@ function renderProducts() {
           <button onclick="updateStock(${item.id}, ${item.stock - 1})" class="flex-1 bg-red-600/30 text-red-300 text-xs py-1.5 rounded border border-red-500/30">- Stok</button>
           <button onclick="updateStock(${item.id}, ${item.stock + 1})" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30">+ Stok</button>
         </div>
-        <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-indigo-600/30 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1)</button>
+        <div class="flex gap-2">
+          <button onclick="quickSellItem(${item.id}, 1)" class="flex-1 bg-indigo-600/30 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1)</button>
+          <button onclick="addToCart(${item.id})" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-bold">+ Sepet</button>
+        </div>
+        <button onclick="editProduct(${item.id})" class="w-full bg-slate-700/60 text-slate-200 text-xs py-1 rounded border border-slate-600">Düzenle</button>
         <button onclick="deleteProduct(${item.id})" class="w-full bg-rose-900/40 text-rose-300 text-xs py-1 rounded border border-rose-700/50">Sil</button>
       </div>`;
     list.appendChild(box);
@@ -320,16 +346,82 @@ function printAllQR() {
   w.document.close();
 }
 
+let busy = false, cart = {};
+
+async function rollback(done) {
+  for (const d of done) await client.from('products').update({ stock: d.old }).eq('id', d.id);
+}
+
+// Stok güncellemesi sadece stok hâlâ eski değerdeyse yapılır: iki cihaz aynı anda satarsa biri uyarı alır.
+async function sellItems(list) {
+  if (busy) return false;
+  busy = true;
+  const done = [];
+  try {
+    let total = 0; const names = [];
+    for (const { id, qty } of list) {
+      const item = allProducts.find(p => p.id === id);
+      if (!item || item.stock < qty) { alert('Stokta yeterli ürün yok: ' + (item ? item.name : '')); await rollback(done); return false; }
+      const { data, error } = await client.from('products').update({ stock: item.stock - qty }).eq('id', id).eq('stock', item.stock).select();
+      if (error || !data || !data.length) { alert('Stok başka bir cihazda değişmiş. Liste yenileniyor, tekrar dene.'); await rollback(done); await fetchAll(); return false; }
+      done.push({ id, old: item.stock });
+      total += qty * item.price; names.push(`${item.name} x${qty}`);
+    }
+    try { await addRevenue(total, 'Satış: ' + names.join(', '), 'EKLEME'); }
+    catch (e) { await rollback(done); alert('Kasa kaydı yapılamadı, satış iptal edildi: ' + e.message); return false; }
+    alert(`Satış başarılı! ${total} ₺ kasaya eklendi.`);
+    return true;
+  } finally { busy = false; }
+}
+
 async function quickSellItem(id, qty) {
-  const item = allProducts.find(p => p.id === id);
-  if (!item || item.stock < qty) return alert('Stokta yeterli ürün yok!');
-  const earned = qty * item.price;
-  const { error } = await client.from('products').update({ stock: item.stock - qty }).eq('id', id);
+  if (await sellItems([{ id, qty }])) { closeModal(); await fetchAll(); }
+}
+
+function addToCart(id) {
+  const it = allProducts.find(p => p.id === id);
+  if (!it) return;
+  const q = (cart[id] || 0) + 1;
+  if (q > it.stock) return alert('Stokta yeterli ürün yok!');
+  cart[id] = q; renderCart();
+}
+function clearCart() { cart = {}; renderCart(); }
+function renderCart() {
+  const rows = Object.keys(cart).map(Number).map(id => ({ it: allProducts.find(p => p.id === id), qty: cart[id] })).filter(r => r.it);
+  cart = {}; rows.forEach(r => cart[r.it.id] = Math.min(r.qty, r.it.stock));
+  const live = rows.filter(r => cart[r.it.id] > 0);
+  $('cartBar').classList.toggle('hidden', !live.length);
+  const total = live.reduce((t, r) => t + cart[r.it.id] * r.it.price, 0);
+  $('cartInfo').innerHTML = 'Sepet: ' + live.map(r => `${esc(r.it.name)} (${esc(r.it.size)}) x${cart[r.it.id]}`).join(', ') + ` — <b class="text-emerald-400">${total} ₺</b>`;
+}
+async function sellCart() {
+  const list = Object.keys(cart).map(id => ({ id: Number(id), qty: cart[id] })).filter(x => x.qty > 0);
+  if (!list.length) return;
+  if (await sellItems(list)) { cart = {}; await fetchAll(); }
+}
+
+async function editProduct(id) {
+  const it = allProducts.find(p => p.id === id);
+  if (!it) return;
+  const price = prompt('Fiyat (₺):', it.price); if (price === null) return;
+  const stock = prompt('Stok:', it.stock); if (stock === null) return;
+  const size = prompt('Beden:', it.size); if (size === null) return;
+  const p = parseFloat(price.replace(',', '.')), st = parseInt(stock);
+  if (isNaN(p) || p < 0 || isNaN(st) || st < 0 || !size.trim()) return alert('Geçersiz değer, değişiklik yapılmadı.');
+  const { error } = await client.from('products').update({ price: p, stock: st, size: size.trim() }).eq('id', id);
   if (error) return alert('Hata: ' + error.message);
-  await addRevenue(earned, `Hızlı Satış: ${item.name} (${qty} Adet)`, 'EKLEME');
-  alert(`Satış başarılı! ${earned} ₺ kasaya eklendi.`);
-  closeModal();
-  await fetchAll();
+  fetchAll();
+}
+
+function exportCSV(kind) {
+  const rows = kind === 'stok'
+    ? [['ID', 'Ad', 'Kategori', 'Beden', 'Fiyat', 'Stok', 'Detay'], ...allProducts.map(p => [p.id, p.name, p.category, p.size, p.price, p.stock, p.detail])]
+    : [['Tarih', 'Tür', 'Tutar', 'Not'], ...allTransactions.map(t => [new Date(t.created_at).toLocaleString('tr-TR'), t.type, t.amount, t.note])];
+  const csv = '\ufeff' + rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `${kind}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 async function handleBulkUpload() {
@@ -379,9 +471,12 @@ function proceedAfterAuth() {
       det.innerHTML = `<p class="text-white font-bold">Ürün: ${esc(item.name)}</p><p>Beden: ${esc(item.size)} | Fiyat: ${item.price} ₺</p><p>Stok: ${item.stock}</p>`;
       btn.classList.remove('hidden');
       btn.onclick = () => quickSellItem(item.id, 1);
+      $('cartScanBtn').classList.remove('hidden');
+      $('cartScanBtn').onclick = () => { addToCart(item.id); closeModal(); };
     } else {
       det.innerHTML = '<p class="text-rose-400">Ürün bulunamadı.</p>';
       btn.classList.add('hidden');
+      $('cartScanBtn').classList.add('hidden');
     }
   }
 }
@@ -390,7 +485,8 @@ async function executeAdminCash(mult) {
   const amount = parseFloat($('adminCashAmount').value);
   const note = $('adminCashNote').value.trim() || 'İşlem';
   if (isNaN(amount) || amount <= 0) return alert('Tutar girin.');
-  await addRevenue(amount * mult, note, mult > 0 ? 'EKLEME' : 'ÇIKARMA');
+  try { await addRevenue(amount * mult, note, mult > 0 ? 'EKLEME' : 'ÇIKARMA'); }
+  catch (e) { return alert('Kaydedilemedi: ' + e.message); }
   $('adminCashAmount').value = ''; $('adminCashNote').value = '';
   alert('Kaydedildi.');
   closeModal();
