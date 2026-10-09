@@ -196,6 +196,7 @@
         let totalRevenue = 0;
         let pendingScanProductId = null;
         let currentModalMode = null;
+        let hasCheckedURL = false;
 
         async function fetchAll() {
             try {
@@ -215,11 +216,15 @@
                 renderCategories();
                 renderProducts();
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const scannedId = urlParams.get('id');
-                if (scannedId && !pendingScanProductId) {
-                    pendingScanProductId = parseInt(scannedId);
-                    openPasswordModalForQRSell();
+                // URL kontrolünü sadece sayfa ilk açıldığında bir kez yap
+                if (!hasCheckedURL) {
+                    hasCheckedURL = true;
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const scannedId = urlParams.get('id');
+                    if (scannedId) {
+                        pendingScanProductId = parseInt(scannedId);
+                        openPasswordModalForQRSell();
+                    }
                 }
             } catch (err) {
                 console.error("Veri Çekme Hatası:", err);
@@ -393,8 +398,9 @@
                 list.appendChild(box);
 
                 try {
+                    // Her QR koduna tarayıcı önbelleğini bypass eden benzersiz parametre eklenir
                     new QRCode(document.getElementById(codeId), {
-                        text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}`,
+                        text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}&_t=${Date.now()}`,
                         width: 100,
                         height: 100
                     });
@@ -420,17 +426,14 @@
             }
 
             await addRevenue(totalEarned, `Hızlı Satış: ${item.name} (${qty} Adet)`, 'EKLEME');
-            
-            // Satış başarılı uyarısı ve modal/URL temizliği
             alert(`Satış başarılı! ${totalEarned} ₺ kasaya eklendi.`);
             
             pendingScanProductId = null;
-            if (window.location.search.includes('id=')) {
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            
+            // URL'deki ?id parametresini tamamen temizle ve mobil önbelleği sıfırla
+            window.history.replaceState({}, document.title, window.location.pathname);
             closeModal();
             
-            // Verileri ve arayüzü anında yeniden yükle
             await fetchAll();
         }
 
@@ -496,9 +499,7 @@
             document.getElementById('qrModal').classList.remove('flex');
             document.getElementById('qrModal').classList.add('hidden');
             pendingScanProductId = null;
-            if (window.location.search.includes('id=')) {
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
         function verifyPassword() {
