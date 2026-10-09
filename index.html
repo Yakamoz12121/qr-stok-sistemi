@@ -341,7 +341,6 @@
                 const isLowStock = item.stock <= 3;
                 box.className = `bg-slate-900 p-4 rounded-lg border ${isLowStock ? 'border-rose-500/80 shadow-lg shadow-rose-950/30' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
                 
-                // Güvenli QR Kod URL'si (Google QR API)
                 const qrText = encodeURIComponent(`Urun:${item.name}|Beden:${item.size}|Fiyat:${item.price}TL`);
                 const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${qrText}`;
 
@@ -531,8 +530,10 @@
             };
             const { error } = await client.from('products').insert([payload]);
             if (!error) {
-                document.getElementById('productForm'.reset());
+                document.getElementById('productForm').reset();
                 fetchAll();
+            } else {
+                alert('Kayıt Hatası: ' + error.message);
             }
         });
 
