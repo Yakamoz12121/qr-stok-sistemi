@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Kamera ile QR tarama için hafif kütüphane -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
 
@@ -17,7 +19,7 @@
                 <p class="text-slate-400 mt-1">Öğrenci & Mesleki Kıyafet Mağazası</p>
             </div>
             <div class="flex items-center gap-4">
-                <!-- Ortak Kasa / Bakiye Kutusu (Yönetici Paneli İçin Tıkla) -->
+                <!-- Ortak Kasa / Bakiye Kutusu -->
                 <div onclick="openAdminPanel()" class="bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer hover:bg-slate-750 transition-colors shadow-lg" title="Yönetici Kasa Paneli için Tıklayın">
                     <span class="text-xs text-slate-400 block">Günlük Ortak Kasa (Yönetici)</span>
                     <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
@@ -26,9 +28,8 @@
             </div>
         </header>
 
-        <!-- Ürün Ekleme (Tekli & Toplu Excel/CSV) -->
+        <!-- Ürün Ekleme Alanı -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Tekli Ürün Ekle -->
             <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
                 <h2 class="text-xl font-semibold text-white mb-4">Yeni Ürün Ekle</h2>
                 <form id="productForm" class="space-y-4">
@@ -64,18 +65,18 @@
                 </form>
             </section>
 
-            <!-- Toplu Ürün Yükleme (CSV / Excel Metni) -->
+            <!-- Toplu Ürün Yükleme -->
             <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-white mb-2">Toplu Ürün Yükleme (CSV Formatı)</h2>
-                    <p class="text-xs text-slate-400 mb-3">Her satıra sırasıyla: <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Detay</code> yazarak tek seferde toplu ekleyin.</p>
-                    <textarea id="bulkText" rows="6" placeholder="Hemşir Forması, Kıyafet, M, 450, 10, Likralı&#10;Doktor Önlüğü, Önlük, L, 600, 5, Pamuklu" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-xs font-mono focus:outline-none focus:border-blue-500"></textarea>
+                    <p class="text-xs text-slate-400 mb-3">Her satıra sırasıyla: <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Detay</code> yazın.</p>
+                    <textarea id="bulkText" rows="6" placeholder="Hemşir Forması, Kıyafet, M, 450, 10, Likralı" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-xs font-mono focus:outline-none focus:border-blue-500"></textarea>
                 </div>
                 <button onclick="handleBulkUpload()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg transition-colors text-sm mt-4">Toplu Ürünleri Yükle</button>
             </section>
         </div>
 
-        <!-- Ürünler ve Satış Alanı -->
+        <!-- Ürünler Listesi -->
         <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h2 class="text-xl font-semibold text-white">Mevcut Ürünler ve Kategoriler</h2>
@@ -92,15 +93,14 @@
         </section>
     </div>
 
-    <!-- Ortak Şifre ve İşlem Modalı (Kapatma Butonları Kaldırıldı) -->
+    <!-- Ortak Şifre ve İşlem Modalı -->
     <div id="qrModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
                 <h3 id="modalTitle" class="text-lg font-bold text-white">Yetkilendirme Gerekli</h3>
-                <!-- X Butonu Tamamen Kaldırıldı -->
             </div>
 
-            <!-- Adım 1: Şifre Giriş Alanı -->
+            <!-- Şifre Giriş Adımı -->
             <div id="authStep" class="space-y-4">
                 <p class="text-sm text-slate-300">Bu işlem için işletme şifresini girmelisiniz.</p>
                 <div>
@@ -110,15 +110,13 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
-            <!-- Adım 2A: QR Taratılan Ürünü Satma Ekranı -->
+            <!-- Ürün Satış Adımı -->
             <div id="qrProductSellStep" class="space-y-4 hidden">
-                <div id="scannedProductDetails" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-sm space-y-2">
-                    <!-- Ürün bilgileri buraya dolacak -->
-                </div>
+                <div id="scannedProductDetails" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-sm space-y-2"></div>
                 <button id="confirmScanSellBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors text-sm">Bu Ürünü Sat ve Kasaya Ekle (-1)</button>
             </div>
 
-            <!-- Adım 2B: Yönetici Kasa Paneli, Finansal Özet ve Geçmişi -->
+            <!-- Yönetici Kasa Paneli -->
             <div id="adminCashStep" class="space-y-6 hidden">
                 <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center">
                     <div>
@@ -143,7 +141,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-400 mb-1">İşlem Açıklaması / Not</label>
-                        <input type="text" id="adminCashNote" placeholder="Örn: Para üstü, masraf, nakit çekimi..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
+                        <input type="text" id="adminCashNote" placeholder="Örn: Para üstü, nakit çekimi..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
                     </div>
                     <div class="flex gap-2 pt-1">
                         <button onclick="executeAdminCash(1)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-colors text-xs">+ Kasaya Ekle</button>
@@ -154,8 +152,7 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-white text-sm">Kasa İşlem Geçmişi</h4>
-                        <select id="monthSelect" onchange="filterTransactionsByMonth()" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500">
-                        </select>
+                        <select id="monthSelect" onchange="filterTransactionsByMonth()" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500"></select>
                     </div>
                     <div id="transactionList" class="bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-48 overflow-y-auto space-y-2 text-xs">
                         <p class="text-slate-500 text-center">Yükleniyor...</p>
@@ -165,21 +162,16 @@
         </div>
     </div>
 
-    <!-- Hızlı Kamera / Barkod Tarama Simülasyon Modalı -->
+    <!-- Gerçek Kamera ile QR Tarama Modalı -->
     <div id="scannerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
-                <h3 class="text-lg font-bold text-white">Hızlı Satış / Tarama Modu</h3>
+                <h3 class="text-lg font-bold text-white">Canlı Kamera QR Tarayıcı</h3>
                 <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
             </div>
-            <p class="text-sm text-slate-300">Mağazadaki ürün ID numarasını girerek hızlıca satış yapabilirsiniz:</p>
-            <div class="flex gap-2">
-                <input type="number" id="quickScanId" placeholder="Ürün ID yazın..." class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-blue-500">
-                <button onclick="processQuickScan()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-sm">Satış Yap</button>
-            </div>
-            <div id="quickScanResult" class="text-left text-xs text-slate-400 bg-slate-900 p-3 rounded-xl border border-slate-700 mt-2">
-                Ürün bekleniyor...
-            </div>
+            <p class="text-xs text-slate-300">Ürünün üzerindeki QR kodu kameraya gösterin:</p>
+            <div id="reader" class="w-full overflow-hidden rounded-xl bg-black"></div>
+            <button onclick="closeScannerModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm">Kamerayı Kapat</button>
         </div>
     </div>
 
@@ -197,6 +189,7 @@
         let pendingScanProductId = null;
         let currentModalMode = null;
         let hasCheckedURL = false;
+        let html5QrCode = null;
 
         async function fetchAll() {
             try {
@@ -237,11 +230,7 @@
         async function addRevenue(amount, noteText = 'Satış', type = 'EKLEME') {
             totalRevenue += amount;
             await client.from('settings').update({ value: totalRevenue.toString() }).eq('key', 'total_revenue');
-            await client.from('transactions').insert([{
-                type: type,
-                amount: Math.abs(amount),
-                note: noteText
-            }]);
+            await client.from('transactions').insert([{ type: type, amount: Math.abs(amount), note: noteText }]);
             updateBalanceDisplay();
         }
 
@@ -257,26 +246,21 @@
         function populateMonthDropdown() {
             const selectEl = document.getElementById('monthSelect');
             selectEl.innerHTML = '';
-
             const monthsMap = new Set();
             allTransactions.forEach(tx => {
                 const date = new Date(tx.created_at);
-                const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                monthsMap.add(yearMonth);
+                monthsMap.add(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
             });
-
             const sortedMonths = Array.from(monthsMap).sort().reverse();
             if (sortedMonths.length === 0) {
                 const now = new Date();
                 sortedMonths.push(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
             }
-
             sortedMonths.forEach(ym => {
                 const [year, month] = ym.split('-');
-                const dateObj = new Date(year, month - 1);
                 const opt = document.createElement('option');
                 opt.value = ym;
-                opt.textContent = dateObj.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+                opt.textContent = new Date(year, month - 1).toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
                 selectEl.appendChild(opt);
             });
         }
@@ -285,14 +269,11 @@
             const selectedYM = document.getElementById('monthSelect').value;
             const listEl = document.getElementById('transactionList');
             listEl.innerHTML = '';
-
             const filtered = allTransactions.filter(tx => {
                 const date = new Date(tx.created_at);
                 return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` === selectedYM;
             });
-
             let sumSales = 0, sumAdded = 0, sumRemoved = 0;
-
             filtered.forEach(tx => {
                 if (tx.note.toLowerCase().includes('satış') || tx.type === 'EKLEME' && tx.note.toLowerCase().includes('satış')) {
                     sumSales += tx.amount;
@@ -301,26 +282,13 @@
                 } else {
                     sumRemoved += tx.amount;
                 }
-
                 const isAdd = tx.type === 'EKLEME';
-                const dateStr = new Date(tx.created_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
-                
                 const div = document.createElement('div');
                 div.className = "flex justify-between items-center bg-slate-800/80 p-2 rounded border border-slate-700/50";
-                div.innerHTML = `
-                    <div>
-                        <span class="font-bold ${isAdd ? 'text-emerald-400' : 'text-rose-400'}">${isAdd ? '+' : '-'} ${tx.amount} ₺</span>
-                        <span class="text-slate-300 ml-2">${tx.note || 'İşlem'}</span>
-                    </div>
-                    <span class="text-[10px] text-slate-500">${dateStr}</span>
-                `;
+                div.innerHTML = `<div><span class="font-bold ${isAdd ? 'text-emerald-400' : 'text-rose-400'}">${isAdd ? '+' : '-'} ${tx.amount} ₺</span><span class="text-slate-300 ml-2">${tx.note || 'İşlem'}</span></div><span class="text-[10px] text-slate-500">${new Date(tx.created_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</span>`;
                 listEl.appendChild(div);
             });
-
-            if (filtered.length === 0) {
-                listEl.innerHTML = '<p class="text-slate-500 text-center">Bu ay için kayıt bulunmuyor.</p>';
-            }
-
+            if (filtered.length === 0) listEl.innerHTML = '<p class="text-slate-500 text-center">Kayıt bulunmuyor.</p>';
             document.getElementById('summarySales').textContent = sumSales.toLocaleString('tr-TR') + ' ₺';
             document.getElementById('summaryAdded').textContent = sumAdded.toLocaleString('tr-TR') + ' ₺';
             document.getElementById('summaryRemoved').textContent = sumRemoved.toLocaleString('tr-TR') + ' ₺';
@@ -330,13 +298,10 @@
             const tabsContainer = document.getElementById('categoryTabs');
             tabsContainer.innerHTML = '';
             const categories = ['TÜMÜ', ...new Set(allProducts.map(p => p.category ? p.category.trim() : 'Genel'))];
-
             categories.forEach(cat => {
                 const btn = document.createElement('button');
                 const isActive = activeCategory === cat;
-                btn.className = `px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${
-                    isActive ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-700'
-                }`;
+                btn.className = `px-4 py-2 rounded-lg text-sm font-medium transition-colors border ${isActive ? 'bg-sky-500 text-slate-950 border-sky-400 font-bold' : 'bg-slate-900 text-slate-300 border-slate-700 hover:bg-slate-700'}`;
                 btn.textContent = cat;
                 btn.onclick = () => { activeCategory = cat; renderCategories(); renderProducts(); };
                 tabsContainer.appendChild(btn);
@@ -347,7 +312,6 @@
             const list = document.getElementById('productList');
             list.innerHTML = '';
             const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
-
             let filtered = activeCategory === 'TÜMÜ' ? allProducts : allProducts.filter(item => (item.category ? item.category.trim() : 'Genel') === activeCategory);
             if (searchQuery) filtered = filtered.filter(item => item.name.toLowerCase().includes(searchQuery));
 
@@ -359,52 +323,40 @@
             filtered.forEach(item => {
                 const box = document.createElement('div');
                 const isLowStock = item.stock <= 3;
-                box.className = `bg-slate-900 p-4 rounded-lg border ${isLowStock ? 'border-rose-500/80 shadow-lg shadow-rose-950/30' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
+                box.className = `bg-slate-900 p-4 rounded-lg border ${isLowStock ? 'border-rose-500/80 shadow-lg' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
                 const codeId = `qr-${item.id}`;
                 
                 box.innerHTML = `
                     <div class="w-full text-left mb-3">
                         <div class="flex justify-between items-start">
                             <h3 class="font-bold text-white text-lg">${item.name}</h3>
-                            ${isLowStock ? '<span class="bg-rose-500/20 text-rose-400 text-[10px] px-2 py-0.5 rounded border border-rose-500/30 font-bold animate-pulse">Kritik Stok!</span>' : ''}
+                            ${isLowStock ? '<span class="bg-rose-500/20 text-rose-400 text-[10px] px-2 py-0.5 rounded border border-rose-500/30 font-bold">Kritik!</span>' : ''}
                         </div>
                         <span class="inline-block bg-sky-950 text-sky-400 text-xs px-2.5 py-1 rounded-full border border-sky-800/50 mt-1">${item.category}</span>
                         <div class="mt-3 text-sm text-slate-400 space-y-1">
                             <p>Beden: <span class="text-white">${item.size}</span></p>
-                            <p>Stok: <span class="text-white font-bold ${isLowStock ? 'text-rose-400' : ''}">${item.stock} adet</span></p>
+                            <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
                             <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
-                            <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
                         </div>
                     </div>
-                    <div class="bg-white p-2 rounded-lg mb-3 inline-block">
-                        <div id="${codeId}"></div>
-                    </div>
+                    <div class="bg-white p-2 rounded-lg mb-3 inline-block"><div id="${codeId}"></div></div>
                     <div class="w-full space-y-2 mt-auto">
                         <div class="flex gap-2">
-                            <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 hover:bg-red-600/50 text-red-300 text-xs py-1.5 rounded border border-red-500/30 font-medium">- Stok</button>
-                            <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 hover:bg-emerald-600/50 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-medium">+ Stok</button>
+                            <button onclick="updateStock(${item.id}, ${item.stock} - 1)" class="flex-1 bg-red-600/30 text-red-300 text-xs py-1.5 rounded border border-red-500/30">- Stok</button>
+                            <button onclick="updateStock(${item.id}, ${item.stock} + 1)" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30">+ Stok</button>
                         </div>
-                        <div class="flex gap-2">
-                            <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1 Adet)</button>
-                        </div>
-                        <div class="flex gap-2">
-                            <button onclick="printQR('${item.name}', '${item.size}', '${codeId}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded border border-slate-600 font-medium">Yazdır</button>
-                            <button onclick="deleteProduct(${item.id})" class="bg-rose-900/40 hover:bg-rose-900 text-rose-300 text-xs px-3 py-1.5 rounded border border-rose-700/50 font-medium">Sil</button>
-                        </div>
+                        <button onclick="quickSellItem(${item.id}, 1)" class="w-full bg-indigo-600/30 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1)</button>
+                        <button onclick="deleteProduct(${item.id})" class="w-full bg-rose-900/40 text-rose-300 text-xs py-1 rounded border border-rose-700/50">Sil</button>
                     </div>
-                    <span class="text-[10px] text-slate-500 mt-2">ID: ${item.id}</span>
                 `;
                 list.appendChild(box);
 
                 try {
                     new QRCode(document.getElementById(codeId), {
                         text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}`,
-                        width: 100,
-                        height: 100
+                        width: 90, height: 90
                     });
-                } catch(err) {
-                    console.error("QR hata:", err);
-                }
+                } catch(e) {}
             });
         }
 
@@ -418,10 +370,7 @@
             const totalEarned = qty * item.price;
 
             const { error } = await client.from('products').update({ stock: newStock }).eq('id', id);
-            if (error) {
-                alert('Satış hatası: ' + error.message);
-                return;
-            }
+            if (error) { alert('Hata: ' + error.message); return; }
 
             await addRevenue(totalEarned, `Hızlı Satış: ${item.name} (${qty} Adet)`, 'EKLEME');
             alert(`Satış başarılı! ${totalEarned} ₺ kasaya eklendi.`);
@@ -429,38 +378,23 @@
             pendingScanProductId = null;
             window.history.replaceState({}, document.title, window.location.pathname);
             closeModal();
-            
             await fetchAll();
         }
 
         async function handleBulkUpload() {
             const text = document.getElementById('bulkText').value.trim();
-            if (!text) {
-                alert('Lütfen yüklenecek ürünleri girin.');
-                return;
-            }
-
+            if (!text) return alert('Lütfen ürünleri girin.');
             const lines = text.split('\n');
-            let successCount = 0;
-
+            let count = 0;
             for (let line of lines) {
                 const parts = line.split(',').map(p => p.trim());
                 if (parts.length >= 6) {
                     const [name, category, size, price, stock, detail] = parts;
-                    const payload = {
-                        name,
-                        category,
-                        size,
-                        price: parseFloat(price) || 0,
-                        stock: parseInt(stock) || 0,
-                        detail
-                    };
-                    const { error } = await client.from('products').insert([payload]);
-                    if (!error) successCount++;
+                    const { error } = await client.from('products').insert([{ name, category, size, price: parseFloat(price)||0, stock: parseInt(stock)||0, detail }]);
+                    if (!error) count++;
                 }
             }
-
-            alert(`${successCount} ürün başarıyla eklendi!`);
+            alert(`${count} ürün eklendi!`);
             document.getElementById('bulkText').value = '';
             fetchAll();
         }
@@ -472,10 +406,8 @@
             document.getElementById('authStep').classList.remove('hidden');
             document.getElementById('adminCashStep').classList.add('hidden');
             document.getElementById('qrProductSellStep').classList.add('hidden');
-            
-            const modal = document.getElementById('qrModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
         }
 
         function openPasswordModalForQRSell() {
@@ -485,10 +417,8 @@
             document.getElementById('authStep').classList.remove('hidden');
             document.getElementById('adminCashStep').classList.add('hidden');
             document.getElementById('qrProductSellStep').classList.add('hidden');
-            
-            const modal = document.getElementById('qrModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            document.getElementById('qrModal').classList.remove('hidden');
+            document.getElementById('qrModal').classList.add('flex');
         }
 
         function closeModal() {
@@ -501,28 +431,20 @@
         function verifyPassword() {
             if (document.getElementById('modalPass').value === ADMIN_PASS) {
                 document.getElementById('authStep').classList.add('hidden');
-                
                 if (currentModalMode === 'admin') {
                     document.getElementById('adminCashStep').classList.remove('hidden');
                     fetchTransactions();
                 } else if (currentModalMode === 'qr_sell') {
                     document.getElementById('qrProductSellStep').classList.remove('hidden');
-                    
                     const item = allProducts.find(p => p.id === pendingScanProductId);
                     const detailsEl = document.getElementById('scannedProductDetails');
                     const sellBtn = document.getElementById('confirmScanSellBtn');
 
                     if (item) {
-                        detailsEl.innerHTML = `
-                            <p class="text-white font-bold text-base">Ürün: ${item.name}</p>
-                            <p>Kategori: ${item.category} | Beden: <span class="text-white font-bold">${item.size}</span></p>
-                            <p>Fiyat: <span class="text-emerald-400 font-bold">${item.price} ₺</span></p>
-                            <p>Mevcut Stok: <span class="text-sky-400 font-bold">${item.stock} adet</span></p>
-                            <p class="text-xs text-slate-400 mt-1">Detay: ${item.detail}</p>
-                        `;
+                        detailsEl.innerHTML = `<p class="text-white font-bold">Ürün: ${item.name}</p><p>Beden: ${item.size} | Fiyat: ${item.price} ₺</p><p>Stok: ${item.stock}</p>`;
                         sellBtn.onclick = () => quickSellItem(item.id, 1);
                     } else {
-                        detailsEl.innerHTML = `<p class="text-rose-400">Ürün bulunamadı veya ID geçersiz.</p>`;
+                        detailsEl.innerHTML = `<p class="text-rose-400">Ürün bulunamadı.</p>`;
                         sellBtn.classList.add('hidden');
                     }
                 }
@@ -533,44 +455,62 @@
 
         async function executeAdminCash(multiplier) {
             const amount = parseFloat(document.getElementById('adminCashAmount').value);
-            const note = document.getElementById('adminCashNote').value.trim() || (multiplier > 0 ? 'Nakit Ekleme' : 'Masraf/Çıkarma');
-            if (isNaN(amount) || amount <= 0) {
-                alert('Geçerli bir tutar girin.');
-                return;
-            }
+            const note = document.getElementById('adminCashNote').value.trim() || 'İşlem';
+            if (isNaN(amount) || amount <= 0) return alert('Tutar girin.');
             await addRevenue(amount * multiplier, note, multiplier > 0 ? 'EKLEME' : 'ÇIKARMA');
-            alert('İşlem kaydedildi.');
+            alert('Kaydedildi.');
             closeModal();
             fetchAll();
         }
 
+        // Canlı Kamera QR Tarayıcı Fonksiyonları
         function openScannerModal() {
             document.getElementById('scannerModal').classList.remove('hidden');
             document.getElementById('scannerModal').classList.add('flex');
-            document.getElementById('quickScanId').value = '';
-            document.getElementById('quickScanResult').textContent = 'Ürün bekleniyor...';
+            
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    // QR okutulduğunda içindeki URL'den ID'yi al veya direkt ID ise işle
+                    try {
+                        const url = new URL(decodedText);
+                        const id = url.searchParams.get("id");
+                        if (id) {
+                            stopScanner();
+                            pendingScanProductId = parseInt(id);
+                            openPasswordModalForQRSell();
+                        }
+                    } catch (e) {
+                        // Eğer düz ID yazılmışsa
+                        const id = parseInt(decodedText);
+                        if (!isNaN(id)) {
+                            stopScanner();
+                            pendingScanProductId = id;
+                            openPasswordModalForQRSell();
+                        }
+                    }
+                },
+                (errorMessage) => {}
+            ).catch(err => {
+                console.error("Kamera açılamadı:", err);
+                alert("Kamera izni verilemedi veya kamera bulunamadı.");
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                }).catch(err => console.log(err));
+            }
         }
 
         function closeScannerModal() {
+            stopScanner();
             document.getElementById('scannerModal').classList.remove('flex');
             document.getElementById('scannerModal').classList.add('hidden');
-        }
-
-        function processQuickScan() {
-            const id = parseInt(document.getElementById('quickScanId').value);
-            const item = allProducts.find(p => p.id === id);
-            const resEl = document.getElementById('quickScanResult');
-
-            if (!item) {
-                resEl.innerHTML = '<span class="text-rose-400">Bu ID ile eşleşen ürün bulunamadı!</span>';
-                return;
-            }
-
-            resEl.innerHTML = `
-                <p class="font-bold text-white">${item.name} (${item.size})</p>
-                <p>Fiyat: <span class="text-emerald-400">${item.price} ₺</span> | Stok: ${item.stock}</p>
-                <button onclick="quickSellItem(${item.id}, 1); closeScannerModal();" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded text-xs">Bu Ürünü Sat (Onayla)</button>
-            `;
         }
 
         async function updateStock(id, newStock) {
@@ -583,15 +523,6 @@
             if (!confirm('Silmek istediğinize emin misiniz?')) return;
             await client.from('products').delete().eq('id', id);
             fetchAll();
-        }
-
-        function printQR(name, size, codeId) {
-            const qrElement = document.getElementById(codeId);
-            const img = qrElement.querySelector('img') || qrElement.querySelector('canvas');
-            if (!img) return;
-            const win = window.open('', '_print');
-            win.document.write(`<html><head><title>${name}</title></head><body style="text-align:center; margin-top:50px;"><h2>${name}</h2><p>Beden: ${size}</p><img src="${img.src || img.toDataURL()}" style="width:200px; height:200px;" /><script>window.print(); window.close();<\/script></body></html>`);
-            win.document.close();
         }
 
         document.getElementById('productForm').addEventListener('submit', async (e) => {
@@ -609,7 +540,7 @@
                 document.getElementById('productForm').reset();
                 fetchAll();
             } else {
-                alert('Kayıt Hatası: ' + error.message);
+                alert('Hata: ' + error.message);
             }
         });
 
