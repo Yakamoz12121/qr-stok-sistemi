@@ -216,7 +216,6 @@
                 renderCategories();
                 renderProducts();
 
-                // URL kontrolünü sadece sayfa ilk açıldığında bir kez yap
                 if (!hasCheckedURL) {
                     hasCheckedURL = true;
                     const urlParams = new URLSearchParams(window.location.search);
@@ -237,12 +236,18 @@
 
         async function addRevenue(amount, noteText = 'Satış', type = 'EKLEME') {
             totalRevenue += amount;
+            
+            // Veritabanındaki ciro değerini doğrudan güncelle
             await client.from('settings').update({ value: totalRevenue.toString() }).eq('key', 'total_revenue');
+            
+            // İşlem geçmişine kaydet
             await client.from('transactions').insert([{
                 type: type,
                 amount: Math.abs(amount),
                 note: noteText
             }]);
+            
+            // Ekrandaki bakiye göstergesini anında güncelle
             updateBalanceDisplay();
         }
 
@@ -398,9 +403,8 @@
                 list.appendChild(box);
 
                 try {
-                    // Her QR koduna tarayıcı önbelleğini bypass eden benzersiz parametre eklenir
                     new QRCode(document.getElementById(codeId), {
-                        text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}&_t=${Date.now()}`,
+                        text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}`,
                         width: 100,
                         height: 100
                     });
@@ -429,8 +433,6 @@
             alert(`Satış başarılı! ${totalEarned} ₺ kasaya eklendi.`);
             
             pendingScanProductId = null;
-            
-            // URL'deki ?id parametresini tamamen temizle ve mobil önbelleği sıfırla
             window.history.replaceState({}, document.title, window.location.pathname);
             closeModal();
             
