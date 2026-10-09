@@ -377,10 +377,10 @@
                 `;
                 list.appendChild(box);
 
-                // Tertemiz ve hatasız QR şifrelemesi (Türkçe karakter sorunu yok)
+                // Telefon kamerasının doğrudan siteye ve ürüne yönlendireceği akıllı URL formatı
                 try {
                     new QRCode(document.getElementById(codeId), {
-                        text: `ID:${item.id}|${item.name}|${item.size}|${item.price}TL`,
+                        text: `https://yakamoz12121.github.io/qr-stok-sistemi/?id=${item.id}`,
                         width: 100,
                         height: 100
                     });
