@@ -92,12 +92,12 @@
         </section>
     </div>
 
-    <!-- Ortak Şifre ve İşlem Modalı -->
+    <!-- Ortak Şifre ve İşlem Modalı (Kapatma Butonları Kaldırıldı) -->
     <div id="qrModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="border-b border-slate-700 pb-3 flex justify-between items-center">
                 <h3 id="modalTitle" class="text-lg font-bold text-white">Yetkilendirme Gerekli</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
+                <!-- X Butonu Tamamen Kaldırıldı -->
             </div>
 
             <!-- Adım 1: Şifre Giriş Alanı -->
@@ -236,18 +236,12 @@
 
         async function addRevenue(amount, noteText = 'Satış', type = 'EKLEME') {
             totalRevenue += amount;
-            
-            // Veritabanındaki ciro değerini doğrudan güncelle
             await client.from('settings').update({ value: totalRevenue.toString() }).eq('key', 'total_revenue');
-            
-            // İşlem geçmişine kaydet
             await client.from('transactions').insert([{
                 type: type,
                 amount: Math.abs(amount),
                 note: noteText
             }]);
-            
-            // Ekrandaki bakiye göstergesini anında güncelle
             updateBalanceDisplay();
         }
 
