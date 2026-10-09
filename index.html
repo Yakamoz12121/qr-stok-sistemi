@@ -20,6 +20,7 @@
     <button id="loginBtn" onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg">Giriş Yap</button>
   </div>
 </div>
+<div id="backupWarn" class="hidden max-w-5xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
 <div class="max-w-5xl mx-auto space-y-8">
   <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
     <div>
@@ -40,6 +41,8 @@
       <button onclick="undoLastSale()" class="bg-rose-700 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-xl text-sm">↩️ Son Satışı Geri Al</button>
       <button onclick="salesReport()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📊 Rapor</button>
       <button onclick="toggleFont()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-3 py-2 rounded-xl text-sm" title="Yazıyı büyüt/küçült">Aa</button>
+      <button onclick="bulkPrice()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💲 Toplu Fiyat</button>
+      <button onclick="stockMatrix()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">🧮 Stok Matrisi</button>
       <button onclick="backupJSON()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💾 Yedek</button>
       <select id="labelSize" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-xl px-2 py-2"><option value="o">Etiket: Orta</option><option value="k">Etiket: Küçük</option><option value="b">Etiket: Büyük</option></select>
     </div>
@@ -104,6 +107,7 @@
     </div>
     <div id="adminCashStep" class="space-y-6 hidden">
       <div id="dailySummary" class="bg-slate-900 p-3 rounded-xl border border-slate-700 text-xs text-slate-300"></div>
+      <button onclick="cashClose()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded-lg text-xs">🧾 Kasa Kapanışı (sayım karşılaştır)</button>
       <div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center">
         <div><span class="text-[10px] text-slate-400 block">Aylık Satış</span><span id="summarySales" class="text-sm font-bold text-sky-400">0 ₺</span></div>
         <div><span class="text-[10px] text-slate-400 block">Eklenen</span><span id="summaryAdded" class="text-sm font-bold text-emerald-400">0 ₺</span></div>
@@ -594,21 +598,86 @@ function printReceipt(r) {
   const w = window.open('', '_blank');
   if (!w) return alert('Açılır pencere engellendi, izin verin.');
   const rows = r.lines.map(l => `<tr><td>${esc(l.name)} (${esc(l.size)}) x${l.qty}</td><td style="text-align:right">${l.qty * l.price} ₺</td></tr>`).join('');
+  const wa = 'https://wa.me/?text=' + encodeURIComponent(`SATIŞ FİŞİ ${new Date().toLocaleString('tr-TR')}\n` + r.lines.map(l => `${l.name} (${l.size}) x${l.qty} = ${l.qty * l.price} ₺`).join('\n') + `\nTOPLAM: ${r.total} ₺ (${r.pay})\nTeşekkürler`);
   const chg = r.pay === 'Nakit' && r.given && r.given >= r.total ? `<p>Alınan: ${r.given} ₺<br>Para üstü: ${r.given - r.total} ₺</p>` : '';
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiş</title><style>body{font-family:monospace;width:72mm;margin:4mm;font-size:12px}table{width:100%}</style></head><body><h3 style="text-align:center;margin:0">SATIŞ FİŞİ</h3><p style="text-align:center;margin:2px">${new Date().toLocaleString('tr-TR')}</p><hr><table>${rows}</table><hr>${r.pct ? `<p>Ara toplam: ${r.gross} ₺<br>İndirim: %${r.pct}</p>` : ''}<p><b>TOPLAM: ${r.total} ₺</b><br>Ödeme: ${r.pay}</p>${chg}<p style="text-align:center">Teşekkürler</p><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fiş</title><style>body{font-family:monospace;width:72mm;margin:4mm;font-size:12px}table{width:100%}@media print{.np{display:none}}</style></head><body><h3 style="text-align:center;margin:0">SATIŞ FİŞİ</h3><p style="text-align:center;margin:2px">${new Date().toLocaleString('tr-TR')}</p><hr><table>${rows}</table><hr>${r.pct ? `<p>Ara toplam: ${r.gross} ₺<br>İndirim: %${r.pct}</p>` : ''}<p><b>TOPLAM: ${r.total} ₺</b><br>Ödeme: ${r.pay}</p>${chg}<p style="text-align:center">Teşekkürler</p><p class="np" style="text-align:center"><a href="${wa}" target="_blank">WhatsApp ile gönder</a></p><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`);
   w.document.close();
 }
 
-function renderDaily() {
+function dailyStats() {
   const today = new Date().toDateString();
-  let cash = 0, card = 0, cnt = 0, inn = 0, out = 0;
+  const r = { cash: 0, card: 0, cardOut: 0, cnt: 0, inn: 0, out: 0 };
   allTransactions.forEach(t => {
     if (new Date(t.created_at).toDateString() !== today) return;
     const note = t.note || '';
-    if (t.type === 'EKLEME' && note.toLowerCase().includes('satış')) { cnt++; if (note.includes('[Kart]')) card += t.amount; else cash += t.amount; }
-    else if (t.type === 'EKLEME') inn += t.amount; else out += t.amount;
+    if (t.type === 'EKLEME' && note.toLowerCase().includes('satış')) { r.cnt++; if (note.includes('[Kart]')) r.card += t.amount; else r.cash += t.amount; }
+    else if (t.type === 'EKLEME') r.inn += t.amount;
+    else if (note.includes('[Kart]')) r.cardOut += t.amount;
+    else r.out += t.amount;
   });
-  $('dailySummary').innerHTML = `<b class="text-white">Bugün:</b> ${cnt} satış · Nakit <b class="text-emerald-400">${cash} ₺</b> · Kart <b class="text-sky-400">${card} ₺</b><br>Manuel ekleme ${inn} ₺ · Çıkarılan ${out} ₺ · <span class="text-slate-400">Bugünkü nakit hareketi: ${cash + inn - out} ₺</span>`;
+  return r;
+}
+
+function renderDaily() {
+  const r = dailyStats();
+  $('dailySummary').innerHTML = `<b class="text-white">Bugün:</b> ${r.cnt} satış · Nakit <b class="text-emerald-400">${r.cash} ₺</b> · Kart <b class="text-sky-400">${r.card - r.cardOut} ₺</b><br>Manuel ekleme ${r.inn} ₺ · Çıkarılan/iade ${r.out} ₺ · <span class="text-slate-400">Bugünkü nakit hareketi: ${r.cash + r.inn - r.out} ₺</span>`;
+}
+
+function cashClose() {
+  const s = dailyStats();
+  const open = prompt('Sabah çekmecedeki açılış nakdi (₺):', '0'); if (open === null) return;
+  const counted = prompt('Şimdi çekmecede saydığın nakit (₺):', ''); if (counted === null) return;
+  const o = parseFloat(open.replace(',', '.')), c = parseFloat(counted.replace(',', '.'));
+  if (isNaN(o) || isNaN(c)) return alert('Geçersiz tutar.');
+  const exp = Math.round((o + s.cash + s.inn - s.out) * 100) / 100, diff = Math.round((c - exp) * 100) / 100;
+  alert(`Olması gereken nakit: ${exp} ₺\nSayılan: ${c} ₺\nFark: ${diff > 0 ? '+' : ''}${diff} ₺ ${diff === 0 ? '(tam tutuyor)' : diff > 0 ? '(fazla)' : '(eksik)'}\n\nBugün ${s.cnt} satış · Kart: ${s.card - s.cardOut} ₺`);
+}
+
+function parsePriceChange(txt, price) {
+  const t = (txt || '').trim().replace(',', '.');
+  let m = t.match(/^%\s*(-?\d+(\.\d+)?)$/);
+  if (m) return Math.max(0, Math.round(price * (100 + parseFloat(m[1]))) / 100);
+  m = t.match(/^([+-]\d+(\.\d+)?)$/);
+  if (m) return Math.max(0, Math.round((price + parseFloat(m[1])) * 100) / 100);
+  return null;
+}
+
+async function bulkPrice() {
+  const list = visibleProducts();
+  if (!list.length) return alert('Ürün yok.');
+  const txt = prompt(`${list.length} ürünün fiyatı değişecek (seçili kategori/arama).\n%10 = %10 zam, %-10 = %10 indirim, +50 = 50 ₺ zam, -50 = 50 ₺ indirim`, '');
+  if (txt === null) return;
+  if (parsePriceChange(txt, 100) === null) return alert('Geçersiz giriş. Örnek: %10, %-10, +50, -50');
+  const prev = list.slice(0, 8).map(p => `${p.name} (${p.size}): ${p.price} → ${parsePriceChange(txt, p.price)}`).join('\n');
+  if (!confirm(`Örnek:\n${prev}${list.length > 8 ? '\n...' : ''}\n\nUygulansın mı?`)) return;
+  let ok = 0;
+  for (const p of list) { const { error } = await client.from('products').update({ price: parsePriceChange(txt, p.price) }).eq('id', p.id); if (!error) ok++; }
+  alert(`${ok}/${list.length} ürün güncellendi.`);
+  fetchAll();
+}
+
+function stockMatrix() {
+  const list = visibleProducts();
+  if (!list.length) return alert('Ürün yok.');
+  const order = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL'];
+  const rank = z => { const i = order.indexOf(String(z).toUpperCase()); return i < 0 ? 99 : i; };
+  const sizes = [...new Set(list.map(p => String(p.size).trim()))].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b, 'tr', { numeric: true }));
+  const names = [...new Set(list.map(p => p.name))];
+  const cell = (n, z) => { const f = list.filter(p => p.name === n && String(p.size).trim() === z); return f.length ? f.reduce((t, p) => t + p.stock, 0) : null; };
+  const rows = names.map(n => `<tr><td>${esc(n)}</td>${sizes.map(z => { const v = cell(n, z); return v === null ? '<td>-</td>' : `<td style="${v === 0 ? 'background:#fecaca;font-weight:bold' : v <= 3 ? 'background:#fef08a' : ''}">${v}</td>`; }).join('')}</tr>`).join('');
+  const w = window.open('', '_blank');
+  if (!w) return alert('Açılır pencere engellendi, izin verin.');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Stok Matrisi</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse}td,th{border:1px solid #999;padding:4px 10px;font-size:13px;text-align:center}td:first-child{text-align:left}</style></head><body><h3>Stok Matrisi - ${new Date().toLocaleDateString('tr-TR')}</h3><p style="font-size:12px">Kırmızı: stok yok · Sarı: 3 ve altı</p><table><tr><th>Ürün</th>${sizes.map(z => `<th>${esc(z)}</th>`).join('')}</tr>${rows}</table></body></html>`);
+  w.document.close();
+}
+
+let idleT;
+function resetIdle() { clearTimeout(idleT); idleT = setTimeout(async () => { await client.auth.signOut(); location.reload(); }, 10 * 60 * 1000); }
+function startIdle() { ['click', 'keydown', 'touchstart', 'mousemove'].forEach(e => document.addEventListener(e, resetIdle, { passive: true })); resetIdle(); }
+
+function checkBackup() {
+  let t = 0; try { t = Number(localStorage.getItem('lastBackup')) || 0; } catch (e) {}
+  $('backupWarn').classList.toggle('hidden', Date.now() - t < 7 * 86400000);
 }
 
 function lowStockPrint() {
@@ -649,6 +718,8 @@ async function backupJSON() {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = `yedek-${new Date().toISOString().slice(0, 10)}.json`; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    try { localStorage.setItem('lastBackup', String(Date.now())); } catch (e2) {}
+    $('backupWarn').classList.add('hidden');
   } catch (e) { alert('Yedek alınamadı: ' + e.message); }
 }
 
@@ -716,6 +787,7 @@ async function doLogin() {
   if (error) { err.textContent = 'Giriş başarısız: e-posta veya şifre hatalı.'; err.classList.remove('hidden'); return; }
   $('loginPass').value = '';
   $('loginScreen').classList.add('hidden');
+  startIdle(); checkBackup();
   fetchAll();
 }
 
@@ -727,7 +799,7 @@ async function doLogout() {
 window.onload = async () => {
   applyFont();
   const { data } = await client.auth.getSession();
-  if (data.session) { $('loginScreen').classList.add('hidden'); fetchAll(); }
+  if (data.session) { $('loginScreen').classList.add('hidden'); startIdle(); checkBackup(); fetchAll(); }
 };
 </script>
 </body>
