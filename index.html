@@ -98,20 +98,6 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
-            <!-- Adım 2A: Satış Yapma Alanı -->
-            <div id="saleStep" class="space-y-4 hidden">
-                <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-2">
-                    <h4 id="modalProdName" class="font-bold text-white text-base">Ürün Adı</h4>
-                    <p class="text-sm text-slate-400">Mevcut Stok: <span id="modalProdStock" class="text-white font-bold">0</span> adet</p>
-                    <p class="text-sm text-slate-400">Birim Fiyat: <span id="modalProdPrice" class="text-emerald-400 font-bold">0</span> ₺</p>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-400 mb-1">Satılacak Adet</label>
-                    <input type="number" id="saleQty" value="1" min="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500">
-                </div>
-                <button onclick="executeSale()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg transition-colors">Satışı Onayla ve Kasaya Ekle</button>
-            </div>
-
             <!-- Adım 2B: Yönetici Kasa Ekle/Çıkar Paneli ve Geçmişi -->
             <div id="adminCashStep" class="space-y-6 hidden">
                 <div class="space-y-4 bg-slate-900 p-4 rounded-xl border border-slate-700">
@@ -130,9 +116,14 @@
                     </div>
                 </div>
 
-                <!-- Kasa İşlem Geçmişi Listesi -->
-                <div class="space-y-2">
-                    <h4 class="font-bold text-white text-sm">Son Kasa Hareketleri</h4>
+                <!-- Kasa İşlem Geçmişi ve Ay Seçici -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-white text-sm">Kasa İşlem Geçmişi</h4>
+                        <select id="monthSelect" onchange="filterTransactionsByMonth()" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500">
+                            <!-- Aylar dinamik olarak buraya eklenecek -->
+                        </select>
+                    </div>
                     <div id="transactionList" class="bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-48 overflow-y-auto space-y-2 text-xs">
                         <p class="text-slate-500 text-center">Yükleniyor...</p>
                     </div>
@@ -149,10 +140,11 @@
         const ADMIN_PASS = "1234";
 
         let allProducts = [];
+        let allTransactions = [];
         let activeCategory = 'TÜMÜ';
         let currentActiveProduct = null;
         let totalRevenue = 0;
-        let modalMode = 'sale'; // 'sale' veya 'admin_cash'
+        let modalMode = 'sale';
 
         async function fetchAll() {
             try {
@@ -182,17 +174,12 @@
 
         async function addRevenue(amount, noteText = 'Satış', type = 'EKLEME') {
             totalRevenue += amount;
-            
-            // Kasayı güncelle
             await client.from('settings').update({ value: totalRevenue.toString() }).eq('key', 'total_revenue');
-            
-            // İşlem geçmişine (transactions) kayıt atalım ki patron görsün
             await client.from('transactions').insert([{
                 type: type,
                 amount: Math.abs(amount),
                 note: noteText
             }]);
-
             updateBalanceDisplay();
         }
 
@@ -200,19 +187,65 @@
             const listEl = document.getElementById('transactionList');
             listEl.innerHTML = '<p class="text-slate-500 text-center">Yükleniyor...</p>';
 
-            const { data, error } = await client.from('transactions').select('*').order('created_at', { ascending: false }).limit(20);
+            const { data, error } = await client.from('transactions').select('*').order('created_at', { ascending: false });
             if (error) {
                 listEl.innerHTML = '<p class="text-rose-400 text-center">Geçmiş yüklenemedi.</p>';
                 return;
             }
 
-            if (!data || data.length === 0) {
-                listEl.innerHTML = '<p class="text-slate-500 text-center">Henüz kasa hareketi bulunmuyor.</p>';
+            allTransactions = data || [];
+            populateMonthDropdown();
+            filterTransactionsByMonth();
+        }
+
+        function populateMonthDropdown() {
+            const selectEl = document.getElementById('monthSelect');
+            selectEl.innerHTML = '';
+
+            const monthsMap = new Set();
+            allTransactions.forEach(tx => {
+                const date = new Date(tx.created_at);
+                const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                monthsMap.add(yearMonth);
+            });
+
+            const sortedMonths = Array.from(monthsMap).sort().reverse();
+            
+            if (sortedMonths.length === 0) {
+                const now = new Date();
+                const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                sortedMonths.push(currentYM);
+            }
+
+            sortedMonths.forEach(ym => {
+                const [year, month] = ym.split('-');
+                const dateObj = new Date(year, month - 1);
+                const monthName = dateObj.toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
+
+                const opt = document.createElement('option');
+                opt.value = ym;
+                opt.textContent = monthName;
+                selectEl.appendChild(opt);
+            });
+        }
+
+        function filterTransactionsByMonth() {
+            const selectedYM = document.getElementById('monthSelect').value;
+            const listEl = document.getElementById('transactionList');
+            listEl.innerHTML = '';
+
+            const filtered = allTransactions.filter(tx => {
+                const date = new Date(tx.created_at);
+                const txYM = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                return txYM === selectedYM;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<p class="text-slate-500 text-center">Bu ay için kayıt bulunmuyor.</p>';
                 return;
             }
 
-            listEl.innerHTML = '';
-            data.forEach(tx => {
+            filtered.forEach(tx => {
                 const isAdd = tx.type === 'EKLEME';
                 const dateStr = new Date(tx.created_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
                 
@@ -319,11 +352,9 @@
         }
 
         function openAdminPanel() {
-            modalMode = 'admin_cash';
             document.getElementById('modalTitle').textContent = 'Yönetici Kasa Paneli';
             document.getElementById('modalPass').value = '';
             document.getElementById('authStep').classList.remove('hidden');
-            document.getElementById('saleStep').classList.add('hidden');
             document.getElementById('adminCashStep').classList.add('hidden');
             
             const modal = document.getElementById('qrModal');
@@ -344,7 +375,7 @@
                 document.getElementById('adminCashStep').classList.remove('hidden');
                 document.getElementById('adminCashAmount').value = '';
                 document.getElementById('adminCashNote').value = '';
-                fetchTransactions(); // İşlem geçmişini getir
+                fetchTransactions();
             } else {
                 alert('Hatalı Şifre!');
             }
@@ -434,7 +465,7 @@
             if (error) {
                 alert('Kayıt Hatası: ' + error.message);
             } else {
-                document.getElementById('productForm').reset();
+                document.getElementById('productForm'.reset());
                 fetchAll();
             }
         });
