@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Kamera ile QR tarama için hafif kütüphane -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 md:p-8 font-sans">
@@ -19,7 +18,6 @@
                 <p class="text-slate-400 mt-1">Öğrenci & Mesleki Kıyafet Mağazası</p>
             </div>
             <div class="flex items-center gap-4">
-                <!-- Ortak Kasa / Bakiye Kutusu -->
                 <div onclick="openAdminPanel()" class="bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer hover:bg-slate-750 transition-colors shadow-lg" title="Yönetici Kasa Paneli için Tıklayın">
                     <span class="text-xs text-slate-400 block">Günlük Ortak Kasa (Yönetici)</span>
                     <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
@@ -65,7 +63,6 @@
                 </form>
             </section>
 
-            <!-- Toplu Ürün Yükleme -->
             <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
                 <div>
                     <h2 class="text-xl font-semibold text-white mb-2">Toplu Ürün Yükleme (CSV Formatı)</h2>
@@ -162,14 +159,14 @@
         </div>
     </div>
 
-    <!-- Gerçek Kamera ile QR Tarama Modalı -->
+    <!-- Canlı Kamera ile QR Tarama Modalı -->
     <div id="scannerModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl text-center">
             <div class="flex justify-between items-center border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold text-white">Canlı Kamera QR Tarayıcı</h3>
                 <button onclick="closeScannerModal()" class="text-slate-400 hover:text-white text-xl font-bold px-2">&times;</button>
             </div>
-            <p class="text-xs text-slate-300">Ürünün üzerindeki QR kodu kameraya gösterin:</p>
+            <p class="text-xs text-slate-300">Ürünün üzerindeki QR kodu kameraya ortalayın:</p>
             <div id="reader" class="w-full overflow-hidden rounded-xl bg-black"></div>
             <button onclick="closeScannerModal()" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 rounded-lg text-sm">Kamerayı Kapat</button>
         </div>
@@ -189,7 +186,7 @@
         let pendingScanProductId = null;
         let currentModalMode = null;
         let hasCheckedURL = false;
-        let html5QrCode = null;
+        let html5QrCodeScanner = null;
 
         async function fetchAll() {
             try {
@@ -463,52 +460,47 @@
             fetchAll();
         }
 
-        // Canlı Kamera QR Tarayıcı Fonksiyonları
+        // Optimize Edilmiş Hazır Tarayıcı (Tek İzin Sorma ve Hızlı Okuma)
         function openScannerModal() {
             document.getElementById('scannerModal').classList.remove('hidden');
             document.getElementById('scannerModal').classList.add('flex');
-            
-            html5QrCode = new Html5Qrcode("reader");
-            html5QrCode.start(
-                { facingMode: "environment" }, 
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                (decodedText) => {
-                    // QR okutulduğunda içindeki URL'den ID'yi al veya direkt ID ise işle
-                    try {
-                        const url = new URL(decodedText);
-                        const id = url.searchParams.get("id");
-                        if (id) {
-                            stopScanner();
-                            pendingScanProductId = parseInt(id);
-                            openPasswordModalForQRSell();
-                        }
-                    } catch (e) {
-                        // Eğer düz ID yazılmışsa
-                        const id = parseInt(decodedText);
-                        if (!isNaN(id)) {
-                            stopScanner();
-                            pendingScanProductId = id;
-                            openPasswordModalForQRSell();
-                        }
+
+            if (!html5QrCodeScanner) {
+                html5QrCodeScanner = new Html5QrcodeScanner(
+                    "reader", 
+                    { fps: 20, qrbox: { width: 250, height: 250 } },
+                    false
+                );
+            }
+
+            html5QrCodeScanner.render((decodedText) => {
+                try {
+                    const url = new URL(decodedText);
+                    const id = url.searchParams.get("id");
+                    if (id) {
+                        closeScannerModal();
+                        pendingScanProductId = parseInt(id);
+                        openPasswordModalForQRSell();
                     }
-                },
-                (errorMessage) => {}
-            ).catch(err => {
-                console.error("Kamera açılamadı:", err);
-                alert("Kamera izni verilemedi veya kamera bulunamadı.");
+                } catch (e) {
+                    const id = parseInt(decodedText);
+                    if (!isNaN(id)) {
+                        closeScannerModal();
+                        pendingScanProductId = id;
+                        openPasswordModalForQRSell();
+                    }
+                }
+            }, (error) => {
+                // Tarama esnasındaki rutin hataları yoksay
             });
         }
 
-        function stopScanner() {
-            if (html5QrCode) {
-                html5QrCode.stop().then(() => {
-                    html5QrCode.clear();
-                }).catch(err => console.log(err));
-            }
-        }
-
         function closeScannerModal() {
-            stopScanner();
+            if (html5QrCodeScanner) {
+                html5QrCodeScanner.clear().catch(error => {
+                    console.error("Tarayıcı kapatılamadı:", error);
+                });
+            }
             document.getElementById('scannerModal').classList.remove('flex');
             document.getElementById('scannerModal').classList.add('hidden');
         }
