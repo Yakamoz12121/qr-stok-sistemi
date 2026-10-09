@@ -80,14 +80,13 @@
         </section>
     </div>
 
-    <!-- Tamamen Kilitli Şifre ve Satış Modalı (Vazgeç/Kapat butonu yok) -->
+    <!-- Tamamen Kilitli Şifre ve Satış Modalı -->
     <div id="qrModal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4 z-50">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 space-y-6 shadow-2xl">
             <div class="border-b border-slate-700 pb-3">
                 <h3 class="text-lg font-bold text-white text-center">Yetkilendirme Gerekli</h3>
             </div>
 
-            <!-- Adım 1: Şifre Giriş Alanı -->
             <div id="authStep" class="space-y-4">
                 <p class="text-sm text-slate-300 text-center">Bu QR koda erişmek için işletme şifresini girmelisiniz.</p>
                 <div>
@@ -97,7 +96,6 @@
                 <button onclick="verifyPassword()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors">Şifreyi Doğrula</button>
             </div>
 
-            <!-- Adım 2: Satış ve Stok Azaltma Alanı -->
             <div id="saleStep" class="space-y-4 hidden">
                 <div class="bg-slate-900 p-4 rounded-xl border border-slate-700 space-y-2">
                     <h4 id="modalProdName" class="font-bold text-white text-base">Ürün Adı</h4>
@@ -127,15 +125,13 @@
 
         async function fetchAll() {
             try {
-                const [prodRes, settingsRes] = await Promise.all([
-                    client.from('products').select('*').order('created_at', { ascending: false }),
-                    client.from('settings').select('*').eq('key', 'total_revenue').maybeSingle()
-                ]);
-
+                // Ürünleri çek
+                const prodRes = await client.from('products').select('*').order('created_at', { ascending: false });
                 if (prodRes.error) throw prodRes.error;
-
                 allProducts = prodRes.data || [];
-                
+
+                // Kasayı çek (Hata verirse çökmesin diye ayrı kontrol)
+                const settingsRes = await client.from('settings').select('*').eq('key', 'total_revenue').maybeSingle();
                 if (settingsRes.data) {
                     totalRevenue = parseFloat(settingsRes.data.value) || 0;
                 } else {
@@ -148,6 +144,7 @@
                 renderProducts();
             } catch (err) {
                 console.error("Veri Çekme Hatası:", err);
+                document.getElementById('productList').innerHTML = `<p class="text-rose-400 col-span-full">Veriler yüklenirken hata oluştu: ${err.message}</p>`;
             }
         }
 
@@ -203,7 +200,7 @@
             }
 
             if (filtered.length === 0) {
-                list.innerHTML = '<p class="text-slate-500 col-span-full">Aradığınız kriterlere uygun ürün bulunamadı.</p>';
+                list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün bulunmuyor veya aradığınız kriterlere uygun sonuç yok.</p>';
                 return;
             }
 
@@ -306,8 +303,6 @@
             await addRevenue(earnedMoney);
 
             alert(`Satış başarılı! ${qty} adet ürün satıldı. Kasaya ${earnedMoney} ₺ eklendi.`);
-            
-            // İşlem bittikten sonra sayfayı yenileyip ana ekrana dönelim
             window.location.href = window.location.pathname;
         }
 
@@ -363,4 +358,34 @@
                 size: document.getElementById('p_size').value,
                 price: parseFloat(document.getElementById('p_price').value),
                 stock: parseInt(document.getElementById('p_stock').value),
-                detail: document.getElementById('p
+                detail: document.getElementById('p_detail').value
+            };
+
+            const { error } = await client.from('products').insert([payload]);
+            
+            submitBtn.textContent = 'Ürünü Kaydet ve QR Kodu Üret';
+            submitBtn.disabled = false;
+
+            if (error) {
+                alert('Kayıt Hatası: ' + error.message);
+            } else {
+                document.getElementById('productForm').reset();
+                fetchAll();
+            }
+        });
+
+        window.onload = () => {
+            fetchAll();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const scanId = urlParams.get('scan');
+            if (scanId) {
+                setTimeout(() => {
+                    const found = allProducts.get(p => p.id == scanId);
+                    if (found) openModal(found);
+                }, 1000);
+            }
+        };
+    </script>
+</body>
+</html>
