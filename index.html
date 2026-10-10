@@ -1693,6 +1693,14 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
   if(!isMainAdmin(user)){alert('Bu panel yalnızca ana yönetici hesabına açıktır.');return;}
   el('qrAdminOverlay').style.display='flex'; await qrAdminLoad();
  };
+ window.qrAdminDeleteOrganization=async function(id){
+  const user=await sessionUser();if(!isMainAdmin(user)){alert('Bu işlem yalnızca ana yöneticiye açık.');return;}
+  const org=organizations.find(o=>o.id===id);if(!org){alert('İşletme listede bulunamadı; listeyi yenile.');return;}
+  if(!confirm('DİKKAT: "'+org.name+'" işletmesini silmek istiyor musun? Bu işlem geri alınamaz.'))return;
+  if(!confirm('Son onay: "'+org.name+'" işletme kaydı kalıcı olarak silinsin mi? İşletmede üyeler varsa işlem reddedilecek; bağlı kayıtlar varsa zorla silinmeyecek.'))return;
+  try{status('İşletme siliniyor…');await invoke({action:'delete_organization',organization_id:id});status('İşletme silindi.');await qrAdminLoad();}
+  catch(e){status(e.message||'İşletme silinemedi.',true);}
+ };
  window.qrAdminDeleteUser=async function(id,email){
   const user=await sessionUser();if(!isMainAdmin(user)){alert('Bu işlem yalnızca ana yöneticiye açık.');return;}
   if(id===ADMIN_ID){alert('Ana yönetici hesabı buradan silinemez.');return;}
@@ -1706,9 +1714,9 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
    status('Yükleniyor…');const data=await invoke({action:'list'});organizations=data.organizations||[];
    el('qraOrg').innerHTML='<option value="">İşletme seç</option>'+organizations.map(o=>'<option value="'+String(o.id).replace(/"/g,'&quot;')+'">'+String(o.name||'İsimsiz işletme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</option>').join('');
    const members=data.members||[],users=data.users||[];
-   const orgRows=organizations.map(o=>'<tr><td>'+escText(o.name)+'</td><td>'+escText(o.id)+'</td><td>'+members.filter(m=>m.organization_id===o.id).length+'</td><td>'+ (o.is_active?'Aktif':'Pasif')+'</td></tr>').join('');
+   const orgRows=organizations.map(o=>'<tr><td>'+escText(o.name)+'</td><td>'+escText(o.id)+'</td><td>'+members.filter(m=>m.organization_id===o.id).length+'</td><td>'+ (o.is_active?'Aktif':'Pasif')+'</td><td><button type="button" style="background:#991b1b;color:#fff" onclick="qrAdminDeleteOrganization(\''+escText(o.id)+'\')">İşletmeyi sil</button></td></tr>').join('');
    const userRows=users.map(u=>'<tr><td>'+escText(u.email||'—')+'</td><td>'+escText(u.id)+'</td><td>'+escText(u.email_confirmed_at?'Onaylı':'Davet/onay bekliyor')+'</td><td><button type="button" style="background:#991b1b;color:#fff" onclick="qrAdminDeleteUser(\''+escText(u.id)+'\',\''+escText(u.email||'')+'\')">Kullanıcıyı sil</button></td></tr>').join('');
-   el('qraLists').innerHTML='<h3 style="font-weight:800;margin:10px 0">İşletmeler ('+organizations.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">İşletme</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Üye</th><th style="text-align:left;padding:7px">Durum</th></tr></thead><tbody>'+orgRows+'</tbody></table><h3 style="font-weight:800;margin:20px 0 10px">Kullanıcılar ('+users.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">E-posta</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Durum</th></tr></thead><tbody>'+userRows+'</tbody></table>';
+   el('qraLists').innerHTML='<h3 style="font-weight:800;margin:10px 0">İşletmeler ('+organizations.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">İşletme</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Üye</th><th style="text-align:left;padding:7px">Durum</th><th style="text-align:left;padding:7px">İşlem</th></tr></thead><tbody>'+orgRows+'</tbody></table><h3 style="font-weight:800;margin:20px 0 10px">Kullanıcılar ('+users.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">E-posta</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Durum</th></tr></thead><tbody>'+userRows+'</tbody></table>';
    status('Liste güncellendi.');
   }catch(e){status(e.message||'Liste alınamadı.',true);}
  };
