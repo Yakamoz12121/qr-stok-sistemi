@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f172a">
+<meta name="description" content="Üniforma mağazası için QR satış, stok, beden ve kasa yönetimi."><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f172a">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 body.is-calisan .patron-only{display:none!important}
@@ -27,6 +27,30 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
 #productList.list-mode .qrbox,#productList.list-mode .qrdl,#productList.list-mode .sizeinfo{display:none!important}
 #productList.list-mode>div>div:first-child{flex:1 1 220px;margin:0!important}
 #productList.list-mode>div>div:last-child{flex:1 1 260px;margin:0!important}
+
+/* Modern dashboard layer */
+:root{color-scheme:dark;--radius-lg:1.15rem}
+*{scrollbar-width:thin;scrollbar-color:#334155 transparent}
+body.bg-slate-900{background:radial-gradient(900px 520px at 0% 0%,color-mix(in srgb,var(--accent2) 18%,transparent),transparent 65%),radial-gradient(800px 500px at 100% 0%,var(--glow),transparent 60%),var(--bg)!important;letter-spacing:-.012em}
+body>div.max-w-7xl{max-width:1440px!important}
+header{position:relative;padding:1.1rem 1.25rem!important;border:1px solid var(--line)!important;border-radius:1.35rem;background:color-mix(in srgb,var(--card) 86%,transparent);backdrop-filter:blur(18px);box-shadow:0 18px 50px #0002}
+header h1{font-size:clamp(1.45rem,3vw,2.1rem)!important;letter-spacing:-.04em;line-height:1.15}
+section.bg-slate-800,.grid>div.bg-slate-800{border-radius:var(--radius-lg)!important;border-color:color-mix(in srgb,var(--line) 82%,var(--accent))!important;background:linear-gradient(145deg,color-mix(in srgb,var(--card) 98%,white 2%),var(--card))!important;box-shadow:0 14px 40px #0002, inset 0 1px #ffffff08!important}
+button,select,input,textarea,summary{transition:background-color .16s,border-color .16s,transform .16s,box-shadow .16s}
+button{min-height:2.35rem}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:not(:disabled):active{transform:translateY(1px)}
+input,select,textarea{max-width:100%;border-radius:.7rem!important}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 16%,transparent)}
+#productList>div{border-radius:1rem!important;background:linear-gradient(155deg,var(--inner),color-mix(in srgb,var(--card) 88%,black))!important;box-shadow:0 8px 24px #00015}
+#productList>div:hover{box-shadow:0 14px 30px #0003;border-color:color-mix(in srgb,var(--accent) 55%,var(--line))!important}
+#categoryTabs{gap:.5rem;border-color:var(--line)!important}
+#categoryTabs button{border-radius:999px!important;padding:.55rem 1rem}
+#cartBar{background:color-mix(in srgb,var(--card) 92%,transparent)!important;backdrop-filter:blur(20px);box-shadow:0 -14px 45px #0003;padding-bottom:max(.8rem,env(safe-area-inset-bottom))}
+#toasts>div{backdrop-filter:blur(16px)}
+#loginScreen>div{border-radius:1.5rem!important;box-shadow:0 28px 90px #0007!important}
+.mih{font-weight:800}
+@media(max-width:640px){body.bg-slate-900{padding:.7rem!important;padding-bottom:8rem!important}header{padding:1rem!important}header .flex.items-center.gap-3{width:100%}header .flex.items-center.gap-3>button{flex:1}#cartBar .max-w-5xl{align-items:stretch}#cartInfo{max-width:100%;overflow-wrap:anywhere}#cartBar .flex.items-center.gap-2{flex-wrap:wrap}#cartBar input{flex:1;min-width:5rem}section.bg-slate-800{padding:1rem!important}.grid.grid-cols-2.md\:grid-cols-4 b{font-size:1.35rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -44,8 +68,8 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
     <button id="loginBtn" onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg">Giriş Yap</button>
   </div>
 </div>
-<div id="backupWarn" class="patron-only hidden max-w-5xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
-<div class="max-w-5xl mx-auto space-y-8">
+<div id="backupWarn" class="patron-only hidden max-w-7xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
+<div class="max-w-7xl mx-auto space-y-8">
   <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
     <div>
       <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok & Kasa Yönetimi</h1>
@@ -71,6 +95,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
           <div class="patron-only">
             <p class="mih">RAPOR VE YEDEK</p>
             <button class="mi" onclick="salesReport()">📊 Satış raporu</button>
+            <button class="mi" onclick="auditReport()">🧾 Stok / işlem geçmişi</button>
             <button class="mi" onclick="exportCSV('stok')">📥 Stok listesi (Excel)</button>
             <button class="mi" onclick="backupJSON()">💾 Yedek al</button>
           </div>
@@ -110,10 +135,12 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
             <input type="text" id="p_size" required placeholder="Örn: S, M, L" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <div><label class="block text-xs text-slate-400 mb-1">Fiyat (₺)</label>
-            <input type="number" id="p_price" required min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
+          <div><label class="block text-xs text-slate-400 mb-1">Satış fiyatı (₺)</label>
+            <input type="number" id="p_price" required min="0" step="0.01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
+          <div><label class="block text-xs text-slate-400 mb-1">Maliyet (₺)</label>
+            <input type="number" id="p_cost" min="0" step="0.01" value="0" title="Bilinmiyorsa 0 bırak; kâr raporu için maliyeti gir." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
           <div><label class="block text-xs text-slate-400 mb-1">Stok</label>
-            <input type="number" id="p_stock" required min="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
+            <input type="number" id="p_stock" required min="0" step="1" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
         </div>
         <div><label class="block text-xs text-slate-400 mb-1">Detay</label>
           <input type="text" id="p_detail" required placeholder="Kumaş bilgisi vb." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"></div>
@@ -124,7 +151,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
     <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
       <div>
         <h2 class="text-xl font-semibold text-white mb-2">Toplu Ürün Yükleme (CSV)</h2>
-        <p class="text-xs text-slate-400 mb-3">Her satıra: <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Detay</code></p>
+        <p class="text-xs text-slate-400 mb-3">Sütunlar: <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Detay</code> veya <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Maliyet, Detay</code></p>
         <textarea id="bulkText" rows="6" placeholder="Hemşire Forması, Kıyafet, M, 450, 10, Likralı" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-xs font-mono"></textarea>
       </div>
       <button onclick="handleBulkUpload()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm mt-4">Toplu Ürünleri Yükle</button>
@@ -138,7 +165,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
       <button id="viewBtn" onclick="toggleView()" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap">☰ Liste</button>
       <select id="sortSel" onchange="renderProducts()" class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-2 py-2"><option value="new">Yeni</option><option value="name">Ada göre</option><option value="low">Stok azdan çoğa</option></select>
       </div>
-      <input type="text" id="searchInput" placeholder="Ürün adıyla ara..." oninput="renderProducts()" class="w-full md:w-72 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white">
+      <input type="text" id="searchInput" placeholder="Ürün, beden, kategori veya ID ara..." oninput="renderProducts()" class="w-full md:w-72 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white">
     </div>
     <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4"></div>
     <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><p class="text-slate-500 col-span-full"></p><div class="h-40 bg-slate-900 rounded-lg animate-pulse"></div><div class="h-40 bg-slate-900 rounded-lg animate-pulse"></div><div class="h-40 bg-slate-900 rounded-lg animate-pulse"></div></div>
@@ -202,7 +229,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
 </div>
 
 <div id="cartBar" class="fixed bottom-0 inset-x-0 bg-slate-800 border-t border-emerald-500/40 p-3 z-40 hidden">
-  <div class="max-w-5xl mx-auto flex flex-wrap items-center gap-3 justify-between">
+  <div class="max-w-7xl mx-auto flex flex-wrap items-center gap-3 justify-between">
     <div class="flex flex-col gap-1">
       <div id="cartInfo" class="text-sm text-slate-200"></div>
       <div class="flex items-center gap-2 text-xs">
@@ -291,8 +318,8 @@ async function loadTransactions() {
   updateBalanceDisplay();
 }
 
-async function addRevenue(amount, note = 'Satış', type = 'EKLEME') {
-  const { error } = await client.from('transactions').insert([{ type, amount: Math.abs(amount), note }]);
+async function addRevenue(amount, note = 'İşlem', type = 'EKLEME') {
+  const { error } = await client.rpc('admin_cash_atomic', { p_amount: Math.abs(Number(amount)), p_note: String(note || 'İşlem'), p_type: type });
   if (error) throw error;
   await loadTransactions();
 }
@@ -398,7 +425,7 @@ function renderProducts() {
           <p>Beden: <span class="text-white">${esc(item.size)}</span></p>
           <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
           <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-1.5 rounded-full ${item.stock <= 0 ? 'bg-rose-500' : item.stock <= 3 ? 'bg-amber-400' : 'bg-emerald-500'}" style="width:${Math.min(100, Math.max(item.stock > 0 ? 4 : 0, item.stock / maxStock * 100))}%"></div></div>
-          <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
+          <p>Fiyat: <span class="text-white">${Number(item.price).toLocaleString('tr-TR')} ₺</span></p>
           ${sizeMap[item.name].length > 1 ? `<p class="sizeinfo text-xs text-slate-500">Tüm bedenler: ${esc(sizeMap[item.name].join("  "))}</p>` : ''}
         </div>
       </div>
@@ -484,10 +511,6 @@ function doLabelPrint(mode) {
 
 let busy = false, cart = {}, cartTotal = 0;
 
-async function rollback(done) {
-  for (const d of done) await client.from('products').update({ stock: d.old }).eq('id', d.id);
-}
-
 // Stok güncellemesi sadece stok hâlâ eski değerdeyse yapılır: iki cihaz aynı anda satarsa biri uyarı alır.
 async function sellItems(list, opts = {}) {
   if (busy) return false;
@@ -517,7 +540,8 @@ async function sellItems(list, opts = {}) {
     const { data, error } = await client.rpc('sell_items_atomic', {
       p_items: list.map(x => ({ id: Number(x.id), qty: Number(x.qty) })),
       p_discount_pct: pct,
-      p_pay: pay
+      p_pay: pay,
+      p_given: given
     });
     if (error) {
       console.error('Atomic sale failed:', error);
@@ -534,11 +558,11 @@ async function sellItems(list, opts = {}) {
       return false;
     }
 
-    const names = lines.map(l => `${l.name} x${l.qty}`);
+    const names = lines.map(l => `${l.name} (${l.size}) x${l.qty}`);
     try {
       localStorage.setItem('lastSale', JSON.stringify({
         items: list.map(x => ({ id: Number(x.id), qty: Number(x.qty) })),
-        total, pay, names: names.join(', ')
+        sale_id: data && data.sale_id ? Number(data.sale_id) : null, total, pay, names: names.join(', ')
       }));
     } catch (e) {}
 
@@ -589,20 +613,22 @@ async function editProduct(id) {
   if (!needPatron()) return;
   const it = allProducts.find(p => p.id === id);
   if (!it) return;
-  const price = prompt('Fiyat (₺):', it.price); if (price === null) return;
+  const price = prompt('Satış fiyatı (₺):', it.price); if (price === null) return;
+  const cost = prompt('Birim maliyet (₺):', it.cost ?? 0); if (cost === null) return;
   const stock = prompt('Stok:', it.stock); if (stock === null) return;
   const size = prompt('Beden:', it.size); if (size === null) return;
-  const p = parseFloat(price.replace(',', '.')), st = parseInt(stock);
-  if (isNaN(p) || p < 0 || isNaN(st) || st < 0 || !size.trim()) return alert('Geçersiz değer, değişiklik yapılmadı.');
-  const { error } = await client.from('products').update({ price: p, stock: st, size: size.trim() }).eq('id', id);
-  if (error) return alert('Hata: ' + error.message);
-  fetchAll();
+  const p = parseFloat(String(price).replace(',', '.')), c = parseFloat(String(cost).replace(',', '.')), st = Number(stock);
+  if (!Number.isFinite(p) || p < 0 || !Number.isFinite(c) || c < 0 || !Number.isInteger(st) || st < 0 || !size.trim()) return alert('Geçersiz değer, değişiklik yapılmadı.');
+  const { error } = await client.rpc('update_product_atomic', { p_product_id: Number(id), p_price: p, p_size: size.trim(), p_new_stock: st, p_cost: c });
+  if (error) return alert('Ürün güncellenemedi: ' + error.message + ' · SQL geçişinin uygulandığını kontrol et.');
+  alert('Ürün güncellendi ve hareket kaydı oluşturuldu.');
+  await fetchAll();
 }
 
 function exportCSV(kind) {
   if (!needPatron()) return;
   const rows = kind === 'stok'
-    ? [['ID', 'Ad', 'Kategori', 'Beden', 'Fiyat', 'Stok', 'Detay'], ...allProducts.map(p => [p.id, p.name, p.category, p.size, p.price, p.stock, p.detail])]
+    ? [['ID', 'Ad', 'Kategori', 'Beden', 'Satış Fiyatı', 'Maliyet', 'Stok', 'Detay'], ...allProducts.map(p => [p.id, p.name, p.category, p.size, p.price, p.cost ?? 0, p.stock, p.detail])]
     : [['Tarih', 'Tür', 'Tutar', 'Not'], ...allTransactions.map(t => [new Date(t.created_at).toLocaleString('tr-TR'), t.type, t.amount, t.note])];
   const csv = '\ufeff' + rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
   const a = document.createElement('a');
@@ -611,22 +637,58 @@ function exportCSV(kind) {
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+function parseCSV(text) {
+  const rows = []; let row = [], cell = '', quoted = false;
+  const src = String(text || '').replace(/^\uFEFF/, '');
+  for (let i = 0; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === '"' && quoted && src[i + 1] === '"') { cell += '"'; i++; }
+    else if (ch === '"') quoted = !quoted;
+    else if (ch === ',' && !quoted) { row.push(cell.trim()); cell = ''; }
+    else if ((ch === '\n' || ch === '\r') && !quoted) {
+      if (ch === '\r' && src[i + 1] === '\n') i++;
+      row.push(cell.trim()); cell = '';
+      if (row.some(v => v !== '')) rows.push(row);
+      row = [];
+    } else cell += ch;
+  }
+  if (quoted) throw new Error('CSV içinde kapanmamış çift tırnak var.');
+  row.push(cell.trim()); if (row.some(v => v !== '')) rows.push(row);
+  return rows;
+}
+
 async function handleBulkUpload() {
   if (!needPatron()) return;
-  const text = $('bulkText').value.trim();
-  if (!text) return alert('Lütfen ürünleri girin.');
-  let count = 0;
-  for (const line of text.split('\n')) {
-    const p = line.split(',').map(x => x.trim());
-    if (p.length >= 6) {
-      const [name, category, size, price, stock, ...rest] = p;
-      const { error } = await client.from('products').insert([{ name, category, size, price: parseFloat(price) || 0, stock: parseInt(stock) || 0, detail: rest.join(', ') }]);
-      if (!error) count++;
+  const raw = $('bulkText').value.trim();
+  if (!raw) return alert('Lütfen ürünleri girin.');
+  let rows;
+  try { rows = parseCSV(raw); } catch (e) { return alert(e.message); }
+  const products = [], errors = [];
+  rows.forEach((r, i) => {
+    if (i === 0 && /^(ad|ürün adı|name)$/i.test(r[0] || '')) return;
+    if (r.length < 6) { errors.push(`${i + 1}. satır: en az 6 sütun gerekli.`); return; }
+    const [name, category, size, priceRaw, stockRaw] = r;
+    let cost = 0, detailParts = r.slice(5);
+    if (r.length >= 7 && /^\d+(?:[.,]\d+)?$/.test(String(r[5]).trim())) {
+      cost = Number(String(r[5]).replace(',', '.')); detailParts = r.slice(6);
     }
-  }
-  alert(`${count} ürün eklendi!`);
+    const price = Number(String(priceRaw).replace(/\s/g, '').replace(',', '.'));
+    const stock = Number(stockRaw);
+    if (!name || !category || !size) { errors.push(`${i + 1}. satır: ad, kategori ve beden boş olamaz.`); return; }
+    if (!Number.isFinite(price) || price < 0) { errors.push(`${i + 1}. satır: satış fiyatı geçersiz.`); return; }
+    if (!Number.isFinite(cost) || cost < 0) { errors.push(`${i + 1}. satır: maliyet geçersiz.`); return; }
+    if (!Number.isInteger(stock) || stock < 0) { errors.push(`${i + 1}. satır: stok sıfır veya pozitif tam sayı olmalı.`); return; }
+    products.push({ name, category, size, price, cost, stock, detail: detailParts.join(', ') });
+  });
+  if (errors.length) return alert('Hiçbir ürün yüklenmedi. Hataları düzeltip tekrar dene:\n' + errors.slice(0, 8).join('\n') + (errors.length > 8 ? `\n... ve ${errors.length - 8} hata daha.` : ''));
+  if (!products.length) return alert('CSV içinde yüklenecek ürün bulunamadı.');
+  const preview = products.slice(0, 5).map(p => `${p.name} · ${p.size} · ${p.stock} adet · ${p.price} ₺`).join('\n');
+  if (!confirm(`${products.length} ürün yüklenecek.\n\n${preview}${products.length > 5 ? '\n…' : ''}\n\nDevam edilsin mi?`)) return;
+  const { error } = await client.rpc('bulk_create_products_atomic', { p_products: products });
+  if (error) return alert('Toplu yükleme başarısız; hiçbir ürün kaydedilmedi: ' + error.message + ' · SQL geçişini kontrol et.');
+  alert(`${products.length} ürün başarıyla eklendi.`);
   $('bulkText').value = '';
-  fetchAll();
+  await fetchAll();
 }
 
 function resetModal(mode, title) {
@@ -722,20 +784,22 @@ async function stopScannerAndClose() {
 
 async function updateStock(id, n) {
   if (!needPatron()) return;
-  if (!Number.isInteger(n) || n < 0) return alert('Stok sıfır veya pozitif tam sayı olmalı.');
-  const { data, error } = await client.from('products').update({ stock: n }).eq('id', id).select('id');
-  if (error) return alert('Stok güncellenemedi: ' + error.message);
-  if (!data || !data.length) return alert('Ürün bulunamadı veya işlem için yetkin yok.');
-  alert('Stok güncellendi.');
+  const v = Number(n);
+  if (!Number.isInteger(v) || v < 0) return alert('Stok sıfır veya pozitif tam sayı olmalı.');
+  const { data, error } = await client.rpc('adjust_stock_atomic', { p_product_id: Number(id), p_new_stock: v, p_reason: 'Panelden stok düzenleme' });
+  if (error) return alert('Stok güncellenemedi: ' + error.message + ' · SQL geçişinin uygulandığını kontrol et.');
+  if (data && data.ok === false) return alert(data.message || 'Stok güncellenemedi.');
+  alert('Stok güncellendi ve hareket kaydı oluşturuldu.');
   await fetchAll();
 }
 
 async function deleteProduct(id) {
   if (!needPatron()) return;
-  if (!confirm('Ürünü silmek istediğinize emin misiniz? Geçmiş satış kayıtları ayrıca korunmalıdır.')) return;
-  const { data, error } = await client.from('products').delete().eq('id', id).select('id');
-  if (error) return alert('Ürün silinemedi: ' + error.message);
-  if (!data || !data.length) return alert('Ürün bulunamadı veya silme yetkin yok.');
+  const p = allProducts.find(x => Number(x.id) === Number(id));
+  if (!p || !confirm(`Silinsin mi: ${p.name} (${p.size})?\nÜrün silme işlemi denetim kaydına yazılır; geçmiş satış kayıtları korunur.`)) return;
+  const { data, error } = await client.rpc('delete_product_atomic', { p_product_id: Number(id) });
+  if (error) return alert('Ürün silinemedi: ' + error.message + ' · SQL geçişinin uygulandığını kontrol et.');
+  if (data && data.ok === false) return alert(data.message || 'Ürün silinemedi.');
   alert('Ürün silindi.');
   await fetchAll();
 }
@@ -745,12 +809,13 @@ $('productForm').addEventListener('submit', async e => {
   if (!needPatron()) return;
   const payload = {
     name: $('p_name').value.trim(), category: $('p_category').value.trim(), size: $('p_size').value.trim(),
-    price: parseFloat($('p_price').value), stock: parseInt($('p_stock').value), detail: $('p_detail').value.trim()
+    price: parseFloat($('p_price').value), cost: parseFloat($('p_cost').value || '0'), stock: parseInt($('p_stock').value), detail: $('p_detail').value.trim()
   };
-  const { error } = await client.from('products').insert([payload]);
-  if (error) return alert('Kayıt Hatası: ' + error.message);
+  const { error } = await client.rpc('create_product_atomic', { p_product: payload });
+  if (error) return alert('Kayıt hatası: ' + error.message + ' · SQL geçişini kontrol et.');
+  alert('Ürün başarıyla eklendi.');
   $('productForm').reset();
-  fetchAll();
+  await fetchAll();
 });
 
 function updateChange() {
@@ -818,10 +883,11 @@ async function bulkPrice() {
   if (parsePriceChange(txt, 100) === null) return alert('Geçersiz giriş. Örnek: %10, %-10, +50, -50');
   const prev = list.slice(0, 8).map(p => `${p.name} (${p.size}): ${p.price} → ${parsePriceChange(txt, p.price)}`).join('\n');
   if (!confirm(`Örnek:\n${prev}${list.length > 8 ? '\n...' : ''}\n\nUygulansın mı?`)) return;
-  let ok = 0;
-  for (const p of list) { const { error } = await client.from('products').update({ price: parsePriceChange(txt, p.price) }).eq('id', p.id); if (!error) ok++; }
-  alert(`${ok}/${list.length} ürün güncellendi.`);
-  fetchAll();
+  const updates = list.map(p => ({ id: Number(p.id), price: parsePriceChange(txt, p.price) }));
+  const { data, error } = await client.rpc('bulk_update_prices_atomic', { p_updates: updates });
+  if (error) return alert('Toplu fiyat değişikliği kaydedilemedi; hiçbir fiyat değiştirilmedi: ' + error.message + ' · SQL geçişini kontrol et.');
+  alert(`${data && data.updated != null ? data.updated : list.length} ürünün fiyatı güncellendi; işlem geçmişine kaydedildi.`);
+  await fetchAll();
 }
 
 function stockMatrix() {
@@ -874,17 +940,25 @@ async function stockCount() {
   }
   if (!diffs.length) return alert('Fark bulunmadı.');
   if (!confirm('Farklar:\n' + diffs.map(d => `${d.p.name} (${d.p.size}): ${d.p.stock} → ${d.n}`).join('\n') + '\n\nStoklar güncellensin mi?')) return;
-  let ok = 0;
-  for (const d of diffs) { const { error } = await client.from('products').update({ stock: d.n }).eq('id', d.p.id); if (!error) ok++; }
-  alert(`${ok}/${diffs.length} ürün güncellendi.`);
-  fetchAll();
+  const { data, error } = await client.rpc('adjust_stock_batch_atomic', { p_changes: diffs.map(d => ({ id: Number(d.p.id), stock: d.n })) });
+  if (error) return alert('Stok sayımı kaydedilemedi; işlem geri alındı: ' + error.message + ' · SQL geçişini kontrol et.');
+  alert(`${data && data.updated != null ? data.updated : diffs.length} ürün güncellendi ve denetim kaydı oluşturuldu.`);
+  await fetchAll();
 }
 
 async function backupJSON() {
   if (!needPatron()) return;
   try {
     await loadTransactions();
-    const blob = new Blob([JSON.stringify({ tarih: new Date().toISOString(), products: allProducts, transactions: allTransactions }, null, 1)], { type: 'application/json' });
+    const [salesRes, itemsRes, auditRes] = await Promise.all([
+      client.from('sales').select('*').order('created_at', { ascending: false }),
+      client.from('sale_items').select('*').order('id', { ascending: false }),
+      client.from('audit_log').select('*').order('created_at', { ascending: false })
+    ]);
+    const backup = { schema_version: 2, tarih: new Date().toISOString(), products: allProducts, transactions: allTransactions,
+      sales: salesRes.error ? null : salesRes.data, sale_items: itemsRes.error ? null : itemsRes.data, audit_log: auditRes.error ? null : auditRes.data,
+      note: 'null olan ek tablolar SQL V2 geçişi uygulanmadığı veya yetki olmadığı için dışa aktarılamamış olabilir.' };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob); a.download = `yedek-${new Date().toISOString().slice(0, 10)}.json`; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -898,44 +972,67 @@ async function undoLastSale() {
   let ls = null;
   try { ls = JSON.parse(localStorage.getItem('lastSale') || 'null'); } catch (e) {}
   if (!ls) return alert('Bu cihazda geri alınacak satış yok.');
-  if (!confirm(`Son satış geri alınsın mı?\n${ls.names}\nTutar: ${ls.total} ₺ (${ls.pay})`)) return;
+  if (!ls.sale_id) return alert('Bu satış eski sürümde oluşturulmuş ve güvenli geri alma numarası yok. Stok/kasa tutarlılığı için kasadan iade kaydı oluşturup stok sayımı yap.');
+  if (!confirm(`Son satış geri alınsın mı?\n${ls.names}\nTutar: ${ls.total} ₺ (${ls.pay})\n\nStok ve kasa tek veritabanı işlemiyle düzeltilecek.`)) return;
   busy = true;
-  const done = [];
   try {
-    for (const it of ls.items) {
-      const p = allProducts.find(x => x.id === it.id);
-      if (!p) continue;
-      const { data, error } = await client.from('products').update({ stock: p.stock + it.qty }).eq('id', it.id).eq('stock', p.stock).select();
-      if (error || !data || !data.length) { await rollback(done); alert('Stok güncellenemedi (başka cihaz değiştirmiş olabilir). Hiçbir şey değişmedi, tekrar dene.'); await fetchAll(); return; }
-      done.push({ id: it.id, old: p.stock });
-    }
-    try { await addRevenue(ls.total, `İade [${ls.pay}]: ${ls.names}`, 'ÇIKARMA'); }
-    catch (e) { await rollback(done); return alert('Kasa kaydı yapılamadı, iade iptal edildi: ' + e.message); }
+    const { data, error } = await client.rpc('reverse_sale_atomic', { p_sale_id: Number(ls.sale_id) });
+    if (error) return alert('Satış geri alınamadı: ' + error.message + ' · SQL geçişinin uygulandığını kontrol et.');
+    if (data && data.ok === false) return alert(data.message || 'Satış geri alınamadı.');
     try { localStorage.removeItem('lastSale'); } catch (e) {}
-    alert('Satış geri alındı, stok ve kasa düzeltildi.');
+    alert('Satış geri alındı; stok, kasa ve denetim kaydı birlikte güncellendi.');
   } finally { busy = false; }
   await fetchAll();
 }
 
-function salesReport() {
+async function salesReport() {
   if (!needPatron()) return;
   const sold = {}, last = {}, cutoff = Date.now() - 60 * 86400000;
+  let normalized = false, salesRevenue = 0, estimatedProfit = 0, knownCostQty = 0, unknownCostQty = 0;
+  const normalizedNotes = new Set();
+  try {
+    const { data, error } = await client.from('sale_items').select('product_name,product_size,quantity,unit_price,unit_cost,line_total,line_profit,sales(created_at,reversed_at,note)');
+    if (!error && Array.isArray(data)) {
+      normalized = data.length > 0;
+      data.forEach(it => { if (it.sales && it.sales.note) normalizedNotes.add(String(it.sales.note)); if (it.sales && it.sales.reversed_at) return; const qty = Number(it.quantity || 0); const key = `${it.product_name} (${it.product_size || 'Beden yok'})`; sold[key] = (sold[key] || 0) + qty; salesRevenue += Number(it.line_total || 0); if (Number(it.unit_cost || 0) > 0) { estimatedProfit += Number(it.line_profit || 0); knownCostQty += qty; } else unknownCostQty += qty; const ts = new Date(it.sales && it.sales.created_at).getTime(); if (Number.isFinite(ts) && (!last[key] || ts > last[key])) last[key] = ts; });
+    }
+  } catch (e) { console.warn('Normalized report unavailable; using transaction notes', e); }
   allTransactions.forEach(t => {
     const note = t.note || '';
-    if (t.type !== 'EKLEME' || !note.toLowerCase().includes('satış')) return;
+    if (normalized && normalizedNotes.has(note)) return;
+    if (t.type !== 'EKLEME' || !note.toLocaleLowerCase('tr-TR').includes('satış')) return;
     const ts = new Date(t.created_at).getTime();
-    note.slice(note.indexOf(':') + 1).trim().split(', ').forEach(part => {
-      const m = part.match(/^(.*) x(\d+)$/) || part.match(/^(.*) \((\d+) Adet\)$/);
+    const body = note.includes(':') ? note.slice(note.indexOf(':') + 1).trim() : note;
+    body.split(/,\s*/).forEach(part => {
+      const m = part.match(/^(.*?)\s*\((.*?)\)\s*x(\d+)$/) || part.match(/^(.*?)\s*x(\d+)$/) || part.match(/^(.*?)\s*\((\d+) Adet\)$/);
       if (!m) return;
-      sold[m[1]] = (sold[m[1]] || 0) + Number(m[2]);
-      if (!last[m[1]] || ts > last[m[1]]) last[m[1]] = ts;
+      const hasSize = m.length === 4;
+      const name = (m[1] || '').trim();
+      const key = hasSize ? `${name} (${m[2]})` : name;
+      const qty = Number(hasSize ? m[3] : m[2]);
+      if (!name || !Number.isFinite(qty)) return;
+      sold[key] = (sold[key] || 0) + qty;
+      if (!last[key] || ts > last[key]) last[key] = ts;
     });
   });
-  const top = Object.entries(sold).sort((a, b) => b[1] - a[1]).slice(0, 10);
-  const slow = [...new Set(allProducts.filter(p => p.stock > 0 && (!last[p.name] || last[p.name] < cutoff)).map(p => p.name))];
+  const top = Object.entries(sold).sort((a, b) => b[1] - a[1]).slice(0, 15);
+  const slow = allProducts.filter(p => p.stock > 0 && (!last[`${p.name} (${p.size})`] || last[`${p.name} (${p.size})`] < cutoff) && (!last[p.name] || last[p.name] < cutoff));
+  const cashToday = dailyStats();
   const w = window.open('', '_blank');
   if (!w) return alert('Açılır pencere engellendi, izin verin.');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Satış Raporu</title><style>body{font-family:sans-serif;margin:10mm}td,th{border:1px solid #999;padding:4px 8px;font-size:13px;text-align:left}table{border-collapse:collapse}</style></head><body><h3>En çok satan 10 ürün</h3><table><tr><th>Ürün</th><th>Adet</th></tr>${top.map(([n, q]) => `<tr><td>${esc(n)}</td><td>${q}</td></tr>`).join('') || '<tr><td colspan=2>Veri yok</td></tr>'}</table><h3>Son 60 gündür satılmayan (stokta olan) ürünler</h3><p>${slow.map(esc).join(', ') || 'Yok'}</p><p style="color:#666;font-size:12px">Not: Rapor satış notlarındaki ürün adından hesaplanır; aynı adlı bedenler birlikte sayılır.</p></body></html>`);
+  w.document.write(`<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Satış Raporu</title><style>body{font:14px system-ui,sans-serif;margin:24px;color:#172033}h1{font-size:24px}table{border-collapse:collapse;width:100%;max-width:900px}td,th{border:1px solid #d5dbe5;padding:8px;text-align:left}th{background:#eef2f7}tr:nth-child(even){background:#f8fafc}.stats{display:flex;gap:12px;flex-wrap:wrap}.stats div{padding:12px 16px;border:1px solid #d5dbe5;border-radius:12px}small{color:#64748b}@media print{button{display:none}}</style></head><body><h1>Satış ve stok raporu</h1><p>${new Date().toLocaleString('tr-TR')}</p><div class="stats"><div><small>Bugünkü ciro</small><br><b>${esc((cashToday.cash + cashToday.card).toLocaleString('tr-TR'))} ₺</b></div><div><small>Bugünkü satış adedi</small><br><b>${cashToday.cnt}</b></div><div><small>Ürün çeşidi</small><br><b>${allProducts.length}</b></div></div><h2>En çok satan ürün / beden</h2><table><tr><th>Ürün / beden</th><th>Satılan adet</th></tr>${top.map(([n, q]) => `<tr><td>${esc(n)}</td><td>${q}</td></tr>`).join('') || '<tr><td colspan="2">Satış verisi bulunamadı</td></tr>'}</table>${normalized ? `<h2>Ciro ve tahmini brüt kâr</h2><div class="stats"><div><small>Satılan kalemlerin net toplamı</small><br><b>${salesRevenue.toLocaleString('tr-TR')} ₺</b></div><div><small>Maliyeti girilmiş kalemlerden brüt kâr</small><br><b>${estimatedProfit.toLocaleString('tr-TR')} ₺</b></div><div><small>Maliyeti bilinmeyen adet</small><br><b>${unknownCostQty}</b></div></div><p><small>Kâr yalnızca maliyet alanı sıfırdan büyük ürünler için hesaplanır; ${knownCostQty} adet maliyeti kayıtlı kalem dahil. Bu rapor sabit gider/vergi/iadeler dışındaki tahmini brüt kârdır.</small></p>` : '<p><small>Kâr hesabı için V2 SQL geçişi uygulanmalı ve ürün maliyetleri girilmelidir.</small></p>'}<h2>Son 60 gündür satılmayan, stokta bulunan ürünler</h2><table><tr><th>Ürün</th><th>Beden</th><th>Stok</th><th>Fiyat</th></tr>${slow.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.size)}</td><td>${p.stock}</td><td>${Number(p.price).toLocaleString('tr-TR')} ₺</td></tr>`).join('') || '<tr><td colspan="4">Ürün bulunamadı</td></tr>'}</table><p><small>${normalized ? 'Satış kalemleri normalize edilmiş ürün/beden kayıtlarından hesaplandı.' : 'Eski kasa kayıtları ürün/beden bilgisi içermeyebilir. SQL geçişi sonrası yeni satışlar ayrı satış kalemleri olarak saklanır.'}</small></p><button onclick="print()">Yazdır / PDF kaydet</button></body></html>`);
+  w.document.close();
+}
+
+
+async function auditReport() {
+  if (!needPatron()) return;
+  const { data, error } = await client.from('audit_log').select('*').order('created_at', { ascending: false }).limit(500);
+  if (error) return alert('İşlem geçmişi açılamadı: ' + error.message + ' · SQL geçişini kontrol et.');
+  const rows = (data || []).map(r => `<tr><td>${esc(new Date(r.created_at).toLocaleString('tr-TR'))}</td><td>${esc(r.action)}</td><td>${esc(r.product_name || '')}</td><td>${r.old_stock == null ? '—' : r.old_stock}</td><td>${r.new_stock == null ? '—' : r.new_stock}</td><td>${esc(JSON.stringify(r.details || {}))}</td></tr>`).join('');
+  const w = window.open('', '_blank');
+  if (!w) return alert('Açılır pencere engellendi, izin verin.');
+  w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>İşlem geçmişi</title><style>body{font:13px system-ui;margin:20px;color:#172033}table{border-collapse:collapse;width:100%}th,td{border:1px solid #dbe1e8;padding:7px;text-align:left;vertical-align:top}th{background:#eef2f7}td:last-child{max-width:320px;overflow-wrap:anywhere}@media print{button{display:none}}</style></head><body><h1>Stok ve işlem geçmişi</h1><p>Son ${(data || []).length} kayıt · ${new Date().toLocaleString('tr-TR')}</p><table><thead><tr><th>Tarih</th><th>İşlem</th><th>Ürün</th><th>Önceki stok</th><th>Yeni stok</th><th>Detay</th></tr></thead><tbody>${rows || '<tr><td colspan="6">Kayıt bulunamadı</td></tr>'}</tbody></table><button onclick="print()">Yazdır / PDF kaydet</button></body></html>`);
   w.document.close();
 }
 
