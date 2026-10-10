@@ -124,6 +124,64 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  if (body.action === "delete_organization") {
+    if (!isAdmin) {
+      return reply({ error: "Bu işlem için yetkin yok." }, 403);
+    }
+
+    const organizationId =
+      typeof body.organization_id === "string" ? body.organization_id.trim() : "";
+
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(organizationId)) {
+      return reply({ error: "Geçerli bir işletme seçilmedi." }, 400);
+    }
+
+    const { data: org, error: orgError } = await privileged
+      .from("organizations")
+      .select("id,name,owner_user_id")
+      .eq("id", organizationId)
+      .maybeSingle();
+
+    if (orgError) {
+      return reply({ error: "İşletme kontrol edilemedi." }, 500);
+    }
+    if (!org) {
+      return reply({ error: "İşletme bulunamadı veya zaten silinmiş." }, 404);
+    }
+
+    // Üyeliği olan işletmeler bu butondan silinemez.
+    const { count, error: memberCheckError } = await privileged
+      .from("organization_members")
+      .select("user_id", { count: "exact", head: true })
+      .eq("organization_id", organizationId);
+
+    if (memberCheckError) {
+      return reply({ error: "İşletme üyelikleri kontrol edilemedi." }, 500);
+    }
+    if ((count || 0) > 0) {
+      return reply({
+        error: "Bu işletmede hâlâ üyeler var. Önce üyelikleri güvenli şekilde kaldırmalısın.",
+      }, 409);
+    }
+
+    const { error: deleteError } = await privileged
+      .from("organizations")
+      .delete()
+      .eq("id", organizationId);
+
+    if (deleteError) {
+      return reply({
+        error: "İşletme silinemedi. Bağlı kayıtlar olabilir; hiçbir bağlı veri zorla silinmedi.",
+      }, 409);
+    }
+
+    return reply({
+      ok: true,
+      organization_id: organizationId,
+      message: "İşletme kaydı silindi.",
+    });
+  }
+
   if (body.action === "delete_user") {
     if (!isAdmin) {
       return reply({ error: "Bu işlem için yetkin yok." }, 403);
