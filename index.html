@@ -1693,6 +1693,13 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
   if(!isMainAdmin(user)){alert('Bu panel yalnızca ana yönetici hesabına açıktır.');return;}
   el('qrAdminOverlay').style.display='flex'; await qrAdminLoad();
  };
+ window.qrAdminDeleteUser=async function(id,email){
+  const user=await sessionUser();if(!isMainAdmin(user)){alert('Bu işlem yalnızca ana yöneticiye açık.');return;}
+  if(id===ADMIN_ID){alert('Ana yönetici hesabı buradan silinemez.');return;}
+  if(!confirm('Bu kullanıcı kalıcı olarak silinsin mi?\\n'+email+'\\nBu işlem geri alınamaz.'))return;
+  try{status('Kullanıcı siliniyor…');await invoke({action:'delete_user',user_id:id});status('Kullanıcı silindi.');await qrAdminLoad();}
+  catch(e){status(e.message||'Kullanıcı silinemedi.',true);}
+ };
  window.qrAdminClose=function(){el('qrAdminOverlay').style.display='none';};
  window.qrAdminLoad=async function(){
   try{
@@ -1700,7 +1707,7 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
    el('qraOrg').innerHTML='<option value="">İşletme seç</option>'+organizations.map(o=>'<option value="'+String(o.id).replace(/"/g,'&quot;')+'">'+String(o.name||'İsimsiz işletme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</option>').join('');
    const members=data.members||[],users=data.users||[];
    const orgRows=organizations.map(o=>'<tr><td>'+escText(o.name)+'</td><td>'+escText(o.id)+'</td><td>'+members.filter(m=>m.organization_id===o.id).length+'</td><td>'+ (o.is_active?'Aktif':'Pasif')+'</td></tr>').join('');
-   const userRows=users.map(u=>'<tr><td>'+escText(u.email||'—')+'</td><td>'+escText(u.id)+'</td><td>'+escText(u.email_confirmed_at?'Onaylı':'Davet/onay bekliyor')+'</td></tr>').join('');
+   const userRows=users.map(u=>'<tr><td>'+escText(u.email||'—')+'</td><td>'+escText(u.id)+'</td><td>'+escText(u.email_confirmed_at?'Onaylı':'Davet/onay bekliyor')+'</td><td><button type="button" style="background:#991b1b;color:#fff" onclick="qrAdminDeleteUser(\''+escText(u.id)+'\',\''+escText(u.email||'')+'\')">Kullanıcıyı sil</button></td></tr>').join('');
    el('qraLists').innerHTML='<h3 style="font-weight:800;margin:10px 0">İşletmeler ('+organizations.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">İşletme</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Üye</th><th style="text-align:left;padding:7px">Durum</th></tr></thead><tbody>'+orgRows+'</tbody></table><h3 style="font-weight:800;margin:20px 0 10px">Kullanıcılar ('+users.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">E-posta</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Durum</th></tr></thead><tbody>'+userRows+'</tbody></table>';
    status('Liste güncellendi.');
   }catch(e){status(e.message||'Liste alınamadı.',true);}
