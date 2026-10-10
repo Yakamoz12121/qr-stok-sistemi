@@ -288,7 +288,7 @@ body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-grad
     </div>
   </section>
 
-  <div class="patron-only grid grid-cols-1 md:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
       <h2 class="text-xl font-semibold text-white mb-4">Yeni Ürün Ekle</h2>
       <form id="productForm" class="space-y-4">
@@ -314,7 +314,7 @@ body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-grad
       </form>
     </section>
 
-    <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
+    <section class="patron-only bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
       <div>
         <h2 class="text-xl font-semibold text-white mb-2">Toplu Ürün Yükleme (CSV)</h2>
         <p class="text-xs text-slate-400 mb-3">Sütunlar: <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Detay</code> veya <code class="text-sky-400">Ad, Kategori, Beden, Fiyat, Stok, Maliyet, Detay</code></p>
@@ -991,13 +991,13 @@ async function deleteProduct(id) {
 
 $('productForm').addEventListener('submit', async e => {
   e.preventDefault();
-  if (!needPatron()) return;
+  if (!client.auth) return alert('Oturum doğrulanamadı. Lütfen yeniden giriş yap.');
   const payload = {
     name: $('p_name').value.trim(), category: $('p_category').value.trim(), size: $('p_size').value.trim(),
     price: parseFloat($('p_price').value), cost: parseFloat($('p_cost').value || '0'), stock: parseInt($('p_stock').value), detail: $('p_detail').value.trim()
   };
   const { error } = await client.rpc('create_product_atomic', { p_product: payload });
-  if (error) return alert('Kayıt hatası: ' + error.message + ' · SQL geçişini kontrol et.');
+  if (error) return alert('Ürün kaydedilemedi: ' + error.message + (error.message.includes('patron yetkisi') ? ' · Supabase SQL düzeltmesini de uygulamalısın.' : ''));
   alert('Ürün başarıyla eklendi.');
   $('productForm').reset();
   await fetchAll();
