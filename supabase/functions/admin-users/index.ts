@@ -124,6 +124,22 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  if (body.action === "delete_user") {
+    if (!isAdmin) {
+      return reply({ error: "Bu işlem için yetkin yok." }, 403);
+    }
+    const targetId = (typeof body.user_id === "string" ? body.user_id : "").trim();
+    if (!targetId) return reply({ error: "Silinecek kullanıcı seçilmedi." }, 400);
+    if (targetId === ADMIN_ID) {
+      return reply({ error: "Ana yönetici hesabı silinemez." }, 400);
+    }
+    const { data: target, error: targetError } = await privileged.auth.admin.getUserById(targetId);
+    if (targetError || !target.user) return reply({ error: "Kullanıcı bulunamadı." }, 404);
+    const { error: deleteError } = await privileged.auth.admin.deleteUser(targetId);
+    if (deleteError) return reply({ error: deleteError.message || "Kullanıcı silinemedi." }, 500);
+    return reply({ ok: true, user_id: targetId, message: "Kullanıcı kalıcı olarak silindi." });
+  }
+
   if (body.action !== "invite") {
     return reply({ error: "Bilinmeyen işlem." }, 400);
   }
