@@ -43,91 +43,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
 #subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn.24s}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
 
-<script>
-const PLAN_DATA={basic:{name:'Basic',priceShort:'29,90€/ay'},pro:{name:'Professional',priceShort:'59,90€/ay'},enterprise:{name:'Enterprise',priceShort:'99,90€/ay'}};
-let billingOrgId=null, billingBusy=false;
-function billingMessage(message){alert(message)}
-async function getBillingContext(){
-  const {data:{session},error:sessionError}=await client.auth.getSession();
-  if(sessionError||!session) throw new Error('Önce giriş yapmalısın.');
-  const {data:orgs,error}=await client.from('organization_members').select('organization_id,role').eq('user_id',session.user.id);
-  if(error) throw new Error('İşletme bilgisi alınamadı: '+error.message);
-  const {data:owned,error:ownedError}=await client.from('organizations').select('id').eq('owner_user_id',session.user.id);
-  if(ownedError) throw new Error('İşletme bilgisi alınamadı: '+ownedError.message);
-  const ids=[...new Set([...(orgs||[]).map(x=>x.organization_id),...(owned||[]).map(x=>x.id)].filter(Boolean))];
-  if(ids.length!==1) throw new Error(ids.length===0?'Hesabına bağlı işletme bulunamadı.':'Birden fazla işletme bağlı. Destek almadan abonelik başlatma.');
-  billingOrgId=ids[0]; return {session,organization_id:billingOrgId};
-}
-async function callBillingFunction(name,payload){
-  const {data:{session}}=await client.auth.getSession();
-  if(!session) throw new Error('Önce giriş yapmalısın.');
-  const response=await fetch(hostUrl+'/functions/v1/'+name,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':hostKey},body:JSON.stringify(payload)});
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok) throw new Error(result.error||'İşlem başarısız ('+response.status+').');
-  return result;
-}
-function getCurrentPlan(){return null}
-function setCurrentPlan(){return}
-async function updateSubscriptionUI(){
-  const pricing=document.getElementById('konfex-pricing-section');
-  const cur=document.getElementById('currentPlanDisplay');
-  const badge=document.getElementById('subscriptionBadge');
-  const panel=document.getElementById('panelCurrentPlan');
-  if(pricing) pricing.style.display='block';
-  if(cur) cur.style.display='none';
-  if(badge) badge.textContent='Abonelik durumu kontrol ediliyor…';
-  if(panel) panel.classList.add('hidden');
-  try{
-    const context=await getBillingContext();
-    const status=await callBillingFunction('billing-status',{organization_id:context.organization_id});
-    const active=['active','trialing','past_due'].includes(status.status);
-    const plan=PLAN_DATA[status.plan_key];
-    if(badge) badge.textContent=active?'Abonelik: '+(plan?plan.name:'Aktif'):'Abonelik aktif değil';
-    if(active && plan){
-      if(cur) cur.style.display='block';
-      const name=document.getElementById('currentPlanName');
-      const price=document.getElementById('currentPlanPrice');
-      if(name) name.textContent=plan.name;
-      if(price) price.textContent=plan.priceShort;
-      if(panel) panel.classList.remove('hidden');
-      const panelName=document.getElementById('panelPlanName');
-      const panelPrice=document.getElementById('panelPlanPrice');
-      if(panelName) panelName.textContent=plan.name;
-      if(panelPrice) panelPrice.textContent=plan.priceShort+(status.cancel_at_period_end?' · Dönem sonunda iptal edilecek':'');
-      if(pricing) pricing.style.display='none';
-    }
-  }catch(e){
-    console.warn('Billing status could not be loaded:',e);
-    if(badge) badge.textContent='Abonelik durumu yüklenemedi';
-  }
-}
-function openSubscriptionPanel(){const el=document.getElementById('subscriptionPanel');if(!el){alert('Abonelik penceresi bulunamadı. Sayfayı yenile.');return}el.classList.add('is-open');el.style.display='flex';updateSubscriptionUI()}
-function closeSubscriptionPanel(){const el=document.getElementById('subscriptionPanel');if(el){el.classList.remove('is-open');el.style.display='none'}}
-async function handlePlanSelect(k){
-  if(billingBusy) return;
-  if(!PLAN_DATA[k]) return;
-  const message=PLAN_DATA[k].name+' planı: '+PLAN_DATA[k].priceShort+'\n7 gün ücretsiz deneme. Deneme sonunda aboneliğin otomatik ücretlendirilir; istediğin zaman Stripe müşteri portalından iptal edebilirsin. Devam etmek için ödeme yöntemi gerekir.\n\nStripe ödeme sayfasına geçilsin mi?';
-  if(!confirm(message)) return;
-  billingBusy=true;
-  try{
-    const context=await getBillingContext();
-    const result=await callBillingFunction('create-checkout',{plan:k,organization_id:context.organization_id});
-    if(!result.url) throw new Error('Stripe ödeme bağlantısı alınamadı.');
-    location.href=result.url;
-  }catch(e){console.error('Billing checkout:',e);billingMessage(e.message||'Abonelik başlatılamadı.');}
-  finally{billingBusy=false}
-}
-async function cancelSubscription(){
-  if(!confirm('Stripe müşteri portalı açılacak. İptal veya faturalandırma işlemlerini oradan yapabilirsin. Devam edilsin mi?')) return;
-  try{
-    const context=await getBillingContext();
-    const result=await callBillingFunction('create-portal',{organization_id:context.organization_id});
-    if(!result.url) throw new Error('Müşteri portalı bağlantısı alınamadı.');
-    location.href=result.url;
-  }catch(e){console.error('Billing portal:',e);billingMessage(e.message||'Abonelik yönetimi açılamadı.');}
-}
-document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
-</script>
+
 
  
 /* Modern dashboard layer */
@@ -1545,6 +1461,91 @@ window.onload = async () => {
 document.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
 document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
 document.addEventListener('gestureend', e => e.preventDefault(), { passive: false });
+</script>
+<script>
+const PLAN_DATA={basic:{name:'Basic',priceShort:'29,90€/ay'},pro:{name:'Professional',priceShort:'59,90€/ay'},enterprise:{name:'Enterprise',priceShort:'99,90€/ay'}};
+let billingOrgId=null, billingBusy=false;
+function billingMessage(message){alert(message)}
+async function getBillingContext(){
+  const {data:{session},error:sessionError}=await client.auth.getSession();
+  if(sessionError||!session) throw new Error('Önce giriş yapmalısın.');
+  const {data:orgs,error}=await client.from('organization_members').select('organization_id,role').eq('user_id',session.user.id);
+  if(error) throw new Error('İşletme bilgisi alınamadı: '+error.message);
+  const {data:owned,error:ownedError}=await client.from('organizations').select('id').eq('owner_user_id',session.user.id);
+  if(ownedError) throw new Error('İşletme bilgisi alınamadı: '+ownedError.message);
+  const ids=[...new Set([...(orgs||[]).map(x=>x.organization_id),...(owned||[]).map(x=>x.id)].filter(Boolean))];
+  if(ids.length!==1) throw new Error(ids.length===0?'Hesabına bağlı işletme bulunamadı.':'Birden fazla işletme bağlı. Destek almadan abonelik başlatma.');
+  billingOrgId=ids[0]; return {session,organization_id:billingOrgId};
+}
+async function callBillingFunction(name,payload){
+  const {data:{session}}=await client.auth.getSession();
+  if(!session) throw new Error('Önce giriş yapmalısın.');
+  const response=await fetch(hostUrl+'/functions/v1/'+name,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':hostKey},body:JSON.stringify(payload)});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(result.error||'İşlem başarısız ('+response.status+').');
+  return result;
+}
+function getCurrentPlan(){return null}
+function setCurrentPlan(){return}
+async function updateSubscriptionUI(){
+  const pricing=document.getElementById('konfex-pricing-section');
+  const cur=document.getElementById('currentPlanDisplay');
+  const badge=document.getElementById('subscriptionBadge');
+  const panel=document.getElementById('panelCurrentPlan');
+  if(pricing) pricing.style.display='block';
+  if(cur) cur.style.display='none';
+  if(badge) badge.textContent='Abonelik durumu kontrol ediliyor…';
+  if(panel) panel.classList.add('hidden');
+  try{
+    const context=await getBillingContext();
+    const status=await callBillingFunction('billing-status',{organization_id:context.organization_id});
+    const active=['active','trialing','past_due'].includes(status.status);
+    const plan=PLAN_DATA[status.plan_key];
+    if(badge) badge.textContent=active?'Abonelik: '+(plan?plan.name:'Aktif'):'Abonelik aktif değil';
+    if(active && plan){
+      if(cur) cur.style.display='block';
+      const name=document.getElementById('currentPlanName');
+      const price=document.getElementById('currentPlanPrice');
+      if(name) name.textContent=plan.name;
+      if(price) price.textContent=plan.priceShort;
+      if(panel) panel.classList.remove('hidden');
+      const panelName=document.getElementById('panelPlanName');
+      const panelPrice=document.getElementById('panelPlanPrice');
+      if(panelName) panelName.textContent=plan.name;
+      if(panelPrice) panelPrice.textContent=plan.priceShort+(status.cancel_at_period_end?' · Dönem sonunda iptal edilecek':'');
+      if(pricing) pricing.style.display='none';
+    }
+  }catch(e){
+    console.warn('Billing status could not be loaded:',e);
+    if(badge) badge.textContent='Abonelik durumu yüklenemedi';
+  }
+}
+function openSubscriptionPanel(){const el=document.getElementById('subscriptionPanel');if(!el){alert('Abonelik penceresi bulunamadı. Sayfayı yenile.');return}el.classList.add('is-open');el.style.display='flex';updateSubscriptionUI()}
+function closeSubscriptionPanel(){const el=document.getElementById('subscriptionPanel');if(el){el.classList.remove('is-open');el.style.display='none'}}
+async function handlePlanSelect(k){
+  if(billingBusy) return;
+  if(!PLAN_DATA[k]) return;
+  const message=PLAN_DATA[k].name+' planı: '+PLAN_DATA[k].priceShort+'\n7 gün ücretsiz deneme. Deneme sonunda aboneliğin otomatik ücretlendirilir; istediğin zaman Stripe müşteri portalından iptal edebilirsin. Devam etmek için ödeme yöntemi gerekir.\n\nStripe ödeme sayfasına geçilsin mi?';
+  if(!confirm(message)) return;
+  billingBusy=true;
+  try{
+    const context=await getBillingContext();
+    const result=await callBillingFunction('create-checkout',{plan:k,organization_id:context.organization_id});
+    if(!result.url) throw new Error('Stripe ödeme bağlantısı alınamadı.');
+    location.href=result.url;
+  }catch(e){console.error('Billing checkout:',e);billingMessage(e.message||'Abonelik başlatılamadı.');}
+  finally{billingBusy=false}
+}
+async function cancelSubscription(){
+  if(!confirm('Stripe müşteri portalı açılacak. İptal veya faturalandırma işlemlerini oradan yapabilirsin. Devam edilsin mi?')) return;
+  try{
+    const context=await getBillingContext();
+    const result=await callBillingFunction('create-portal',{organization_id:context.organization_id});
+    if(!result.url) throw new Error('Müşteri portalı bağlantısı alınamadı.');
+    location.href=result.url;
+  }catch(e){console.error('Billing portal:',e);billingMessage(e.message||'Abonelik yönetimi açılamadı.');}
+}
+document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
 </script>
 </body>
 </html>
