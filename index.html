@@ -150,12 +150,24 @@ header{position:relative;z-index:20}
   @keyframes menuIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 }
 @media(max-width:760px){
+  /* Mobile menu fix: anchor from the top and use the available viewport height.
+     Avoid bottom-sheet positioning that can hide the upper half on phones. */
   #opsMenu>div{
     position:fixed!important;
-    top:auto!important;left:12px!important;right:12px!important;bottom:12px!important;
-    width:auto!important;max-height:min(78dvh,680px)!important;
-    padding-bottom:max(14px,env(safe-area-inset-bottom))!important;
+    top:max(72px,calc(env(safe-area-inset-top) + 64px))!important;
+    bottom:max(10px,env(safe-area-inset-bottom))!important;
+    left:10px!important;right:10px!important;
+    width:auto!important;
+    max-height:none!important;
+    height:auto!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    padding:10px 10px max(16px,env(safe-area-inset-bottom))!important;
+    border-radius:16px!important;
+    z-index:99999!important;
   }
+  #opsMenu>div button{min-height:42px!important}
 }
 
 
