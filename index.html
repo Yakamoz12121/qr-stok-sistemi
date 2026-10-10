@@ -46,9 +46,9 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
  <button onclick="openSubscriptionPanel()" style="margin-top:8px;border:1px dashed #2a4a7a!important;color:#60a5fa!important">💳 <span>Abonelik</span></button>
  <div class="mp-store" id="mpStoreBox"><div class="mp-store-icon">▣</div><div style="width:100%"><small>Mağaza</small><b>Üniforma Mağazası</b><span id="subscriptionBadge"><i></i> Online</span><div id="currentPlanDisplay" style="display:none;margin-top:8px;background:#132a4a;border:1px solid #1e3a5f;border-radius:8px;padding:7px 9px"><div style="font-size:10px;color:#8fb4ff">AKTİF PLAN</div><div style="display:flex;justify-content:space-between;margin-top:3px"><span id="currentPlanName" style="color:#60a5fa;font-weight:800;font-size:12px"></span><span id="currentPlanPrice" style="color:#e2e8f0;font-size:11px"></span></div></div></div></div>
 <section id="konfex-pricing-section" class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
-<div class="flex justify-between items-center mb-6"><div><h2 class="text-xl font-bold text-white">💳 Abonelik Planını Seç</h2><p class="text-slate-400 text-sm mt-1">14 gün ücretsiz • İstediğin zaman iptal</p></div><span class="text- bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-full">CANLI</span></div>
+<div class="flex justify-between items-center mb-6"><div><h2 class="text-xl font-bold text-white">💳 Abonelik Planını Seç</h2><p class="text-slate-400 text-sm mt-1">7 gün ücretsiz deneme • Deneme sonunda otomatik ücretlendirme</p></div><span class="text- bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-full">CANLI</span></div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-<div class="konfex-card bg-slate-900 border border-slate-700 rounded-xl p-5" onclick="handlePlanSelect('basic')"><h3 class="font-bold text-white">Basic</h3><div class="mt-3"><span class="text-3xl font-bold text-white">29,99€</span><span class="text-sm text-slate-400">/ay</span></div><ul class="mt-4 text-xs text-slate-300 space-y-1"><li>✓ 1 Filiale</li><li>✓ 100 Ürün</li></ul><button class="w-full mt-5 bg-slate-700 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button></div>
+<div class="konfex-card bg-slate-900 border border-slate-700 rounded-xl p-5" onclick="handlePlanSelect('basic')"><h3 class="font-bold text-white">Basic</h3><div class="mt-3"><span class="text-3xl font-bold text-white">29,90€</span><span class="text-sm text-slate-400">/ay</span></div><ul class="mt-4 text-xs text-slate-300 space-y-1"><li>✓ 1 Filiale</li><li>✓ 100 Ürün</li></ul><button class="w-full mt-5 bg-slate-700 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button></div>
 <div class="konfex-card konfex-popular bg-slate-900 border rounded-xl p-5 relative" onclick="handlePlanSelect('pro')"><div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text- font-bold px-3 py-1 rounded-full">EN POPÜLER</div><h3 class="font-bold text-white">Professional</h3><div class="mt-3"><span class="text-3xl font-bold text-white">59,90€</span><span class="text-sm text-slate-400">/ay</span></div><ul class="mt-4 text-xs text-slate-300 space-y-1"><li>✓ 3 Filiale</li><li>✓ Sınırsız ürün</li></ul><button class="w-full mt-5 bg-blue-600 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button></div>
 <div class="konfex-card bg-slate-900 border border-slate-700 rounded-xl p-5" onclick="handlePlanSelect('enterprise')"><h3 class="font-bold text-white">Enterprise</h3><div class="mt-3"><span class="text-3xl font-bold text-white">99,90€</span><span class="text-sm text-slate-400">/ay</span></div><ul class="mt-4 text-xs text-slate-300 space-y-1"><li>✓ Sınırsız şube</li><li>✓ API</li></ul><button class="w-full mt-5 bg-slate-700 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button></div>
 </div>
@@ -56,15 +56,65 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
 
  <div id="subscriptionPanel" onclick="if(event.target===this)closeSubscriptionPanel()"><div class="panel"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold text-white">💳 Abonelik</h2><button onclick="closeSubscriptionPanel()" class="bg-slate-800 text-white px-3 py-1 rounded">✕</button></div><div id="panelCurrentPlan" class="mb-6 p-4 rounded-xl border border-emerald-500/40 bg-emerald-950/20 hidden"><p class="text-xs text-emerald-400">MEVCUT PLAN</p><h3 id="panelPlanName" class="text-white font-bold mt-1"></h3><p id="panelPlanPrice" class="text-sm text-slate-300"></p></div><div class="space-y-3"><div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center"><div><b class="text-white text-sm">Basic - 29,99€</b></div><button onclick="handlePlanSelect('basic')" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Seç</button></div><div class="bg-slate-900 border border-blue-500/50 rounded-xl p-4 flex justify-between items-center"><div><b class="text-white text-sm">Pro - 59,90€</b></div><button onclick="handlePlanSelect('pro')" class="bg-blue-600 text-white text-xs px-4 py-2 rounded-lg">Seç</button></div><div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center"><div><b class="text-white text-sm">Enterprise - 99,90€</b></div><button onclick="handlePlanSelect('enterprise')" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Seç</button></div></div></div></div>
 <script>
-const STRIPE_LINKS={basic:'https://buy.stripe.com/9B6dR80GS26yg8u8kL5gc00',pro:'https://buy.stripe.com/8x24gy89kbH8e0m9oP5gc01',enterprise:'https://buy.stripe.com/6oU9AS1KW7qS8G2gRh5gc02'};
-const PLAN_DATA={basic:{name:'Basic',priceShort:'29,99€/ay'},pro:{name:'Professional',priceShort:'59,90€/ay'},enterprise:{name:'Enterprise',priceShort:'99,90€/ay'}};
-function getCurrentPlan(){try{return localStorage.getItem('konfex_current_plan')}catch(e){return null}}
-function setCurrentPlan(k){try{localStorage.setItem('konfex_current_plan',k)}catch(e){}updateSubscriptionUI()}
-function updateSubscriptionUI(){const plan=getCurrentPlan();const pricing=document.getElementById('konfex-pricing-section');const cur=document.getElementById('currentPlanDisplay');const badge=document.getElementById('subscriptionBadge');const panel=document.getElementById('panelCurrentPlan');if(plan&&PLAN_DATA[plan]){if(pricing)pricing.style.display='none';if(cur){cur.style.display='block';document.getElementById('currentPlanName').textContent=PLAN_DATA[plan].name;document.getElementById('currentPlanPrice').textContent=PLAN_DATA[plan].priceShort;}if(badge)badge.innerHTML='<i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px"></i> '+PLAN_DATA[plan].name+' Aktif';if(panel){panel.classList.remove('hidden');document.getElementById('panelPlanName').textContent=PLAN_DATA[plan].name;document.getElementById('panelPlanPrice').textContent=PLAN_DATA[plan].priceShort}}else{if(pricing)pricing.style.display='block';if(cur)cur.style.display='none';if(badge)badge.innerHTML='<i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px"></i> Online';if(panel)panel.classList.add('hidden')}}
+const PLAN_DATA={basic:{name:'Basic',priceShort:'29,90€/ay'},pro:{name:'Professional',priceShort:'59,90€/ay'},enterprise:{name:'Enterprise',priceShort:'99,90€/ay'}};
+let billingOrgId=null, billingBusy=false;
+function billingMessage(message){alert(message)}
+async function getBillingContext(){
+  const {data:{session},error:sessionError}=await client.auth.getSession();
+  if(sessionError||!session) throw new Error('Önce giriş yapmalısın.');
+  const {data:orgs,error}=await client.from('organization_members').select('organization_id,role').eq('user_id',session.user.id);
+  if(error) throw new Error('İşletme bilgisi alınamadı: '+error.message);
+  const {data:owned,error:ownedError}=await client.from('organizations').select('id').eq('owner_user_id',session.user.id);
+  if(ownedError) throw new Error('İşletme bilgisi alınamadı: '+ownedError.message);
+  const ids=[...new Set([...(orgs||[]).map(x=>x.organization_id),...(owned||[]).map(x=>x.id)].filter(Boolean))];
+  if(ids.length!==1) throw new Error(ids.length===0?'Hesabına bağlı işletme bulunamadı.':'Birden fazla işletme bağlı. Destek almadan abonelik başlatma.');
+  billingOrgId=ids[0]; return {session,organization_id:billingOrgId};
+}
+async function callBillingFunction(name,payload){
+  const {data:{session}}=await client.auth.getSession();
+  if(!session) throw new Error('Önce giriş yapmalısın.');
+  const response=await fetch(hostUrl+'/functions/v1/'+name,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':hostKey},body:JSON.stringify(payload)});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok) throw new Error(result.error||'İşlem başarısız ('+response.status+').');
+  return result;
+}
+function getCurrentPlan(){return null}
+function setCurrentPlan(){return}
+function updateSubscriptionUI(){
+  const pricing=document.getElementById('konfex-pricing-section');
+  const cur=document.getElementById('currentPlanDisplay');
+  const badge=document.getElementById('subscriptionBadge');
+  const panel=document.getElementById('panelCurrentPlan');
+  if(pricing) pricing.style.display='block';
+  if(cur) cur.style.display='none';
+  if(badge) badge.innerHTML='<i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#94a3b8;margin-right:4px"></i> Abonelik durumu sunucudan kontrol edilir';
+  if(panel) panel.classList.add('hidden');
+}
 function openSubscriptionPanel(){document.getElementById('subscriptionPanel').classList.add('is-open');updateSubscriptionUI()}
 function closeSubscriptionPanel(){document.getElementById('subscriptionPanel').classList.remove('is-open')}
-function handlePlanSelect(k){if(confirm(PLAN_DATA[k].name+' - '+PLAN_DATA[k].priceShort+' - Stripe\'a git?')){localStorage.setItem('konfex_pending_plan',k);window.open(STRIPE_LINKS[k],'_blank');setTimeout(()=>{setCurrentPlan(k);closeSubscriptionPanel();},1500)}}
-function cancelSubscription(){if(confirm('İptal?')){localStorage.removeItem('konfex_current_plan');updateSubscriptionUI();closeSubscriptionPanel()}}
+async function handlePlanSelect(k){
+  if(billingBusy) return;
+  if(!PLAN_DATA[k]) return;
+  const message=PLAN_DATA[k].name+' planı: '+PLAN_DATA[k].priceShort+'\n7 gün ücretsiz deneme. Deneme sonunda aboneliğin otomatik ücretlendirilir; istediğin zaman Stripe müşteri portalından iptal edebilirsin. Devam etmek için ödeme yöntemi gerekir.\n\nStripe ödeme sayfasına geçilsin mi?';
+  if(!confirm(message)) return;
+  billingBusy=true;
+  try{
+    const context=await getBillingContext();
+    const result=await callBillingFunction('create-checkout',{plan:k,organization_id:context.organization_id});
+    if(!result.url) throw new Error('Stripe ödeme bağlantısı alınamadı.');
+    location.href=result.url;
+  }catch(e){console.error('Billing checkout:',e);billingMessage(e.message||'Abonelik başlatılamadı.');}
+  finally{billingBusy=false}
+}
+async function cancelSubscription(){
+  if(!confirm('Stripe müşteri portalı açılacak. İptal veya faturalandırma işlemlerini oradan yapabilirsin. Devam edilsin mi?')) return;
+  try{
+    const context=await getBillingContext();
+    const result=await callBillingFunction('create-portal',{organization_id:context.organization_id});
+    if(!result.url) throw new Error('Müşteri portalı bağlantısı alınamadı.');
+    location.href=result.url;
+  }catch(e){console.error('Billing portal:',e);billingMessage(e.message||'Abonelik yönetimi açılamadı.');}
+}
 document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
 </script>
 
