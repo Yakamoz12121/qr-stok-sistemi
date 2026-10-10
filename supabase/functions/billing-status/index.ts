@@ -37,7 +37,18 @@ Deno.serve(async (req) => {
   ]);
   if (orgError || memberError) return json({ error: "Permission check failed" }, 500);
   if (org?.owner_user_id !== user.id && (member?.role || "").toLowerCase() !== "patron") return json({ error: "Forbidden" }, 403);
-
+  
+// Sunucu tarafında yalnızca ana yönetici hesabına abonelik muafiyeti.
+if (user.email?.trim().toLowerCase() === "yakamoz123cetinkaya@gmail.com") {
+  return json({
+    plan_key: "admin_exempt",
+    status: "active",
+    current_period_end: null,
+    trial_end: null,
+    cancel_at_period_end: false,
+    subscription_exempt: true
+  });
+}
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
   const { data, error } = await admin.from("org_billing")
     .select("plan_key,status,current_period_end,trial_end,cancel_at_period_end")
