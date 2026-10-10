@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
       const orgId = sub.metadata?.org_id;
       if (!orgId) {
         console.error("Subscription has no org_id metadata", sub.id);
+        await db.from("stripe_webhook_events").delete().eq("event_id", event.id);
         return new Response("Missing org metadata", { status: 400 });
       }
       const priceId = sub.items.data[0]?.price?.id ?? "";
