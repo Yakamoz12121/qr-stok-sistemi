@@ -4,7 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0f172a">
-<style>body.is-calisan .patron-only{display:none!important}</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+body.is-calisan .patron-only{display:none!important}
+body.bg-slate-900{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:radial-gradient(1200px 600px at 10% -10%,#1e293b 0,#0b1220 55%) fixed #0b1220!important}
+.bg-slate-800{background:#111a2e!important}.bg-slate-900{background:#0d1526!important}
+.border-slate-700{border-color:#22304a!important}
+section.bg-slate-800{box-shadow:0 8px 30px rgba(0,0,0,.25)}
+details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}
+</style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -34,7 +42,9 @@
         <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
       </div>
       <button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">📸 Hızlı QR / Kamera</button>
+      <details id="opsMenu" class="relative"><summary class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm select-none">⚙️ İşlemler ▾</summary><div class="absolute right-0 mt-2 w-60 bg-slate-800 border border-slate-700 rounded-xl p-2 grid gap-2 z-40 shadow-2xl">
       <button onclick="printAllQR()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">🖨️ QR Etiketlerini Yazdır</button>
+      </div></details>
       <span id="roleBadge" class="text-xs text-slate-300"></span>
       <button onclick="doLogout()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">Çıkış</button>
       <button onclick="exportCSV('stok')" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📥 Stok (CSV)</button>
@@ -50,6 +60,12 @@
     </div>
   </header>
 
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="patron-only bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Bugünkü ciro</span><b id="sumToday" class="text-2xl text-emerald-400">0 ₺</b></div>
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Bugünkü satış</span><b id="sumCount" class="text-2xl text-sky-400">0</b></div>
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Azalan / biten ürün</span><b id="sumLow" class="text-2xl text-amber-400">0</b></div>
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Toplam ürün</span><b id="sumProducts" class="text-2xl text-white">0</b></div>
+  </div>
   <div class="patron-only grid grid-cols-1 md:grid-cols-2 gap-6">
     <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
       <h2 class="text-xl font-semibold text-white mb-4">Yeni Ürün Ekle</h2>
@@ -90,7 +106,7 @@
       <input type="text" id="searchInput" placeholder="Ürün adıyla ara..." oninput="renderProducts()" class="w-full md:w-72 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white">
     </div>
     <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4"></div>
-    <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><p class="text-slate-500 col-span-full">Yükleniyor...</p></div>
+    <div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><p class="text-slate-500 col-span-full"></p><div class="h-40 bg-slate-900 rounded-lg animate-pulse"></div><div class="h-40 bg-slate-900 rounded-lg animate-pulse"></div><div class="h-40 bg-slate-900 rounded-lg animate-pulse"></div></div>
   </section>
 </div>
 
@@ -167,6 +183,7 @@
     </div>
   </div>
 </div>
+<div id="toasts" class="fixed bottom-24 right-4 left-4 sm:left-auto z-[80] flex flex-col gap-2 items-end pointer-events-none"></div>
 <script>
 const hostUrl = 'https://eakdoichqpyrtftdprbj.supabase.co';
 const hostKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVha2RvaWNocXB5cnRmdGRwcmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTE4OTksImV4cCI6MjEwNzA2Nzg5OX0.tSJF1WgEj2AqRgpGawmFNuurOcQ5-kS0lCtu3cpqOj4';
@@ -193,7 +210,7 @@ async function fetchAll() {
     allProducts = prodRes.data || [];
 
     await loadTransactions();
-    renderCategories(); renderProducts(); renderCart();
+    renderCategories(); renderProducts(); renderCart(); renderSummary();
 
     if (!hasCheckedURL) {
       hasCheckedURL = true;
@@ -318,7 +335,7 @@ function renderProducts() {
       <div class="w-full text-left mb-3">
         <div class="flex justify-between items-start">
           <h3 class="font-bold text-white text-lg">${esc(item.name)}</h3>
-          ${low ? '<span class="bg-rose-500/20 text-rose-400 text-[10px] px-2 py-0.5 rounded border border-rose-500/30 font-bold">Kritik!</span>' : ''}
+          ${badge(item.stock)}
         </div>
         <span class="inline-block bg-sky-950 text-sky-400 text-xs px-2.5 py-1 rounded-full border border-sky-800/50 mt-1">${esc(item.category)}</span>
         <div class="mt-3 text-sm text-slate-400 space-y-1">
@@ -803,6 +820,41 @@ function applyRole(session) {
   document.body.classList.toggle('is-calisan', !isPatron());
   $('roleBadge').textContent = isPatron() ? '👑 Patron' : '👤 Çalışan';
 }
+
+function badge(n) {
+  const c = 'text-[10px] px-2 py-0.5 rounded-full border font-bold ';
+  if (n <= 0) return `<span class="${c}bg-rose-500/20 text-rose-300 border-rose-500/40">Bitti</span>`;
+  if (n <= 3) return `<span class="${c}bg-amber-500/20 text-amber-300 border-amber-500/40">Azalıyor</span>`;
+  return `<span class="${c}bg-emerald-500/15 text-emerald-300 border-emerald-500/30">Yeterli</span>`;
+}
+
+function renderSummary() {
+  const r = dailyStats();
+  $('sumToday').textContent = (r.cash + r.card).toLocaleString('tr-TR') + ' ₺';
+  $('sumCount').textContent = r.cnt;
+  $('sumLow').textContent = allProducts.filter(p => p.stock <= 3).length;
+  $('sumProducts').textContent = allProducts.length;
+}
+
+// alert() yerine kaybolan bildirim (toast). Uzun mesajlar tıklanana kadar / 10 sn kalır.
+function toast(msg) {
+  const box = $('toasts'); if (!box) return;
+  const text = String(msg == null ? '' : msg);
+  const bad = /hata|geçersiz|yetersiz|başarısız|engellendi|yetki|bulunamadı|eksik|alınamadı|yapılamadı|değişmiş|kaydedilemedi|açılamadı/i.test(text);
+  const ok = !bad && /başarılı|kaydedildi|güncellendi|geri alındı|eklendi/i.test(text);
+  const d = document.createElement('div');
+  d.className = 'pointer-events-auto max-w-sm whitespace-pre-line text-sm text-white rounded-xl px-4 py-3 shadow-2xl border cursor-pointer ' + (bad ? 'bg-rose-700 border-rose-400/50' : ok ? 'bg-emerald-700 border-emerald-400/50' : 'bg-slate-700 border-slate-500/50');
+  d.textContent = text;
+  d.onclick = () => d.remove();
+  box.appendChild(d);
+  setTimeout(() => d.remove(), text.length > 90 || text.includes('\n') ? 10000 : 4000);
+}
+window.alert = toast;
+
+document.addEventListener('click', e => {
+  const m = $('opsMenu');
+  if (m && m.open && (!e.target.closest('#opsMenu') || e.target.closest('#opsMenu button'))) m.open = false;
+});
 
 async function doLogin() {
   const err = $('loginError'); err.classList.add('hidden');
