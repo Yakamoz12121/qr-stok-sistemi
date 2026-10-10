@@ -238,7 +238,19 @@ body.qp-modal-open{overflow:hidden}
     <input type="password" id="loginPass" placeholder="Şifre" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm">
     <p id="loginError" class="text-rose-400 text-xs hidden"></p>
     <button id="loginBtn" onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg">Giriş Yap</button>
+    <button type="button" onclick="sendPasswordSetupLink()" class="w-full text-sm text-blue-300 underline">Davet bağlantısı / Şifremi belirle</button>
+    <p class="text-xs text-slate-400 text-center">Çalışanlar, davet e-postasındaki bağlantıyla şifre belirleyebilir.</p>
   </div>
+</div>
+<div id="passwordSetupOverlay" style="display:none;position:fixed;inset:0;z-index:1000000;background:#020617ed;align-items:center;justify-content:center;padding:20px">
+ <form onsubmit="saveNewPassword(event)" style="width:min(100%,420px);background:#101b30;border:1px solid #334155;border-radius:16px;padding:24px;color:#f8fafc">
+  <h2 style="font-size:22px;font-weight:800;margin-bottom:12px">Yeni şifre belirle</h2>
+  <p style="font-size:13px;color:#cbd5e1;margin-bottom:16px">En az 8 karakterlik yeni bir şifre oluştur.</p>
+  <input id="newPassword" type="password" minlength="8" required autocomplete="new-password" placeholder="Yeni şifre" style="width:100%;background:#020617;border:1px solid #475569;border-radius:9px;padding:12px;margin-bottom:10px;color:white">
+  <input id="newPasswordConfirm" type="password" minlength="8" required autocomplete="new-password" placeholder="Yeni şifre (tekrar)" style="width:100%;background:#020617;border:1px solid #475569;border-radius:9px;padding:12px;margin-bottom:12px;color:white">
+  <p id="passwordSetupMessage" style="font-size:13px;margin-bottom:12px"></p>
+  <button type="submit" style="width:100%;padding:11px;background:#2563eb;border-radius:9px;font-weight:700">Şifreyi kaydet</button>
+ </form>
 </div>
 <div id="backupWarn" class="patron-only hidden max-w-7xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
 <section id="konfex-pricing-section" class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
@@ -1439,6 +1451,34 @@ function applyTheme(t) {
 }
 try { applyTheme('gece'); } catch (e) { applyTheme('gece'); }
 
+async function sendPasswordSetupLink(){
+  const email=$('loginEmail').value.trim();
+  const err=$('loginError');
+  err.classList.add('hidden');err.textContent='';
+  if(!email){err.textContent='Önce davet edilen e-posta adresini yaz.';err.classList.remove('hidden');$('loginEmail').focus();return;}
+  try{
+    const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo:baseUrl()});
+    if(error) throw error;
+    err.textContent='Şifre belirleme bağlantısı e-posta adresine gönderildiyse gelen kutunu ve spam klasörünü kontrol et.';
+    err.classList.remove('hidden');err.classList.remove('text-rose-400');err.classList.add('text-emerald-400');
+  }catch(e){err.textContent=e.message||'Şifre bağlantısı gönderilemedi.';err.classList.remove('hidden');}
+}
+async function saveNewPassword(event){
+  event.preventDefault();
+  const msg=$('passwordSetupMessage');
+  const password=$('newPassword').value;
+  if(password.length<8){msg.textContent='Şifre en az 8 karakter olmalı.';msg.style.color='#fca5a5';return;}
+  if(password!==$('newPasswordConfirm').value){msg.textContent='Şifreler aynı değil.';msg.style.color='#fca5a5';return;}
+  try{
+    const {data:{session}}=await client.auth.getSession();
+    if(!session){msg.textContent='Davet/şifre bağlantısı geçersiz veya süresi dolmuş. Giriş ekranından yeni bağlantı iste.';msg.style.color='#fca5a5';return;}
+    const {error}=await client.auth.updateUser({password});
+    if(error) throw error;
+    msg.textContent='Şifre kaydedildi. Şimdi uygulamaya giriş yapabilirsin.';msg.style.color='#86efac';
+    $('newPassword').value='';$('newPasswordConfirm').value='';
+    setTimeout(()=>{ $('passwordSetupOverlay').style.display='none'; },1200);
+  }catch(e){msg.textContent=e.message||'Şifre kaydedilemedi.';msg.style.color='#fca5a5';}
+}
 async function doLogin() {
   const err = $('loginError');
   const btn = $('loginBtn');
@@ -1488,6 +1528,12 @@ async function doLogout() {
   location.href = location.pathname + location.search;
 }
 
+client.auth.onAuthStateChange((event, session) => {
+  if(event==='PASSWORD_RECOVERY' || (session && /type=recovery|type=invite/.test(location.hash))){
+    const overlay=document.getElementById('passwordSetupOverlay');
+    if(overlay) overlay.style.display='flex';
+  }
+});
 window.onload = async () => {
   applyFont();
   try {
