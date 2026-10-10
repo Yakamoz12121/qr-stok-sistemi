@@ -150,24 +150,12 @@ header{position:relative;z-index:20}
   @keyframes menuIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 }
 @media(max-width:760px){
-  /* Mobile menu fix: anchor from the top and use the available viewport height.
-     Avoid bottom-sheet positioning that can hide the upper half on phones. */
   #opsMenu>div{
     position:fixed!important;
-    top:max(72px,calc(env(safe-area-inset-top) + 64px))!important;
-    bottom:max(10px,env(safe-area-inset-bottom))!important;
-    left:10px!important;right:10px!important;
-    width:auto!important;
-    max-height:none!important;
-    height:auto!important;
-    overflow-x:hidden!important;overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch!important;
-    overscroll-behavior:contain!important;
-    padding:10px 10px max(16px,env(safe-area-inset-bottom))!important;
-    border-radius:16px!important;
-    z-index:99999!important;
+    top:auto!important;left:12px!important;right:12px!important;bottom:12px!important;
+    width:auto!important;max-height:min(78dvh,680px)!important;
+    padding-bottom:max(14px,env(safe-area-inset-bottom))!important;
   }
-  #opsMenu>div button{min-height:42px!important}
 }
 
 
@@ -194,6 +182,28 @@ body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-grad
 #quickProductModal .qp-label{display:block;font-size:.78rem;color:#a8bad2;margin:0 0 .35rem}
 body.qp-modal-open{overflow:hidden}
 @media(max-width:520px){#quickProductModal{padding:.5rem;align-items:flex-end}#quickProductModal .qp-dialog{max-height:94dvh;border-radius:20px 20px 12px 12px;padding:1rem}#quickProductModal .qp-grid{grid-template-columns:1fr}}
+
+
+/* Mobile menu visibility fix v2: full readable dropdown, not a thin strip */
+@media (max-width:760px){
+  #opsMenu{position:static!important; z-index:100000!important;}
+  #opsMenu[open] > div{
+    display:block!important; visibility:visible!important; opacity:1!important;
+    position:fixed!important; top:calc(env(safe-area-inset-top, 0px) + 70px)!important;
+    bottom:auto!important; left:12px!important; right:12px!important;
+    width:auto!important; max-width:none!important;
+    height:auto!important; min-height:240px!important;
+    max-height:calc(100dvh - env(safe-area-inset-top, 0px) - 88px)!important;
+    overflow-x:hidden!important; overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important; overscroll-behavior:contain!important;
+    padding:12px!important; margin:0!important; transform:none!important;
+    box-sizing:border-box!important; z-index:2147483000!important;
+    background:#101d32!important; border:1px solid #2a3f60!important;
+    border-radius:16px!important; box-shadow:0 24px 60px #000b!important;
+  }
+  #opsMenu[open] > summary{position:relative;z-index:2147483001!important}
+  #opsMenu[open] > div button{display:block!important;width:100%!important;min-height:44px!important}
+}
 
 </style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
