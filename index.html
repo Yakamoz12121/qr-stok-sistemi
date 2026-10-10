@@ -1786,6 +1786,131 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
  };
  window.qrAdminClose=function(){el('qrAdminOverlay').style.display='none';};
  window.qrAdminLoad=async function(){
+  
+window.qrAdminLoad=async function(){
+  try{
+    status('Yükleniyor…');
+    const data=await invoke({action:'list'});
+    organizations=data.organizations||[];
+
+    el('qraOrg').innerHTML=
+      '<option value="">İşletme seç</option>'+
+      organizations.map(o=>
+        '<option value="'+escText(o.id)+'">'+
+        escText(o.name||'İsimsiz işletme')+
+        '</option>'
+      ).join('');
+
+    const members=data.members||[];
+    const users=data.users||[];
+
+    renderAdminDashboard(organizations,members,users);
+    status('Liste güncellendi.');
+  }catch(e){
+    status(e.message||'Liste alınamadı.',true);
+  }
+};
+
+function renderAdminDashboard(organizations,members,users){
+  const oldOrgSearch=el('qraOrgSearch')?.value||'';
+  const oldUserSearch=el('qraUserSearch')?.value||'';
+
+  const orgTerm=oldOrgSearch.trim().toLocaleLowerCase('tr');
+  const userTerm=oldUserSearch.trim().toLocaleLowerCase('tr');
+
+  const confirmed=users.filter(u=>u.email_confirmed_at).length;
+  const activeOrgs=organizations.filter(o=>o.is_active).length;
+
+  const filteredOrgs=organizations.filter(o=>
+    [o.name,o.id,o.is_active?'aktif':'pasif']
+      .join(' ').toLocaleLowerCase('tr').includes(orgTerm)
+  );
+
+  const filteredUsers=users.filter(u=>
+    [u.email,u.id,u.email_confirmed_at?'onaylı':'bekleyen']
+      .join(' ').toLocaleLowerCase('tr').includes(userTerm)
+  );
+
+  const card=(label,value,detail)=>
+    '<div style="border:1px solid #d1d5db;border-radius:10px;padding:12px;min-width:120px;flex:1">'+
+    '<div style="font-size:12px;color:#64748b">'+label+'</div>'+
+    '<div style="font-size:24px;font-weight:800;margin:4px 0">'+value+'</div>'+
+    '<div style="font-size:11px;color:#64748b">'+detail+'</div></div>';
+
+  const orgRows=filteredOrgs.map(o=>
+    '<tr><td>'+escText(o.name||'İsimsiz işletme')+'</td>'+
+    '<td style="overflow-wrap:anywhere">'+escText(o.id)+'</td>'+
+    '<td>'+members.filter(m=>m.organization_id===o.id).length+'</td>'+
+    '<td>'+(o.is_active?'Aktif':'Pasif')+'</td>'+
+    '<td><button type="button" data-admin-action="delete-org" data-id="'+escText(o.id)+'" style="background:#991b1b;color:#fff">İşletmeyi sil</button></td></tr>'
+  ).join('');
+
+  const userRows=filteredUsers.map(u=>
+    '<tr><td>'+escText(u.email||'—')+'</td>'+
+    '<td style="overflow-wrap:anywhere">'+escText(u.id)+'</td>'+
+    '<td>'+(u.email_confirmed_at?'Onaylı':'Davet/onay bekliyor')+'</td>'+
+    '<td>'+(u.last_sign_in_at?escText(new Date(u.last_sign_in_at).toLocaleDateString('tr-TR')):'Henüz giriş yok')+'</td>'+
+    '<td><button type="button" data-admin-action="delete-user" data-id="'+escText(u.id)+'" data-email="'+escText(u.email||'')+'" style="background:#991b1b;color:#fff">Kullanıcıyı sil</button></td></tr>'
+  ).join('');
+
+  el('qraLists').innerHTML=
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 18px">'+
+    card('Toplam işletme',organizations.length,activeOrgs+' aktif')+
+    card('Toplam kullanıcı',users.length,confirmed+' e-posta onaylı')+
+    card('Toplam üyelik',members.length,'İşletme-kullanıcı bağlantısı')+
+    card('Bekleyen onay',users.length-confirmed,'E-posta onayı bekleyen')+
+    '</div>'+
+
+    '<h3 style="font-weight:800;margin:10px 0">İşletmeler ('+filteredOrgs.length+'/'+organizations.length+')</h3>'+
+    '<input id="qraOrgSearch" type="search" placeholder="İşletme adı, ID veya durum ara…" value="'+escText(oldOrgSearch)+'" style="width:100%;box-sizing:border-box;padding:9px;margin-bottom:8px">'+
+    '<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse">'+
+    '<thead><tr><th>İşletme</th><th>ID</th><th>Üye</th><th>Durum</th><th>İşlem</th></tr></thead>'+
+    '<tbody>'+(orgRows||'<tr><td colspan="5">Eşleşen işletme bulunamadı.</td></tr>')+'</tbody></table></div>'+
+
+    '<h3 style="font-weight:800;margin:20px 0 10px">Kullanıcılar ('+filteredUsers.length+'/'+users.length+')</h3>'+
+    '<input id="qraUserSearch" type="search" placeholder="E-posta, kullanıcı ID veya durum ara…" value="'+escText(oldUserSearch)+'" style="width:100%;box-sizing:border-box;padding:9px;margin-bottom:8px">'+
+    '<div style="overflow-x:auto"><table style="width:100%;font-size:12px;border-collapse:collapse">'+
+    '<thead><tr><th>E-posta</th><th>ID</th><th>Durum</th><th>Son giriş</th><th>İşlem</th></tr></thead>'+
+    '<tbody>'+(userRows||'<tr><td colspan="5">Eşleşen kullanıcı bulunamadı.</td></tr>')+'</tbody></table></div>';
+
+  el('qraLists').querySelectorAll('th').forEach(th=>{
+    th.style.cssText='text-align:left;padding:7px;border-bottom:1px solid #ddd';
+  });
+  el('qraLists').querySelectorAll('td').forEach(td=>{
+    td.style.padding='7px';
+  });
+
+  el('qraOrgSearch').addEventListener('input',()=>{
+    const orgValue=el('qraOrgSearch').value;
+    const userValue=el('qraUserSearch').value;
+    renderAdminDashboard(organizations,members,users);
+    el('qraOrgSearch').value=orgValue;
+    el('qraUserSearch').value=userValue;
+    el('qraOrgSearch').focus();
+    el('qraOrgSearch').setSelectionRange(orgValue.length,orgValue.length);
+  });
+
+  el('qraUserSearch').addEventListener('input',()=>{
+    const orgValue=el('qraOrgSearch').value;
+    const userValue=el('qraUserSearch').value;
+    renderAdminDashboard(organizations,members,users);
+    el('qraOrgSearch').value=orgValue;
+    el('qraUserSearch').value=userValue;
+    el('qraUserSearch').focus();
+    el('qraUserSearch').setSelectionRange(userValue.length,userValue.length);
+  });
+
+  el('qraLists').querySelectorAll('[data-admin-action]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.getAttribute('data-id');
+      if(btn.dataset.adminAction==='delete-org'){
+        qrAdminDeleteOrganization(id);
+      }else if(btn.dataset.adminAction==='delete-user'){
+        qrAdminDeleteUser(id,btn.getAttribute('data-email')||'');
+      }
+    });
+  });
+};
   try{
    status('Yükleniyor…');const data=await invoke({action:'list'});organizations=data.organizations||[];
    el('qraOrg').innerHTML='<option value="">İşletme seç</option>'+organizations.map(o=>'<option value="'+String(o.id).replace(/"/g,'&quot;')+'">'+String(o.name||'İsimsiz işletme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</option>').join('');
