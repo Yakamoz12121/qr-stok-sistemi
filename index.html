@@ -1937,13 +1937,41 @@ function renderAdminDashboard(organizations,members,users){
   }catch(e){status(e.message||'Davet gönderilemedi.',true);}
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape')qrAdminClose();});
- async function setup(){
-  try{const user=await sessionUser();if(isMainAdmin(user)){el('qrAdminLauncher').style.display='block';}}
-  catch(e){console.warn('Admin panel setup:',e);}
- }
- const oldOnload=window.onload;
- window.addEventListener('load',setup);
-})();
+ 
+let qrAdminSetupRunning = false;
+
+async function setup(){
+  if(qrAdminSetupRunning) return;
+  qrAdminSetupRunning = true;
+
+  try {
+    const { data, error } = await client.auth.getSession();
+    if(error) throw error;
+
+    const user = data?.session?.user;
+    const launcher = el('qrAdminLauncher');
+
+    if(launcher) {
+      launcher.style.display = user && isMainAdmin(user) ? 'block' : 'none';
+    }
+  } catch(e) {
+    console.warn('Admin panel setup:', e);
+  } finally {
+    qrAdminSetupRunning = false;
+  }
+}
+
+window.addEventListener('load', setup);
+
+client.auth.onAuthStateChange((event, session) => {
+  const launcher = el('qrAdminLauncher');
+
+  if(launcher) {
+    launcher.style.display =
+      session?.user && isMainAdmin(session.user) ? 'block' : 'none';
+  }
+});
+
 </script>
 
 </body>
