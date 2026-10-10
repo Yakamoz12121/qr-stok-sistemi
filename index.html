@@ -1526,17 +1526,47 @@ function applyTheme(t) {
 try { applyTheme('gece'); } catch (e) { applyTheme('gece'); }
 
 async function doLogin() {
-  const err = $('loginError'); err.classList.add('hidden');
-  $('loginBtn').disabled = true;
-  const { data: lg, error } = await client.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPass').value });
-  $('loginBtn').disabled = false;
-  if (error) { err.textContent = 'Giriş başarısız: e-posta veya şifre hatalı.'; err.classList.remove('hidden'); return; }
-  $('loginPass').value = '';
-  applyRole(lg.session);
-  $('loginScreen').classList.add('hidden');
-  startIdle(); checkBackup();
-  const hasAccess = await enforceSubscriptionAccess();
-  if (hasAccess) fetchAll();
+  const err = $('loginError');
+  const btn = $('loginBtn');
+  err.classList.add('hidden');
+  err.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Giriş yapılıyor…';
+  try {
+    const email = $('loginEmail').value.trim();
+    const password = $('loginPass').value;
+    if (!email || !password) {
+      err.textContent = 'E-posta ve şifreyi gir.';
+      err.classList.remove('hidden');
+      return;
+    }
+    const { data: lg, error } = await client.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error('Supabase login failed:', error);
+      err.textContent = error.message || 'Giriş başarısız. E-posta ve şifreni kontrol et.';
+      err.classList.remove('hidden');
+      return;
+    }
+    if (!lg || !lg.session || !lg.user) {
+      err.textContent = 'Giriş tamamlanamadı. E-posta onayı gerekiyor olabilir; gelen kutunu kontrol et.';
+      err.classList.remove('hidden');
+      return;
+    }
+    $('loginPass').value = '';
+    applyRole(lg.session);
+    $('loginScreen').classList.add('hidden');
+    startIdle();
+    checkBackup();
+    const hasAccess = await enforceSubscriptionAccess();
+    if (hasAccess) fetchAll();
+  } catch (e) {
+    console.error('Login exception:', e);
+    err.textContent = e && e.message ? 'Giriş hatası: ' + e.message : 'Bağlantı hatası. İnternet bağlantını kontrol edip tekrar dene.';
+    err.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Giriş Yap';
+  }
 }
 
 async function doLogout() {
@@ -1546,8 +1576,21 @@ async function doLogout() {
 
 window.onload = async () => {
   applyFont();
-  const { data } = await client.auth.getSession();
-  if (data.session) { applyRole(data.session); $('loginScreen').classList.add('hidden'); startIdle(); checkBackup(); const hasAccess = await enforceSubscriptionAccess(); if (hasAccess) fetchAll(); }
+  try {
+    const { data, error } = await client.auth.getSession();
+    if (error) console.warn('Session restore failed:', error.message);
+    if (data && data.session) {
+      applyRole(data.session);
+      $('loginScreen').classList.add('hidden');
+      startIdle();
+      checkBackup();
+      const hasAccess = await enforceSubscriptionAccess();
+      if (hasAccess) fetchAll();
+    }
+  } catch (e) {
+    console.error('Session initialization failed:', e);
+    $('loginScreen').classList.remove('hidden');
+  }
 };
 
 // Mobil Safari: yakınlaştırma hareketlerini kapat.
