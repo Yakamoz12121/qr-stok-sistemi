@@ -7,9 +7,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 body.is-calisan .patron-only{display:none!important}
-body.bg-slate-900{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:radial-gradient(1200px 600px at 10% -10%,#1e293b 0,#0b1220 55%) fixed #0b1220!important}
-.bg-slate-800{background:#111a2e!important}.bg-slate-900{background:#0d1526!important}
-.border-slate-700{border-color:#22304a!important}
+body.bg-slate-900{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:radial-gradient(1200px 600px at 10% -10%,var(--glow) 0,var(--bg) 55%) fixed var(--bg)!important}
+.bg-slate-800{background:var(--card)!important}.bg-slate-900{background:var(--inner)!important}
+.border-slate-700{border-color:var(--line)!important}
+:root{--accent:#38bdf8;--accent2:#0ea5e9;--bg:#0b1220;--glow:#1e293b;--card:#111a2e;--inner:#0d1526;--line:#22304a}
+html[data-theme=orman]{--accent:#34d399;--accent2:#10b981;--bg:#07140f;--glow:#123226;--card:#0e1f19;--inner:#0a1612;--line:#1d3a2e}
+html[data-theme=gunbatimi]{--accent:#fb923c;--accent2:#f97316;--bg:#150d08;--glow:#3a1f10;--card:#21140d;--inner:#190f0a;--line:#44281a}
+html[data-theme=mor]{--accent:#a78bfa;--accent2:#8b5cf6;--bg:#0e0a1c;--glow:#2a1d52;--card:#171028;--inner:#120c21;--line:#33265a}
+.bg-sky-500,.bg-blue-600,.bg-indigo-600{background:var(--accent2)!important}
+.hover\:bg-sky-400:hover,.hover\:bg-blue-500:hover,.hover\:bg-indigo-500:hover{background:var(--accent)!important}
+.text-blue-400,.text-sky-400,.text-sky-300{color:var(--accent)!important}
+.mi{display:block;width:100%;text-align:left;padding:.55rem .75rem;border-radius:.6rem;color:#e2e8f0}.mi:hover{background:var(--line)}
+.mih{font-size:.65rem;letter-spacing:.08em;color:#64748b;padding:.7rem .75rem .2rem}
 section.bg-slate-800{box-shadow:0 8px 30px rgba(0,0,0,.25)}
 details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}
 #productList>div{transition:transform .15s,box-shadow .15s}#productList>div:hover{transform:translateY(-2px)}
@@ -43,26 +52,42 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
       <p class="text-slate-400 mt-1">Öğrenci & Mesleki Kıyafet Mağazası</p>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
-      <div onclick="openAdminPanel()" class="patron-only bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer hover:bg-slate-700 shadow-lg" title="Yönetici Kasa Paneli">
-        <span class="text-xs text-slate-400 block">Günlük Ortak Kasa (Yönetici)</span>
+      <div onclick="openAdminPanel()" class="patron-only bg-slate-800 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer hover:bg-slate-700 shadow-lg" title="Kasa paneli">
+        <span class="text-xs text-slate-400 block">Kasa</span>
         <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span>
       </div>
-      <button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">📸 Hızlı QR / Kamera</button>
-      <details id="opsMenu" class="relative"><summary class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm select-none">⚙️ İşlemler ▾</summary><div class="absolute right-0 mt-2 w-60 bg-slate-800 border border-slate-700 rounded-xl p-2 grid gap-2 z-40 shadow-2xl">
-      <button onclick="printAllQR()" class="bg-amber-600 hover:bg-amber-500 text-white font-medium px-4 py-2 rounded-xl text-sm shadow-lg">🖨️ QR Etiketlerini Yazdır</button>
-      </div></details>
-      <span id="roleBadge" class="text-xs text-slate-300"></span>
-      <button onclick="doLogout()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">Çıkış</button>
-      <button onclick="exportCSV('stok')" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📥 Stok (CSV)</button>
-      <button onclick="lowStockPrint()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">⚠️ Düşük Stok</button>
-      <button onclick="stockCount()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📋 Sayım</button>
-      <button onclick="undoLastSale()" class="bg-rose-700 hover:bg-rose-600 text-white font-medium px-4 py-2 rounded-xl text-sm">↩️ Son Satışı Geri Al</button>
-      <button onclick="salesReport()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">📊 Rapor</button>
-      <button onclick="toggleFont()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-3 py-2 rounded-xl text-sm" title="Yazıyı büyüt/küçült">Aa</button>
-      <button onclick="bulkPrice()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💲 Toplu Fiyat</button>
-      <button onclick="stockMatrix()" class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">🧮 Stok Matrisi</button>
-      <button onclick="backupJSON()" class="patron-only bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2 rounded-xl text-sm">💾 Yedek</button>
-      <select id="labelSize" class="bg-slate-800 border border-slate-700 text-slate-300 text-xs rounded-xl px-2 py-2"><option value="o">Etiket: Orta</option><option value="k">Etiket: Küçük</option><option value="b">Etiket: Büyük</option></select>
+      <button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm shadow-lg">📸 QR Okut</button>
+      <details id="opsMenu" class="relative">
+        <summary class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2.5 rounded-xl text-sm select-none">☰ Menü</summary>
+        <div class="absolute right-0 mt-2 w-72 max-h-[75vh] overflow-y-auto bg-slate-800 border border-slate-700 rounded-2xl p-2 z-40 shadow-2xl text-sm">
+          <div id="roleBadge" class="px-3 py-2 text-xs text-slate-400"></div>
+          <p class="mih">SATIŞ</p>
+          <button class="mi" onclick="undoLastSale()">↩️ Son satışı geri al</button>
+          <p class="mih">STOK</p>
+          <button class="mi" onclick="lowStockPrint()">⚠️ Azalan ürünler listesi</button>
+          <button class="mi" onclick="stockMatrix()">🧮 Beden / stok tablosu</button>
+          <button class="mi patron-only" onclick="stockCount()">📋 Stok sayımı</button>
+          <button class="mi patron-only" onclick="bulkPrice()">💲 Toplu fiyat değiştir</button>
+          <div class="patron-only">
+            <p class="mih">RAPOR VE YEDEK</p>
+            <button class="mi" onclick="salesReport()">📊 Satış raporu</button>
+            <button class="mi" onclick="exportCSV('stok')">📥 Stok listesi (Excel)</button>
+            <button class="mi" onclick="backupJSON()">💾 Yedek al</button>
+          </div>
+          <p class="mih">YAZDIR</p>
+          <button class="mi" onclick="printAllQR()">🖨️ QR etiketlerini yazdır</button>
+          <div class="flex items-center justify-between px-3 py-1 text-slate-400 text-xs">Etiket boyutu
+            <select id="labelSize" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2 py-1"><option value="o">Orta</option><option value="k">Küçük</option><option value="b">Büyük</option></select></div>
+          <p class="mih">GÖRÜNÜM</p>
+          <div class="flex items-center gap-3 px-3 py-2"><span class="text-slate-400 text-xs">Tema</span>
+            <button onclick="applyTheme('gece')" title="Gece" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#38bdf8"></button>
+            <button onclick="applyTheme('orman')" title="Orman" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#34d399"></button>
+            <button onclick="applyTheme('gunbatimi')" title="Gün batımı" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#fb923c"></button>
+            <button onclick="applyTheme('mor')" title="Mor" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#a78bfa"></button></div>
+          <button class="mi" onclick="toggleFont()">Aa Yazıyı büyüt / küçült</button>
+          <button class="mi text-rose-300" onclick="doLogout()">🚪 Çıkış yap</button>
+        </div>
+      </details>
     </div>
   </header>
 
@@ -365,16 +390,18 @@ function renderProducts() {
       <div class="qrbox bg-white p-3 rounded-lg mb-2 inline-block"><div id="qr-${item.id}"></div></div>
       <button onclick="downloadQR(${item.id})" class="qrdl text-xs text-sky-400 hover:text-sky-300 underline mb-3">QR'ı indir (PNG)</button>
       <div class="w-full space-y-2 mt-auto">
-        <div class="patron-only flex gap-2">
-          <button onclick="updateStock(${item.id}, ${item.stock - 1})" class="flex-1 bg-red-600/30 text-red-300 text-xs py-1.5 rounded border border-red-500/30">- Stok</button>
-          <button onclick="updateStock(${item.id}, ${item.stock + 1})" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30">+ Stok</button>
-        </div>
         <div class="flex gap-2">
-          <button onclick="quickSellItem(${item.id}, 1)" class="flex-1 bg-indigo-600/30 text-indigo-300 text-xs py-1.5 rounded border border-indigo-500/30 font-bold">Hızlı Sat (-1)</button>
-          <button onclick="addToCart(${item.id})" class="flex-1 bg-emerald-600/30 text-emerald-300 text-xs py-1.5 rounded border border-emerald-500/30 font-bold">+ Sepet</button>
+          <button onclick="quickSellItem(${item.id}, 1)" class="flex-1 bg-indigo-600 text-white text-xs py-2 rounded-lg font-bold">Sat</button>
+          <button onclick="addToCart(${item.id})" class="flex-1 bg-slate-700 text-white text-xs py-2 rounded-lg font-bold">+ Sepet</button>
         </div>
-        <button onclick="editProduct(${item.id})" class="patron-only w-full bg-slate-700/60 text-slate-200 text-xs py-1 rounded border border-slate-600">Düzenle</button>
-        <button onclick="deleteProduct(${item.id})" class="patron-only w-full bg-rose-900/40 text-rose-300 text-xs py-1 rounded border border-rose-700/50">Sil</button>
+        <details class="patron-only">
+          <summary class="text-xs text-slate-400 cursor-pointer select-none py-1">⋯ Yönet</summary>
+          <div class="grid gap-2 mt-2">
+            <div class="flex gap-2"><button onclick="updateStock(${item.id}, ${item.stock - 1})" class="flex-1 bg-slate-700 text-xs py-1.5 rounded">− Stok</button><button onclick="updateStock(${item.id}, ${item.stock + 1})" class="flex-1 bg-slate-700 text-xs py-1.5 rounded">+ Stok</button></div>
+            <button onclick="editProduct(${item.id})" class="bg-slate-700 text-xs py-1.5 rounded">Düzenle</button>
+            <button onclick="deleteProduct(${item.id})" class="bg-rose-900/50 text-rose-300 text-xs py-1.5 rounded">Sil</button>
+          </div>
+        </details>
       </div>`;
     list.appendChild(box);
     makeQR($(`qr-${item.id}`), item.id);
@@ -901,6 +928,16 @@ function showDone(total, pay) {
   try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) {}
   setTimeout(() => { o.classList.remove('flex'); o.classList.add('hidden'); }, 1800);
 }
+
+const THEMES = { gece: '#0b1220', orman: '#07140f', gunbatimi: '#150d08', mor: '#0e0a1c' };
+function applyTheme(t) {
+  if (!THEMES[t]) t = 'gece';
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('theme', t); } catch (e) {}
+  const m = document.querySelector('meta[name=theme-color]');
+  if (m) m.setAttribute('content', THEMES[t]);
+}
+try { applyTheme(localStorage.getItem('theme') || 'gece'); } catch (e) { applyTheme('gece'); }
 
 async function doLogin() {
   const err = $('loginError'); err.classList.add('hidden');
