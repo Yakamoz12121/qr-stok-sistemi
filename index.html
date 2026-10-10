@@ -40,7 +40,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
 .konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6,0 10px 30px rgba(59,130,246,.18)}
 #subscriptionPanel{position:fixed;inset:0;z-index:400;display:none;background:rgba(2,8,23,.72);backdrop-filter:blur(8px)}
 #subscriptionPanel.is-open{display:flex;justify-content:flex-end}
-#subscriptionPanel.panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn.24s}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn.24s}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
 
  <button onclick="openSubscriptionPanel()" style="margin-top:8px;border:1px dashed #2a4a7a!important;color:#60a5fa!important">💳 <span>Abonelik</span></button>
@@ -113,8 +113,8 @@ async function updateSubscriptionUI(){
     if(badge) badge.textContent='Abonelik durumu yüklenemedi';
   }
 }
-function openSubscriptionPanel(){document.getElementById('subscriptionPanel').classList.add('is-open');updateSubscriptionUI()}
-function closeSubscriptionPanel(){document.getElementById('subscriptionPanel').classList.remove('is-open')}
+function openSubscriptionPanel(){const el=document.getElementById('subscriptionPanel');if(!el){alert('Abonelik penceresi bulunamadı. Sayfayı yenile.');return}el.classList.add('is-open');el.style.display='flex';updateSubscriptionUI()}
+function closeSubscriptionPanel(){const el=document.getElementById('subscriptionPanel');if(el){el.classList.remove('is-open');el.style.display='none'}}
 async function handlePlanSelect(k){
   if(billingBusy) return;
   if(!PLAN_DATA[k]) return;
