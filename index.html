@@ -1949,40 +1949,37 @@ function renderAdminDashboard(organizations,members,users){
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape')qrAdminClose();});
  
-let qrAdminSetupRunning = false;
-
-async function setup(){
-  if(qrAdminSetupRunning) return;
-  qrAdminSetupRunning = true;
+async function qrAdminSyncLauncher(){
+  const launcher = document.getElementById('qrAdminLauncher');
+  if(!launcher) return;
 
   try {
     const { data, error } = await client.auth.getSession();
     if(error) throw error;
 
-    const user = data?.session?.user;
-    const launcher = el('qrAdminLauncher');
-
-    if(launcher) {
-      launcher.style.display = user && isMainAdmin(user) ? 'block' : 'none';
-    }
+    const user = data && data.session ? data.session.user : null;
+    launcher.style.display = isMainAdmin(user) ? 'block' : 'none';
   } catch(e) {
-    console.warn('Admin panel setup:', e);
-  } finally {
-    qrAdminSetupRunning = false;
+    console.warn('Ana yönetici butonu kontrol edilemedi:', e);
+    launcher.style.display = 'none';
   }
 }
 
-window.addEventListener('load', setup);
-
-client.auth.onAuthStateChange((event, session) => {
-  const launcher = el('qrAdminLauncher');
-
-  if(launcher) {
-    launcher.style.display =
-      session?.user && isMainAdmin(session.user) ? 'block' : 'none';
-  }
+window.addEventListener('load', () => {
+  qrAdminSyncLauncher();
+  // Supabase oturumu sayfa açılışında geç yüklenirse yeniden kontrol et.
+  window.setTimeout(qrAdminSyncLauncher, 800);
+  window.setTimeout(qrAdminSyncLauncher, 2000);
 });
 
+client.auth.onAuthStateChange((event, session) => {
+  // Auth callback içinden Supabase çağrısı yapmadan, mevcut session ile güncelle.
+  window.setTimeout(() => {
+    const launcher = document.getElementById('qrAdminLauncher');
+    if(!launcher) return;
+    launcher.style.display = isMainAdmin(session && session.user) ? 'block' : 'none';
+  }, 0);
+});
 </script>
 
 </body>
