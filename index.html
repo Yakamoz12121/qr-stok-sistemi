@@ -436,6 +436,27 @@ body.qp-modal-open{overflow:hidden}
     <button onclick="hide($('labelModal'))" class="w-full text-slate-400 text-sm py-1">İptal</button>
   </div>
 </div>
+<div id="cashClosePanel" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="cashCloseTitle" onclick="if(event.target===this)hideCashClosePanel()">
+  <section class="w-full max-w-2xl max-h-[92dvh] overflow-y-auto rounded-2xl border border-sky-400/25 bg-slate-900 shadow-2xl shadow-black/50">
+    <header class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-slate-700 bg-slate-900/95 px-5 py-4 backdrop-blur">
+      <div><p class="text-xs font-semibold uppercase tracking-[.18em] text-sky-400">Gün sonu işlemleri</p><h2 id="cashCloseTitle" class="mt-1 text-xl font-bold text-white">Kasa kapanışı</h2></div>
+      <button type="button" onclick="hideCashClosePanel()" class="rounded-xl border border-slate-700 px-3 py-2 text-slate-300 hover:bg-slate-800" aria-label="Kapat">✕</button>
+    </header>
+    <div class="space-y-5 p-5">
+      <div id="cashClosePanelSummary" class="grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
+      <div id="cashCloseFormArea" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <label class="block text-sm text-slate-300">Sabah açılış nakdi (₺)<input id="cashCloseOpening" type="number" min="0" step="0.01" value="0" class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-base text-white outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"></label>
+        <label class="block text-sm text-slate-300">Çekmecede sayılan nakit (₺)<input id="cashCloseCounted" type="number" min="0" step="0.01" placeholder="Örn. 1250,00" class="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-base text-white outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20"></label>
+      </div>
+      <div id="cashCloseResult" class="hidden"></div>
+      <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <button type="button" onclick="hideCashClosePanel()" class="rounded-xl border border-slate-700 px-4 py-3 font-semibold text-slate-300 hover:bg-slate-800">Kapat</button>
+        <button id="cashCloseCalculateBtn" type="button" onclick="calculateCashClosePanel()" class="rounded-xl bg-sky-500 px-5 py-3 font-bold text-slate-950 hover:bg-sky-400">Kapanışı hesapla</button>
+        <button id="cashClosePrintBtn" type="button" onclick="printCashClosePanel()" class="hidden rounded-xl bg-emerald-600 px-5 py-3 font-bold text-white hover:bg-emerald-500">Yazdır / PDF kaydet</button>
+      </div>
+    </div>
+  </section>
+</div>
 <div id="doneOverlay" onclick="this.classList.add('hidden');this.classList.remove('flex')" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/70">
   <div class="bg-emerald-600 rounded-3xl px-10 py-8 text-center shadow-2xl"><div class="text-7xl">✓</div><div class="text-2xl font-bold text-white mt-2">Satış tamam</div><div id="doneAmount" class="text-lg text-emerald-100 mt-1"></div></div>
 </div>
@@ -1072,19 +1093,45 @@ function renderDaily() {
   $('dailySummary').innerHTML = `<b class="text-white">Bugün:</b> ${r.cnt} satış · Nakit <b class="text-emerald-400">${r.cash} ₺</b> · Kart <b class="text-sky-400">${r.card - r.cardOut} ₺</b><br>Manuel ekleme ${r.inn} ₺ · Çıkarılan/iade ${r.out} ₺ · <span class="text-slate-400">Bugünkü nakit hareketi: ${r.cash + r.inn - r.out} ₺</span>`;
 }
 
+let cashCloseLastReport = null;
 function cashClose() {
   if (!needPatron()) return;
   const s = dailyStats();
-  const openRaw = prompt('Sabah çekmecedeki açılış nakdi (₺):', '0'); if (openRaw === null) return;
-  const countedRaw = prompt('Şimdi çekmecede saydığın nakit (₺):', ''); if (countedRaw === null) return;
-  const o = Number(String(openRaw).trim().replace(',', '.')), c = Number(String(countedRaw).trim().replace(',', '.'));
-  if (!Number.isFinite(o) || !Number.isFinite(c) || o < 0 || c < 0) return alert('Açılış ve sayılan nakit 0 veya daha büyük geçerli tutarlar olmalı.');
-  const exp = Math.round((o + s.cash + s.inn - s.out) * 100) / 100, diff = Math.round((c - exp) * 100) / 100;
-  const status = diff === 0 ? 'Kasa tutuyor' : diff > 0 ? 'Kasada fazla' : 'Kasada eksik';
   const money = n => `${Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})} ₺`;
-  const w = window.open('', '_blank');
-  if (!w) return alert(`Kapanış hesaplandı fakat rapor penceresi engellendi.\nOlması gereken: ${money(exp)}\nSayılan: ${money(c)}\nFark: ${money(diff)}\nTarayıcıda açılır pencerelere izin ver.`);
-  w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gün Sonu Kasa Raporu</title><style>body{font:15px system-ui,sans-serif;color:#172033;max-width:850px;margin:28px auto;padding:0 18px}h1{margin-bottom:4px}.sub{color:#64748b}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{border:1px solid #dbe2ea;border-radius:12px;padding:14px}.card small{color:#64748b}.card b{display:block;font-size:21px;margin-top:5px}.status{padding:12px;border-radius:10px;background:${diff===0?'#dcfce7':diff>0?'#fef3c7':'#fee2e2'};margin:16px 0;font-weight:700}table{border-collapse:collapse;width:100%;margin-top:20px}td{padding:10px;border-bottom:1px solid #e2e8f0}td:last-child{text-align:right;font-weight:650}.actions{margin:18px 0}@media(max-width:520px){.grid{grid-template-columns:1fr}}@media print{.actions{display:none}}</style></head><body><h1>Gün Sonu Kasa Raporu</h1><p class="sub">${new Date().toLocaleString('tr-TR')} · Üniforma QR Stok & Kasa Yönetimi</p><div class="status">${status}: ${diff>0?'+':''}${money(diff)}</div><div class="grid"><div class="card"><small>Açılış nakdi</small><b>${money(o)}</b></div><div class="card"><small>Olması gereken nakit</small><b>${money(exp)}</b></div><div class="card"><small>Sayılan nakit</small><b>${money(c)}</b></div><div class="card"><small>Bugünkü satış sayısı</small><b>${s.cnt}</b></div></div><table><tr><td>Nakit satış</td><td>${money(s.cash)}</td></tr><tr><td>Kart satış (net, mevcut hareket notlarına göre)</td><td>${money(s.card-s.cardOut)}</td></tr><tr><td>Manuel kasa girişi</td><td>${money(s.inn)}</td></tr><tr><td>Kasa çıkışı / nakit iade</td><td>${money(s.out)}</td></tr><tr><td><b>Beklenen nakit</b></td><td><b>${money(exp)}</b></td></tr><tr><td><b>Sayılan nakit</b></td><td><b>${money(c)}</b></td></tr><tr><td><b>Fark</b></td><td><b>${diff>0?'+':''}${money(diff)}</b></td></tr></table><p class="sub">Rapor mevcut kasa hareketleri ve işlem notlarından hesaplanır. Kart iadeleri/ödeme türleri notlarda ayrıştırılmıyorsa sonuç kontrol edilmelidir.</p><div class="actions"><button onclick="print()">Yazdır / PDF kaydet</button></div></body></html>`);
+  $('cashClosePanelSummary').innerHTML = [
+    ['Bugünkü satış', s.cnt, 'text-sky-300'], ['Nakit satış', money(s.cash), 'text-emerald-300'],
+    ['Kart satış (net)', money(s.card-s.cardOut), 'text-sky-300'], ['Manuel giriş', money(s.inn), 'text-emerald-300']
+  ].map(([label,value,color])=>`<div class="rounded-xl border border-slate-700 bg-slate-950/70 p-3"><div class="text-xs text-slate-400">${label}</div><div class="mt-1 font-bold ${color}">${value}</div></div>`).join('');
+  $('cashCloseResult').classList.add('hidden'); $('cashCloseResult').innerHTML='';
+  $('cashCloseFormArea').classList.remove('hidden'); $('cashCloseCalculateBtn').classList.remove('hidden'); $('cashClosePrintBtn').classList.add('hidden');
+  $('cashCloseCounted').value=''; cashCloseLastReport=null;
+  show($('cashClosePanel'));
+  setTimeout(()=>$('cashCloseOpening').focus(),50);
+}
+function hideCashClosePanel(){ hide($('cashClosePanel')); }
+function calculateCashClosePanel(){
+  if (!needPatron()) return;
+  const s=dailyStats();
+  const parse=id=>Number(String($(id).value).trim().replace(',','.'));
+  const o=parse('cashCloseOpening'), c=parse('cashCloseCounted');
+  if (!Number.isFinite(o)||!Number.isFinite(c)||o<0||c<0||$('cashCloseCounted').value.trim()==='') {
+    $('cashCloseResult').classList.remove('hidden');
+    $('cashCloseResult').innerHTML='<div class="rounded-xl border border-rose-500/40 bg-rose-500/10 p-4 text-rose-200">Lütfen açılış ve sayılan nakit alanlarına sıfır veya daha büyük geçerli tutarlar gir.</div>'; return;
+  }
+  const exp=Math.round((o+s.cash+s.inn-s.out)*100)/100, diff=Math.round((c-exp)*100)/100;
+  const money=n=>`${Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})} ₺`;
+  const status=diff===0?'Kasa tutuyor':diff>0?'Kasada fazla':'Kasada eksik';
+  cashCloseLastReport={date:new Date().toLocaleString('tr-TR'),opening:o,counted:c,expected:exp,diff,status,s};
+  $('cashCloseResult').classList.remove('hidden');
+  $('cashCloseResult').innerHTML=`<div class="rounded-2xl border ${diff===0?'border-emerald-500/40 bg-emerald-500/10':diff>0?'border-amber-500/40 bg-amber-500/10':'border-rose-500/40 bg-rose-500/10'} p-4"><div class="text-sm font-semibold ${diff===0?'text-emerald-300':diff>0?'text-amber-300':'text-rose-300'}">${status}</div><div class="mt-1 text-3xl font-extrabold text-white">${diff>0?'+':''}${money(diff)}</div><div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3"><div class="rounded-xl bg-slate-950/60 p-3"><div class="text-xs text-slate-400">Beklenen nakit</div><div class="mt-1 font-bold text-white">${money(exp)}</div></div><div class="rounded-xl bg-slate-950/60 p-3"><div class="text-xs text-slate-400">Sayılan nakit</div><div class="mt-1 font-bold text-white">${money(c)}</div></div><div class="rounded-xl bg-slate-950/60 p-3"><div class="text-xs text-slate-400">Açılış nakdi</div><div class="mt-1 font-bold text-white">${money(o)}</div></div></div><p class="mt-3 text-xs leading-5 text-slate-400">Hesap mevcut kasa hareketleri ve işlem notlarına dayanır. Kart iadeleri ayrı işlenmiyorsa kart toplamını ayrıca kontrol et.</p></div>`;
+  $('cashClosePrintBtn').classList.remove('hidden');
+}
+function printCashClosePanel(){
+  if(!cashCloseLastReport) return;
+  const r=cashCloseLastReport, money=n=>`${Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})} ₺`;
+  const w=window.open('','_blank');
+  if(!w){ alert('Yazdırma penceresi engellendi. Tarayıcıda açılır pencerelere izin ver.'); return; }
+  w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gün Sonu Kasa Raporu</title><style>body{font:15px system-ui,sans-serif;color:#172033;max-width:760px;margin:30px auto;padding:0 18px}h1{margin-bottom:4px}.muted{color:#64748b}.card{border:1px solid #dbe2ea;border-radius:12px;padding:14px;margin:10px 0}.big{font-size:26px;font-weight:800}table{width:100%;border-collapse:collapse}td{padding:10px;border-bottom:1px solid #e2e8f0}td:last-child{text-align:right;font-weight:700}@media print{button{display:none}}</style></head><body><h1>Gün Sonu Kasa Raporu</h1><p class="muted">${r.date} · Üniforma QR Stok & Kasa Yönetimi</p><div class="card"><b>${r.status}</b><div class="big">${r.diff>0?'+':''}${money(r.diff)}</div></div><div class="card">Açılış nakdi: <b>${money(r.opening)}</b><br>Beklenen nakit: <b>${money(r.expected)}</b><br>Sayılan nakit: <b>${money(r.counted)}</b><br>Bugünkü satış sayısı: <b>${r.s.cnt}</b></div><table><tr><td>Nakit satış</td><td>${money(r.s.cash)}</td></tr><tr><td>Kart satış (net)</td><td>${money(r.s.card-r.s.cardOut)}</td></tr><tr><td>Manuel kasa girişi</td><td>${money(r.s.inn)}</td></tr><tr><td>Kasa çıkışı / nakit iade</td><td>${money(r.s.out)}</td></tr></table><p class="muted">Rapor mevcut kasa hareketlerinden hesaplanmıştır; kart iadelerini ayrıca kontrol edin.</p><button onclick="print()">Yazdır / PDF kaydet</button></body></html>`);
   w.document.close();
 }
 
