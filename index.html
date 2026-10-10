@@ -126,6 +126,52 @@ code{background:#0a1427;padding:2px 5px;border-radius:5px}
 @media(min-width:761px) and (max-width:1050px){body.bg-slate-900{padding:18px!important}#productList{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
+
+/* Midnight Pro layout hotfix: dropdown stays inside viewport and is scrollable */
+#opsMenu{position:relative;z-index:100}
+#opsMenu>div{
+  position:absolute!important;
+  top:calc(100% + 10px)!important;
+  right:0!important;
+  left:auto!important;
+  width:min(320px,calc(100vw - 32px))!important;
+  max-height:min(72vh,620px)!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  z-index:9999!important;
+  box-sizing:border-box!important;
+}
+#opsMenu>div *{min-width:0}
+#opsMenu>div::-webkit-scrollbar{width:7px}
+#opsMenu>div::-webkit-scrollbar-thumb{background:#355078;border-radius:20px}
+header{position:relative;z-index:20}
+@media(min-width:761px){
+  #opsMenu[open]>div{transform-origin:top right;animation:menuIn .14s ease-out}
+  @keyframes menuIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+}
+@media(max-width:760px){
+  #opsMenu>div{
+    position:fixed!important;
+    top:auto!important;left:12px!important;right:12px!important;bottom:12px!important;
+    width:auto!important;max-height:min(78dvh,680px)!important;
+    padding-bottom:max(14px,env(safe-area-inset-bottom))!important;
+  }
+}
+
+
+/* Reference-inspired Midnight Pro dashboard refresh */
+:root{--mp-bg:#07111f;--mp-panel:#0d192b;--mp-border:#203653;--mp-blue:#2678f5;--mp-muted:#8fa3bf}
+body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-gradient(ellipse at 55% -15%,#10284b 0,transparent 42%),linear-gradient(135deg,#071321,#06101b 65%,#071a18)!important;color:#e7efff!important}
+#mpSidebar{position:fixed;z-index:45;inset:0 auto 0 0;width:198px;padding:20px 12px 14px;background:linear-gradient(180deg,#091629f5,#07111ff7);border-right:1px solid #1b2e49;display:flex;flex-direction:column;gap:24px}
+.mp-brand{display:flex;align-items:center;gap:9px;padding:0 4px 10px;color:#f1f6ff}.mp-brand-mark{font-size:35px;line-height:1;color:#60a5fa}.mp-brand b{display:block;font-size:17px;letter-spacing:-.04em}.mp-brand small{display:block;font-size:9px;color:#8fa3bf;margin-top:2px;white-space:nowrap}
+.mp-nav{display:flex;flex-direction:column;gap:5px}.mp-nav a,.mp-nav button{display:flex;align-items:center;gap:11px;min-height:38px;padding:9px 11px;border:1px solid transparent;border-radius:10px;text-decoration:none;color:#b9c8df;background:transparent;text-align:left;font-size:12px;font-weight:550}.mp-nav a:first-child,.mp-nav a.active{color:#fff;background:linear-gradient(110deg,#2858dc,#1d3e8d);border-color:#3266f4;box-shadow:0 6px 18px #1749ba33}.mp-nav a:hover,.mp-nav button:hover{background:#13243b;color:#fff}.mp-nav span{white-space:nowrap}.mp-store{margin-top:auto;border:1px solid #203958;background:#0d1c31;border-radius:12px;padding:11px 9px;display:flex;align-items:center;gap:8px}.mp-store-icon{width:32px;height:32px;border-radius:9px;background:#17458a;color:#83c5ff;display:grid;place-items:center}.mp-store small,.mp-store b,.mp-store span{display:block}.mp-store small{font-size:9px;color:#92a8c8}.mp-store b{font-size:10px;margin:3px 0}.mp-store span{font-size:9px;color:#9bb1cc}.mp-store i{display:inline-block;width:6px;height:6px;border-radius:50%;background:#34d399;margin-right:4px}.mp-version{font-size:9px;color:#637995;text-align:center}
+#mpMain{max-width:1600px!important;margin:0 auto!important;display:flex;flex-direction:column;gap:18px!important}#mpMain>header{position:sticky;top:10px;z-index:30;min-height:66px;padding:13px 20px!important;border-radius:17px!important;display:flex!important;flex-direction:row!important;align-items:center!important;gap:16px!important;background:#0b1729f2!important;border-color:#1d314d!important;box-shadow:0 12px 32px #0003!important}#mpMain>header h1{font-size:clamp(18px,2vw,28px)!important;background:linear-gradient(90deg,#eaf3ff,#60a5fa)!important;-webkit-background-clip:text!important;background-clip:text!important;color:transparent!important}#mpMain>header p{font-size:11px;margin-top:3px!important}#mpMain>header .flex.items-center.gap-3{gap:9px!important;flex-wrap:nowrap!important}#mpMain>header button,#mpMain>header summary{white-space:nowrap!important}
+#mpKpis{gap:12px!important}#mpKpis>div{border-radius:14px!important;padding:16px!important;background:linear-gradient(145deg,#11213a,#0c1729)!important;border:1px solid #243d60!important;min-height:88px}#mpKpis>div b{font-size:clamp(21px,2.3vw,30px)!important;font-weight:800!important}#mpDashboard{display:grid;grid-template-columns:minmax(0,2fr) minmax(190px,.8fr) minmax(220px,1.15fr);grid-template-areas:'sales category recent' 'products products recent' 'stock quick recent';gap:14px;align-items:stretch}.mp-chart-card{min-width:0;border:1px solid #1d314d;border-radius:15px;background:linear-gradient(145deg,#0e1b2e,#0a1526);padding:15px;box-shadow:0 12px 28px #0002;overflow:hidden}.mp-sales-card{grid-area:sales;min-height:260px}.mp-category-card{grid-area:category}.mp-recent-card{grid-area:recent}.mp-popular-card{grid-area:products}.mp-stock-card{grid-area:stock}.mp-quick-card{grid-area:quick}.mp-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:13px}.mp-card-head h2{font-size:14px!important;letter-spacing:-.025em;font-weight:750!important;margin:0;color:#f1f6ff}.mp-card-head p{font-size:10px;color:#7e94b4;margin:4px 0 0}.mp-card-head button,.mp-card-head a{background:transparent;border:0;color:#79b5ff;font-size:10px;text-decoration:none;min-height:0;padding:2px;white-space:nowrap}.mp-legend{font-size:9px;color:#91a6c5;white-space:nowrap}.mp-legend i{display:inline-block;width:6px;height:6px;background:#2e8cff;border-radius:50%;margin-right:5px}.mp-sales-chart{height:205px;display:flex;align-items:stretch}.mp-sales-chart svg{width:100%;height:100%;overflow:visible}.mp-empty{color:#7086a7;font-size:11px;padding:18px 5px;text-align:center}.mp-category-content{display:flex;flex-direction:column;gap:10px}.mp-donut-wrap{display:flex;justify-content:center;padding:5px 0 12px}.mp-donut{width:116px;height:116px;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(#2584ff 0 26%,#24c58a 26% 49%,#ff9f32 49% 67%,#9a62f5 67% 80%,#8ca4cb 80% 100%)}.mp-donut:before{content:'';position:absolute;inset:18px;background:#0d192b;border-radius:50%}.mp-donut-center{z-index:1;text-align:center}.mp-donut-center b{display:block;font-size:18px;color:#f4f8ff}.mp-donut-center small{font-size:9px;color:#8fa3bf}.mp-cat-row{display:flex;align-items:center;gap:7px;font-size:10px;color:#b5c5dc}.mp-cat-row i{width:8px;height:8px;border-radius:50%;flex:none}.mp-cat-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.mp-cat-row b{font-size:10px;color:#e1eaf9;font-weight:600}.mp-recent-list{display:flex;flex-direction:column}.mp-recent-row{display:flex;align-items:center;gap:9px;padding:10px 0;border-top:1px solid #1b2d45;min-width:0}.mp-recent-icon{width:31px;height:31px;border-radius:10px;display:grid;place-items:center;flex:none;background:#103b50;color:#60d7e9}.mp-recent-icon.out{background:#4a202b;color:#ff7c8a}.mp-recent-text{min-width:0;flex:1}.mp-recent-text b{display:block;font-size:10px;color:#e3edff;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mp-recent-text small{display:block;color:#7188a9;font-size:9px;margin-top:3px}.mp-recent-amount{font-size:10px;font-weight:750;white-space:nowrap;color:#5ce3a1}.mp-recent-amount.out{color:#ff808b}.mp-featured-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.mp-product-mini{border:1px solid #1e3451;border-radius:11px;padding:12px;background:linear-gradient(160deg,#101f34,#0a1526);min-width:0}.mp-product-symbol{height:62px;display:grid;place-items:center;font-size:35px;color:#9db8dc;background:radial-gradient(ellipse,#1a3455,transparent 70%);margin-bottom:6px}.mp-product-mini b{display:block;font-size:11px;color:#e9f2ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mp-product-mini small{display:block;font-size:9px;color:#8198b8;margin:4px 0}.mp-product-mini strong{display:block;font-size:10px;color:#dceaff}.mp-stock-meter{height:9px;background:#263954;border-radius:99px;overflow:hidden;margin:7px 0 12px}.mp-stock-meter span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#2987ff,#27d2ad)}.mp-stock-line{display:flex;justify-content:space-between;gap:8px;padding:5px 0;font-size:10px;color:#9fb3ce}.mp-stock-line b{color:#e4edfc}.mp-quick-action{width:100%;display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;margin-top:7px;text-align:left;color:#e9f2ff;border:1px solid transparent;min-height:0}.mp-quick-action>span{width:29px;height:29px;border-radius:8px;display:grid;place-items:center;background:#ffffff18;font-size:15px}.mp-quick-action div{flex:1;min-width:0}.mp-quick-action b,.mp-quick-action small{display:block}.mp-quick-action b{font-size:10px}.mp-quick-action small{font-size:9px;opacity:.7;margin-top:3px}.mp-quick-action strong{font-size:20px;font-weight:400}.mp-quick-action.green{background:#0b4038;border-color:#126252}.mp-quick-action.blue{background:#10366b;border-color:#2055a0}.mp-quick-action.purple{background:#30265f;border-color:#4a398a}
+#productSection{scroll-margin-top:100px}#productForm{scroll-margin-top:100px}#opsMenu>div{max-height:min(75vh,650px)!important;overflow-y:auto!important;overscroll-behavior:contain}#opsMenu[open]>div{z-index:70!important}
+@media(max-width:1120px){body.bg-slate-900{padding-left:200px!important}#mpSidebar{width:180px}#mpDashboard{grid-template-columns:minmax(0,1.5fr) minmax(180px,.8fr);grid-template-areas:'sales category' 'recent recent' 'products products' 'stock quick'}.mp-recent-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px}.mp-featured-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:760px){body.bg-slate-900{padding:12px 10px 100px!important}#mpSidebar{position:static;width:auto;inset:auto;margin:-12px -10px 10px;padding:10px 12px;gap:8px;border-right:0;border-bottom:1px solid #1b2e49} .mp-brand{padding:0}.mp-brand-mark{font-size:27px}.mp-brand b{font-size:14px}.mp-brand small{font-size:9px}.mp-nav{flex-direction:row;overflow-x:auto;padding:2px 0 4px;gap:5px}.mp-nav a,.mp-nav button{flex:none;min-height:34px;padding:8px 10px;font-size:10px}.mp-nav .patron-only{display:none!important}.mp-store,.mp-version{display:none}#mpMain{gap:12px!important}#mpMain>header{position:relative;top:auto;flex-wrap:wrap!important;padding:12px!important;gap:10px!important}#mpMain>header>div:first-child{width:100%}#mpMain>header h1{font-size:19px!important}#mpMain>header p{font-size:10px}#mpMain>header .flex.items-center.gap-3{width:100%;justify-content:space-between;flex-wrap:wrap!important}#mpKpis{gap:8px!important}#mpKpis>div{padding:12px!important;min-height:78px}#mpKpis>div b{font-size:21px!important}#mpDashboard{grid-template-columns:minmax(0,1fr);grid-template-areas:'sales' 'category' 'recent' 'products' 'stock' 'quick';gap:10px}.mp-chart-card{padding:13px}.mp-sales-chart{height:185px}.mp-recent-list{display:flex}.mp-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-product-symbol{height:50px}.patron-only.grid{grid-template-columns:minmax(0,1fr)!important}#productSection{padding:14px!important}#productSection>div:first-child{gap:10px}#productSection>div:first-child>div{flex-wrap:wrap}#productSection #searchInput{width:100%}}
+@media(prefers-reduced-motion:reduce){#mpSidebar *{scroll-behavior:auto!important;transition:none!important}}
+
 </style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -144,7 +190,23 @@ code{background:#0a1427;padding:2px 5px;border-radius:5px}
   </div>
 </div>
 <div id="backupWarn" class="patron-only hidden max-w-7xl mx-auto mb-4 bg-amber-900/40 border border-amber-500/50 text-amber-200 text-sm rounded-xl p-3 flex justify-between items-center gap-3"><span>Son yedeğin 7 günden eski. Yedek almayı unutma.</span><button onclick="backupJSON()" class="underline whitespace-nowrap">Şimdi yedekle</button></div>
-<div class="max-w-7xl mx-auto space-y-8">
+<aside id="mpSidebar" aria-label="Ana navigasyon">
+  <div class="mp-brand"><span class="mp-brand-mark">♧</span><div><b>ÜNİFORMA</b><small>QR Stok & Kasa Yönetimi</small></div></div>
+  <nav class="mp-nav">
+    <a class="active" href="#mpDashboard">⌂ <span>Ana Sayfa</span></a>
+    <button onclick="openScannerModal()">🛒 <span>Satış Yap</span></button>
+    <a href="#productSection">◇ <span>Ürünler</span></a>
+    <a href="#productForm">＋ <span>Stok / Ürün Ekle</span></a>
+    <button onclick="openAdminPanel()">▣ <span>Kasa</span></button>
+    <button onclick="salesReport()" class="patron-only">▥ <span>Raporlar</span></button>
+    <button onclick="undoLastSale()">↶ <span>İade / Geri Al</span></button>
+    <button onclick="exportCSV('stok')" class="patron-only">⇩ <span>CSV İşlemleri</span></button>
+    <a href="#opsMenu">⚙ <span>Ayarlar / Menü</span></a>
+  </nav>
+  <div class="mp-store"><div class="mp-store-icon">▣</div><div><small>Mağaza</small><b>Üniforma Mağazası</b><span><i></i> Online</span></div></div>
+  <div class="mp-version">MIDNIGHT PRO · v3.0</div>
+</aside>
+<div id="mpMain" class="max-w-7xl mx-auto space-y-8">
   <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-slate-700 pb-4 gap-4">
     <div>
       <h1 class="text-3xl font-bold text-blue-400">Üniforma QR Stok & Kasa Yönetimi</h1>
@@ -191,12 +253,41 @@ code{background:#0a1427;padding:2px 5px;border-radius:5px}
     </div>
   </header>
 
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+  <div id="mpKpis" class="grid grid-cols-2 md:grid-cols-4 gap-3">
     <div class="patron-only bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Bugünkü ciro</span><b id="sumToday" class="text-2xl text-emerald-400">0 ₺</b></div>
     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Bugünkü satış</span><b id="sumCount" class="text-2xl text-sky-400">0</b></div>
     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Azalan / biten ürün</span><b id="sumLow" class="text-2xl text-amber-400">0</b></div>
     <div class="bg-slate-800 border border-slate-700 rounded-xl p-4"><span class="text-xs text-slate-400 block">Toplam ürün</span><b id="sumProducts" class="text-2xl text-white">0</b></div>
   </div>
+  <section id="mpDashboard" class="mp-dashboard" aria-label="Kontrol paneli">
+    <div class="mp-chart-card mp-sales-card">
+      <div class="mp-card-head"><div><h2>Son 7 Gün Satış Grafiği</h2><p>Gerçek kasa kayıtlarından hesaplanır</p></div><span class="mp-legend"><i></i> Satış tutarı</span></div>
+      <div id="mpSalesChart" class="mp-sales-chart"><div class="mp-empty">Satış verileri yükleniyor…</div></div>
+    </div>
+    <div class="mp-chart-card mp-category-card">
+      <div class="mp-card-head"><div><h2>Ürün Kategorileri</h2><p>Mevcut stok dağılımı</p></div></div>
+      <div id="mpCategoryChart" class="mp-category-content"></div>
+    </div>
+    <div class="mp-chart-card mp-recent-card">
+      <div class="mp-card-head"><div><h2>Son İşlemler</h2><p>Kasa hareketleri</p></div><button onclick="openAdminPanel()">Tümü →</button></div>
+      <div id="mpRecentTransactions" class="mp-recent-list"><div class="mp-empty">Kayıtlar yükleniyor…</div></div>
+    </div>
+    <div class="mp-chart-card mp-popular-card">
+      <div class="mp-card-head"><div><h2>Ürünler</h2><p>Stoktan hızlı görünüm</p></div><a href="#productSection">Tüm ürünler →</a></div>
+      <div id="mpFeaturedProducts" class="mp-featured-grid"><div class="mp-empty">Ürünler yükleniyor…</div></div>
+    </div>
+    <div class="mp-chart-card mp-stock-card">
+      <div class="mp-card-head"><div><h2>Stok Durumu</h2><p>Güncel envanter özeti</p></div><a href="#productSection">Tümünü gör →</a></div>
+      <div id="mpStockSummary"></div>
+    </div>
+    <div class="mp-chart-card mp-quick-card">
+      <div class="mp-card-head"><div><h2>Hızlı İşlemler</h2><p>Sık kullanılan kısayollar</p></div></div>
+      <button class="mp-quick-action green" onclick="openScannerModal()"><span>▣</span><div><b>Satış Yap</b><small>QR veya manuel satış</small></div><strong>›</strong></button>
+      <button class="mp-quick-action blue" onclick="document.getElementById('productForm').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('p_name').focus()"><span>＋</span><div><b>Ürün / Stok Ekle</b><small>Yeni ürün kaydı oluştur</small></div><strong>›</strong></button>
+      <button class="mp-quick-action purple" onclick="salesReport()"><span>▥</span><div><b>Raporlar</b><small>Satış ve stok analizleri</small></div><strong>›</strong></button>
+    </div>
+  </section>
+
   <div class="patron-only grid grid-cols-1 md:grid-cols-2 gap-6">
     <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
       <h2 class="text-xl font-semibold text-white mb-4">Yeni Ürün Ekle</h2>
@@ -233,7 +324,7 @@ code{background:#0a1427;padding:2px 5px;border-radius:5px}
     </section>
   </div>
 
-  <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
+  <section id="productSection" class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <h2 class="text-xl font-semibold text-white">Mevcut Ürünler ve Kategoriler</h2>
       <div class="flex gap-2 w-full md:w-auto">
@@ -362,7 +453,7 @@ async function fetchAll() {
     allProducts = prodRes.data || [];
 
     await loadTransactions();
-    renderCategories(); renderProducts(); renderCart(); renderSummary();
+    renderCategories(); renderProducts(); renderCart(); renderSummary(); renderMidnightDashboard();
 
     if (!hasCheckedURL) {
       hasCheckedURL = true;
@@ -373,6 +464,25 @@ async function fetchAll() {
     console.error(err);
     $('productList').innerHTML = '<p class="text-rose-400 col-span-full">Veri alınamadı: ' + esc(err.message || err) + '</p>';
   }
+}
+
+function renderMidnightDashboard() {
+  const money = n => `${Number(n||0).toLocaleString('tr-TR',{maximumFractionDigits:2})} ₺`;
+  const cats = new Map();
+  allProducts.forEach(p => { const c=(p.category||'Diğer').trim()||'Diğer'; const v=cats.get(c)||{qty:0,count:0}; v.qty+=Math.max(0,Number(p.stock)||0); v.count++; cats.set(c,v); });
+  const palette=['#2584ff','#24c58a','#ff9f32','#9a62f5','#8ca4cb','#e65d80'];
+  const categoryRows=[...cats.entries()].sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);
+  const totalQty=allProducts.reduce((a,p)=>a+Math.max(0,Number(p.stock)||0),0);
+  let cursor=0; const stops=categoryRows.map(([name,v],i)=>{const pct=totalQty?100*v.qty/totalQty:0;const start=cursor;cursor+=pct;return `${palette[i%palette.length]} ${start}% ${cursor}%`;});
+  const catBox=$('mpCategoryChart');
+  if(catBox) catBox.innerHTML = allProducts.length ? `<div class="mp-donut-wrap"><div class="mp-donut" style="background:conic-gradient(${stops.length?stops.join(','):'#263954 0 100%'})"><div class="mp-donut-center"><b>${allProducts.length}</b><small>Toplam ürün</small></div></div></div>${categoryRows.map(([name,v],i)=>`<div class="mp-cat-row"><i style="background:${palette[i%palette.length]}"></i><span>${esc(name)}</span><b>${v.qty}</b></div>`).join('')}` : '<div class="mp-empty">Henüz ürün kaydı yok.</div>';
+  const now=new Date(); const days=[];
+  for(let i=6;i>=0;i--){const d=new Date(now);d.setHours(0,0,0,0);d.setDate(d.getDate()-i);days.push({date:d,label:d.toLocaleDateString('tr-TR',{day:'numeric',month:'short'}),amount:0});}
+  allTransactions.forEach(t=>{if(t.type!=='EKLEME'||!(t.note||'').toLocaleLowerCase('tr-TR').includes('satış'))return;const dt=new Date(t.created_at);const row=days.find(x=>x.date.toDateString()===new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()).toDateString());if(row)row.amount+=Number(t.amount)||0;});
+  const chart=$('mpSalesChart'); if(chart){const max=Math.max(1,...days.map(d=>d.amount));const W=600,H=200,L=38,R=8,T=12,B=30,plotW=W-L-R,plotH=H-T-B;const pts=days.map((d,i)=>({x:L+(plotW/(days.length-1))*i,y:T+plotH-(d.amount/max)*plotH,d}));const line=pts.map(p=>`${p.x},${p.y}`).join(' ');chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Son yedi gün satış tutarı grafiği">${[0,.25,.5,.75,1].map(v=>{const y=T+plotH-v*plotH;return `<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#20334d" stroke-width="1"/><text x="${L-7}" y="${y+3}" text-anchor="end" fill="#8298b7" font-size="10">${Math.round(max*v).toLocaleString('tr-TR')}</text>`}).join('')}<polyline points="${line}" fill="none" stroke="#9b67f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#a879ff"/><text x="${p.x}" y="${H-9}" text-anchor="middle" fill="#91a6c5" font-size="10">${esc(p.d.label)}</text>`).join('')}</svg>`;}
+  const recent=$('mpRecentTransactions');if(recent){const rows=allTransactions.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,6);recent.innerHTML=rows.length?rows.map(t=>{const out=t.type!=='EKLEME';return `<div class="mp-recent-row"><div class="mp-recent-icon ${out?'out':''}">${out?'↶':'₺'}</div><div class="mp-recent-text"><b>${esc(t.note|| (out?'Kasa çıkışı':'Kasa girişi'))}</b><small>${new Date(t.created_at).toLocaleString('tr-TR',{dateStyle:'short',timeStyle:'short'})}</small></div><span class="mp-recent-amount ${out?'out':''}">${out?'−':'+'}${money(t.amount)}</span></div>`}).join(''):'<div class="mp-empty">Henüz kasa hareketi yok.</div>';}
+  const featured=$('mpFeaturedProducts');if(featured){const rows=allProducts.slice().sort((a,b)=>(Number(b.stock)||0)-(Number(a.stock)||0)).slice(0,4);featured.innerHTML=rows.length?rows.map((p,i)=>`<div class="mp-product-mini"><div class="mp-product-symbol">${['◇','▱','▰','◈'][i%4]}</div><b>${esc(p.name)}</b><small>${esc(p.size||'Beden belirtilmemiş')} · ${esc(p.category||'Diğer')}</small><strong>${money(p.price)}</strong><small style="color:${Number(p.stock)<=3?'#ffad66':'#5ce3a1'}">Stok: ${Number(p.stock)||0}</small></div>`).join(''):'<div class="mp-empty">Henüz ürün kaydı yok.</div>';}
+  const stock=$('mpStockSummary');if(stock){const low=allProducts.filter(p=>Number(p.stock)<=3).length;const zero=allProducts.filter(p=>Number(p.stock)<=0).length;const pct=allProducts.length?Math.max(0,Math.min(100,100*(allProducts.length-zero)/allProducts.length)):0;stock.innerHTML=`<div class="mp-stock-meter"><span style="width:${pct}%"></span></div><div class="mp-stock-line"><span>Toplam ürün çeşidi</span><b>${allProducts.length}</b></div><div class="mp-stock-line"><span>Toplam stok adedi</span><b>${totalQty}</b></div><div class="mp-stock-line"><span>Azalan stok (≤ 3)</span><b style="color:#ffb454">${low}</b></div><div class="mp-stock-line"><span>Stokta yok</span><b style="color:#ff7f8b">${zero}</b></div>`;}
 }
 
 function updateBalanceDisplay() {
@@ -1204,7 +1314,7 @@ function applyTheme(t) {
   const m = document.querySelector('meta[name=theme-color]');
   if (m) m.setAttribute('content', THEMES[t]);
 }
-try { applyTheme(localStorage.getItem('theme') || 'gece'); } catch (e) { applyTheme('gece'); }
+try { applyTheme('gece'); } catch (e) { applyTheme('gece'); }
 
 async function doLogin() {
   const err = $('loginError'); err.classList.add('hidden');
