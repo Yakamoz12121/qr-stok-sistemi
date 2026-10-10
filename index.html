@@ -1797,8 +1797,6 @@ window.qrAdminOpen = async function(){
  };
  window.qrAdminClose=function(){el('qrAdminOverlay').style.display='none';};
  window.qrAdminLoad=async function(){
-  
-window.qrAdminLoad=async function(){
   try{
     status('Yükleniyor…');
     const data=await invoke({action:'list'});
