@@ -1763,12 +1763,23 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
   const data=await res.json().catch(()=>({}));
   if(!res.ok) throw new Error(data.error||'İşlem başarısız ('+res.status+').');
   return data;
- }
- window.qrAdminOpen=async function(){
-  const user=await sessionUser();
-  if(!isMainAdmin(user)){alert('Bu panel yalnızca ana yönetici hesabına açıktır.');return;}
-  el('qrAdminOverlay').style.display='flex'; await qrAdminLoad();
- };
+ 
+window.qrAdminOpen = async function(){
+  try {
+    const user = await sessionUser();
+
+    if(!isMainAdmin(user)) {
+      alert('Bu panel yalnızca ana yönetici hesabına açıktır.');
+      return;
+    }
+
+    el('qrAdminOverlay').style.display = 'flex';
+    await qrAdminLoad();
+  } catch(e) {
+    alert(e.message || 'Ana yönetici paneli açılamadı.');
+  }
+};
+
  window.qrAdminDeleteOrganization=async function(id){
   const user=await sessionUser();if(!isMainAdmin(user)){alert('Bu işlem yalnızca ana yöneticiye açık.');return;}
   const org=organizations.find(o=>o.id===id);if(!org){alert('İşletme listede bulunamadı; listeyi yenile.');return;}
