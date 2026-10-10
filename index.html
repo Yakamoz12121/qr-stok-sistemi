@@ -513,6 +513,10 @@ const show = el => { el.classList.remove('hidden'); el.classList.add('flex'); };
 const hide = el => { el.classList.remove('flex'); el.classList.add('hidden'); };
 
 async function fetchAll() {
+  if (window.subscriptionAccessGranted !== true) {
+    const allowed = await enforceSubscriptionAccess();
+    if (!allowed) return;
+  }
   try {
     const prodRes = await client.from('products').select('*').order('created_at', { ascending: false });
     if (prodRes.error) throw prodRes.error;
@@ -1443,7 +1447,8 @@ async function doLogin() {
   applyRole(lg.session);
   $('loginScreen').classList.add('hidden');
   startIdle(); checkBackup();
-  fetchAll();
+  const hasAccess = await enforceSubscriptionAccess();
+  if (hasAccess) fetchAll();
 }
 
 async function doLogout() {
@@ -1454,7 +1459,7 @@ async function doLogout() {
 window.onload = async () => {
   applyFont();
   const { data } = await client.auth.getSession();
-  if (data.session) { applyRole(data.session); $('loginScreen').classList.add('hidden'); startIdle(); checkBackup(); fetchAll(); }
+  if (data.session) { applyRole(data.session); $('loginScreen').classList.add('hidden'); startIdle(); checkBackup(); const hasAccess = await enforceSubscriptionAccess(); if (hasAccess) fetchAll(); }
 };
 
 // Mobil Safari: yakınlaştırma hareketlerini kapat.
@@ -1484,6 +1489,48 @@ async function callBillingFunction(name,payload){
   const result=await response.json().catch(()=>({}));
   if(!response.ok) throw new Error(result.error||'İşlem başarısız ('+response.status+').');
   return result;
+}
+window.subscriptionAccessGranted = false;
+let subscriptionGateBusy = false;
+function showSubscriptionGate(message){
+  let gate=document.getElementById('subscriptionGate');
+  if(!gate){
+    gate=document.createElement('div');
+    gate.id='subscriptionGate';
+    gate.style.cssText='position:fixed;inset:0;z-index:999999;background:#070d1a;color:#f8fafc;display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto';
+    gate.innerHTML='<div style="width:min(100%,900px);background:#101b30;border:1px solid #334155;border-radius:20px;padding:clamp(20px,4vw,40px);box-shadow:0 25px 80px #0009"><div style="text-align:center;margin-bottom:24px"><div style="font-size:36px">🔒</div><h1 style="font-size:clamp(24px,4vw,34px);font-weight:800;margin:12px 0">Abonelik gerekli</h1><p id="subscriptionGateMessage" style="color:#cbd5e1;line-height:1.6">Uygulamayı kullanmak için bir abonelik planı seçmelisin.</p></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px"><div style="padding:20px;border:1px solid #334155;border-radius:14px;background:#0a1427"><h2 style="font-size:20px;font-weight:700">Basic</h2><p style="font-size:25px;font-weight:800;margin:12px 0">29,90 €<small style="font-size:12px;color:#94a3b8">/ay</small></p><p style="font-size:13px;color:#cbd5e1;margin-bottom:16px">7 gün ücretsiz deneme</p><button onclick="handlePlanSelect(\'basic\')" style="width:100%;padding:11px;background:#2563eb;border-radius:9px;font-weight:700">Basic seç</button></div><div style="padding:20px;border:1px solid #3b82f6;border-radius:14px;background:#0a1427"><h2 style="font-size:20px;font-weight:700">Professional</h2><p style="font-size:25px;font-weight:800;margin:12px 0">59,90 €<small style="font-size:12px;color:#94a3b8">/ay</small></p><p style="font-size:13px;color:#cbd5e1;margin-bottom:16px">7 gün ücretsiz deneme</p><button onclick="handlePlanSelect(\'pro\')" style="width:100%;padding:11px;background:#2563eb;border-radius:9px;font-weight:700">Pro seç</button></div><div style="padding:20px;border:1px solid #334155;border-radius:14px;background:#0a1427"><h2 style="font-size:20px;font-weight:700">Enterprise</h2><p style="font-size:25px;font-weight:800;margin:12px 0">99,90 €<small style="font-size:12px;color:#94a3b8">/ay</small></p><p style="font-size:13px;color:#cbd5e1;margin-bottom:16px">7 gün ücretsiz deneme</p><button onclick="handlePlanSelect(\'enterprise\')" style="width:100%;padding:11px;background:#2563eb;border-radius:9px;font-weight:700">Enterprise seç</button></div></div><button onclick="doLogout()" style="display:block;margin:22px auto 0;color:#cbd5e1;text-decoration:underline">Çıkış yap</button></div>';
+    document.body.appendChild(gate);
+  }
+  const label=document.getElementById('subscriptionGateMessage');
+  if(label) label.textContent=message||'Uygulamayı kullanmak için geçerli bir abonelik veya ücretsiz deneme başlatmalısın.';
+  gate.style.display='flex';
+}
+function hideSubscriptionGate(){
+  const gate=document.getElementById('subscriptionGate');
+  if(gate) gate.style.display='none';
+}
+async function enforceSubscriptionAccess(){
+  if(subscriptionGateBusy) return window.subscriptionAccessGranted===true;
+  subscriptionGateBusy=true;
+  window.subscriptionAccessGranted=false;
+  try{
+    const context=await getBillingContext();
+    const status=await callBillingFunction('billing-status',{organization_id:context.organization_id});
+    const allowed=['active','trialing'].includes(String(status.status||'').toLowerCase());
+    if(allowed){
+      window.subscriptionAccessGranted=true;
+      hideSubscriptionGate();
+      return true;
+    }
+    showSubscriptionGate('Aboneliğin aktif değil. Uygulamayı kullanmaya devam etmek için bir plan seç ve Stripe üzerinden aboneliğini başlat.');
+    return false;
+  }catch(error){
+    console.error('Subscription access check failed:',error);
+    showSubscriptionGate('Abonelik doğrulanamadı. Güvenlik nedeniyle uygulama kilitli. '+(error.message||'Supabase billing-status fonksiyonunun dağıtıldığını kontrol et.'));
+    return false;
+  }finally{
+    subscriptionGateBusy=false;
+  }
 }
 function getCurrentPlan(){return null}
 function setCurrentPlan(){return}
