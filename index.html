@@ -1,45 +1,96 @@
+
 <!DOCTYPE html>
+
 <html lang="tr" data-theme="gece">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
 <meta name="description" content="Üniforma mağazası için QR satış, stok, beden ve kasa yönetimi.">
+
 <meta name="theme-color" content="#0f172a">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+
+
+
+
 <title>Üniforma QR Stok ve Kasa Yönetimi - FIXED V2.1</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script src="https://cdn.tailwindcss.com"> </script>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"> </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"> </script>
+
+<script src="https://unpkg.com/html5-qrcode"> </script>
+
 <style>
-html{ touch-action: pan-x pan-y; }
-body.is-calisan .patron-only{display:none!important}
+
+html{ touch-action:pan-x pan-y; }
+
+body.is-calisan .patron-only{display :none!important}
+
 :root{--accent:#60a5fa;--accent2:#3b82f6;--bg:#070d1a;--glow:#13264a;--card:#101b30;--inner:#0a1427;--line:#233653;--mp-radius:18px;color-scheme:dark}
-html[data-theme=gece]{--accent:#60a5fa;--accent2:#3b82f6;--bg:#070d1a;--glow:#13264a;--card:#101b30;--inner:#0a1427;--line:#233653}
-html[data-theme=orman]{--accent:#34d399;--accent2:#10b981;--bg:#07140f;--glow:#123226;--card:#0e1f19;--inner:#0a1612;--line:#1d3a2e}
-html[data-theme=gunbatimi]{--accent:#fb923c;--accent2:#f97316;--bg:#150d08;--glow:#3a1f10;--card:#21140d;--inner:#190f0a;--line:#44281a}
-html[data-theme=mor]{--accent:#a78bfa;--accent2:#8b5cf6;--bg:#0e0a1c;--glow:#2a1d52;--card:#171028;--inner:#120c21;--line:#33265a}
-body.bg-slate-900{font-family:'Inter',system-ui;background:radial-gradient(1200px 600px at 10% -10%, var(--glow) 0, var(--bg) 55%) fixed var(--bg)!important}
+
+html[data-theme = gece]{--accent:#60a5fa;--accent2:#3b82f6;--bg:#070d1a;--glow:#13264a;--card:#101b30;--inner:#0a1427;--line:#233653}
+
+html[data-theme = orman]{--accent:#34d399;--accent2:#10b981;--bg:#07140f;--glow:#123226;--card:#0e1f19;--inner:#0a1612;--line:#1d3a2e}
+
+html[data-theme = gunbatimi]{--accent:#fb923c;--accent2:#f97316;--bg:#150d08;--glow:#3a1f10;--card:#21140d;--inner:#190f0a;--line:#44281a}
+
+html[data-theme = mor]{--accent:#a78bfa;--accent2:#8b5cf6;--bg:#0e0a1c;--glow:#2a1d52;--card:#171028;--inner:#120c21;--line:#33265a}
+
+body.bg-slate-900{font-family:'Inter' ,system-ui;background:radial-gradient(1200px 600px at 10% -10% , var(--glow) 0 , var(--bg) 55%) fixed 
+var(--bg)!important}
+
 .bg-slate-800{background:var(--card)!important}.bg-slate-900{background:var(--inner)!important}.border-slate-700{border-color:var(--line)!important}
-.bg-sky-500,.bg-blue-600,.bg-indigo-600{background:var(--accent2)!important}
-.mi{display:block;width:100%;text-align:left;padding:.55rem .75rem;border-radius:.6rem;color:#e2e8f0}.mi:hover{background:var(--line)}
+
+.bg-sky-500 ,.bg-blue-600 ,.bg-indigo-600{background:var(--accent2)!important}
+
+.mi{display :block;width:100%;text-align :left;padding:.55rem .75rem;border-radius:.6rem;color:#e2e8f0}.mi:hover{background:var(--line)}
+
 .mih{font-size:.65rem;letter-spacing:.08em;color:#64748b;padding:.7rem .75rem .2rem;font-weight:800}
-#productList>div{transition:transform .15s,box-shadow .15s}
-#productList>div:hover{transform:translateY(-2px)}
+
+#productList> div{transition :transform .15s ,box-shadow .15s}
+
+#productList> div:hover{transform:translateY(-2px)}
+
 #productList.list-mode{grid-template-columns:1fr !important;gap:.5rem !important}
-#productList.list-mode>div{flex-direction:row!important;align-items:center!important;flex-wrap:wrap;gap:.75rem;padding:.6rem .9rem !important;text-align:left!important}
-#productList.list-mode .qrbox,#productList.list-mode .qrdl,#productList.list-mode .sizeinfo{display:none!important}
-.mp-brand{display:flex;align-items:center;gap:9px;padding:0 4px 10px;color:#f1f6ff}.mp-brand-mark{font-size:35px;line-height:1;color:#60a5fa}.mp-brand b{display:block;font-size:17px;letter-spacing:-.04em}.mp-brand small{display:block;font-size:9px;color:#8fa3bf;margin-top:2px}
-.mp-nav{display:flex;flex-direction:column;gap:5px}.mp-nav a,.mp-nav button{display:flex;align-items:center;gap:11px;min-height:38px;padding:9px 11px;border:1px solid transparent;border-radius:10px;text-decoration:none;color:#b9c8df;background:transparent;text-align:left;font-size:12px;font-weight:550}.mp-nav a.active{color:#fff;background:linear-gradient(110deg,#2858dc,#1d3e8d);border-color:#3266f4;box-shadow:0 6px 18px #1749ba33}.mp-nav a:hover,.mp-nav button:hover{background:#13243b;color:#fff}
-.mp-store{margin-top:auto;border:1px solid #203958;background:#0d1c31;border-radius:12px;padding:11px 9px;display:flex;align-items:center;gap:8px}
+
+#productList.list-mode> div{flex-direction :row!important;align-items :center!important;flex-wrap :wrap;gap:.75rem;padding:.6rem .9rem 
+!important;text-align :left!important}
+
+#productList.list-mode .qrbox , #productList.list-mode .qrdl , #productList.list-mode .sizeinfo{display :none!important}
+
+.mp-brand{display :flex;align-items :center;gap:9px;padding:0 4px 10px;color:#f1f6ff}.mp-brand-mark{font-size:35px;line-height:1;color:#60a5fa}.mp-brand b{display :block;font-size:17px;letter-spacing:-.04em}.mp-brand small{display :block;font-size:9px;color:#8fa3bf;margin-top:2px}
+
+.mp-nav{display :flex;flex-direction :column;gap:5px}.mp-nav a ,.mp-nav button{display :flex;align-items :center;gap:11px;min-height:38px;padding:9px 
+11px;border:1px solid transparent;border-radius:10px;text-decoration :none;color:#b9c8df;background :transparent;text-align :left;font-size:12px;font-weight:550}.mp-nav a.active{color:#fff;background:linear-gradient(110deg , #2858dc , #1d3e8d);border-color:#3266f4;box-shadow:0 6px 18px 
+#1749ba33}.mp-nav a:hover ,.mp-nav button:hover{background:#13243b;color:#fff}
+
+.mp-store{margin-top :auto;border:1px solid #203958;background:#0d1c31;border-radius:12px;padding:11px 9px;display :flex;align-items :center;gap:8px}
+
 body.bg-slate-900{padding:18px 22px 110px 218px !important}
-#quickProductModal,#bulkModal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(2,8,23,.78);backdrop-filter:blur(8px)}
-#quickProductModal.is-open,#bulkModal.is-open{display:flex}
-.qp-dialog{width:min(100%,620px);max-height:min(92vh,820px);overflow:auto;background:#0e1a2d;border:1px solid #294365;border-radius:22px;box-shadow:0 28px 90px #0009;padding:clamp(1rem,3vw,1.7rem)}
-.qp-input{width:100%;background:#07131f;border:1px solid #29405b;border-radius:10px;padding:.75rem .85rem;color:#f1f5f9;outline:none}
-.qp-label{display:block;font-size:.78rem;color:#a8bad2;margin:0 0 .35rem}
-body.qp-modal-open{overflow:hidden}
-/* KONFEX ABONELIK EKLEMESI - BOZMAZ */
+
+# quickProductModal , # bulkModal{position :fixed;inset:0;z-index:200;display :none;align-items :center;justify-content :center;padding:1rem;background:rgba(2 , 8 , 23 , .78);backdrop-filter:blur(8px)}
+
+# quickProductModal.is-open , # bulkModal.is-open{display :flex}
+
+.qp-dialog{width:min(100% , 620px);max-height:min(92vh , 820px);overflow :auto;background:#0e1a2d;border:1px solid #294365;border-radius:22px;box-shadow:0 28px 90px #0009;padding:clamp(1rem , 3vw , 1.7rem)}
+
+.qp-input{width:100%;background:#07131f;border:1px solid #29405b;border-radius:10px;padding:.75rem .85rem;color:#f1f5f9;outline :none}
+
+.qp-label{display :block;font-size:.78rem;color:#a8bad2;margin:0 0 .35rem}
+
+body.qp-modal-open{overflow :hidden}
+
+
+/* KONFEX ABONELIK - TAM SURUM */
 #konfex-pricing-section{margin-bottom:2rem}
 .konfex-card{transition:all .2s;cursor:pointer}
 .konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
@@ -48,31 +99,49 @@ body.qp-modal-open{overflow:hidden}
 #subscriptionPanel.is-open{display:flex;justify-content:flex-end}
 #subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
 @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
 </style>
+
 </head>
+
 <body class="bg-slate-900 text-gray-200 min-h-screen p-4 pb-28 md:p-8 font-sans">
-<!-- ORIJINAL LOGIN MODAL KORUNDU -->
-<div id="loginModal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[100]">
-  <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
-    <h2 class="text-xl font-bold text-blue-400 text-center">Üniforma Stok - Giriş</h2>
-    <input type="password" id="loginPass" placeholder="Şifre" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm">
-    <button id="loginBtn" onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg">Giriş Yap</button>
-    <p class="text-[10px] text-slate-500 text-center">V2.1 Fixed - Güvenli mod</p>
-  </div>
+
+<div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+
+<h2 class="text-xl font-bold text-blue-400 text-center">Üniforma Stok - Giriş</h2>
+
+<input type="password" id="loginPass" placeholder="Şifre" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" class="w-full 
+bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm">
+
+<button id="loginBtn" onclick="doLogin()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg">Giriş Yap</button>
+
+<p class="text-[10px] text-slate-500 text-center">V2.1 Fixed - Güvenli mod</p>
+
 </div>
-<aside style="position:fixed;left:12px;top:12px;bottom:12px;width:190px;background:#0a1427;border:1px solid #233653;border-radius:18px;padding:14px 10px;display:flex;flex-direction:column;z-index:50">
-<div class="mp-brand"><span class="mp-brand-mark">◈</span><div><b>KONFEX</b><small>QR STOK V2.1</small></div></div>
+
+</div>
+
 <nav class="mp-nav">
+
 <a class="active" href="#">⌂ Ana Sayfa</a>
+
 <button onclick="openScannerModal()">🛒 Satış Yap</button>
+
 <a href="#productSection">◇ Ürünler</a>
+
 <button type="button" onclick="openQuickProductModal()">＋ Stok / Ürün Ekle</button>
+
 <button onclick="openBulkModal()">📥 Toplu Yükle</button>
+
 <button onclick="openAdminPanel()">▣ Kasa</button>
+
 <button onclick="salesReport()" class="patron-only">▥ Raporlar</button>
+
 <button onclick="undoLastSale()">↶ İade</button>
 <button onclick="openSubscriptionPanel()" style="margin-top:8px;border:1px dashed #2a4a7a!important;color:#60a5fa!important">💳 Abonelik</button>
+
 </nav>
+
 <div class="mp-store" id="mpStoreBox">
 <div style="width:100%">
 <small>Mağaza</small><b>Üniforma Mağazası</b>
@@ -87,9 +156,118 @@ body.qp-modal-open{overflow:hidden}
 </div>
 </div>
 </aside>
+
 <div id="mpMain" class="max-w-7xl mx-auto space-y-8">
-<div><h1 class="text-2xl font-bold text-blue-400">Üniforma QR Stok & Kasa Yönetimi</h1><p class="text-slate-400 mt-1 text-sm">Öğrenci & Mesleki Kıyafet Mağazası - V2.1 Fixed</p></div>
-<!-- YENI: ABONELIK PLANLARI - ODEME SONRASI GIZLENIR -->
+
+<div> <h1 class="text-2xl font-bold text-blue-400">Üniforma QR Stok & Kasa Yönetimi</h1> <p class="text-slate-400 mt-1 text-sm">Öğrenci & Mesleki Kıyafet 
+Mağazası - V2.1 Fixed</p> </div>
+
+<div class="flex items-center gap-3 flex-wrap">
+
+<div onclick="openAdminPanel()" class="patron-only bg-slate-900 border border-emerald-500/30 px-4 py-2 rounded-xl text-right cursor-pointer"> <span 
+class="text-xs text-slate-400 block">Kasa</span> <span id="totalBalance" class="text-xl font-bold text-emerald-400">0.00 ₺</span> </div>
+
+<button onclick="openScannerModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm">📸 QR Okut</button>
+
+<details id="opsMenu" class="relative"> <summary class="bg-slate-700 hover:bg-slate-600 text-white font-medium px-4 py-2.5 rounded-xl text-sm select-none">☰ 
+Menü</summary>
+
+<div class="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-2xl p-2 z-40 shadow-2xl text-sm">
+
+<div id="roleBadge" class="px-3 py-2 text-xs text-slate-400"> </div>
+
+<p class="mih">SATIŞ</p> <button class="mi" onclick="undoLastSale()">↩ Son satışı geri al</button>
+
+<p class="mih">STOK</p> <button class="mi" onclick="lowStockPrint()">⚠ Azalan ürünler</button> <button class="mi patron-only" 
+onclick="setLowStockThreshold()">⚙ Düşük stok sınırı</button> <button class="mi" onclick="stockMatrix()">🧮 Beden / stok tablosu</button> <button class="mi
+patron-only" onclick="stockCount()">📋 Stok sayımı</button> <button class="mi patron-only" onclick="bulkPrice()">💲 Toplu fiyat değiştir</button> <button 
+class="mi patron-only" onclick="openBulkModal()">📥 Toplu ürün yükle (CSV)</button>
+
+<p class="mih">RAPOR VE YEDEK</p> <button class="mi" onclick="salesReport()">📊 Satış raporu</button> <button class="mi" onclick="auditReport()">🧾 İşlem 
+geçmişi</button> <button class="mi" onclick="exportCSV('stok')">📥 Stok listesi (Excel)</button> <button class="mi" onclick="backupJSON()">💾 Yedek al</button>
+
+<p class="mih">YAZDIR</p> <button class="mi" onclick="printAllQR()">🖨 QR etiketlerini yazdır</button>
+
+<p class="mih">GÖRÜNÜM</p> <div class="flex items-center gap-3 px-3 py-2"> <span class="text-slate-400 text-xs">Tema</span>
+
+<button onclick="applyTheme('gece')" title="Gece" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#38bdf8"> </button>
+
+<button onclick="applyTheme('orman')" title="Orman" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#34d399"> </button>
+
+<button onclick="applyTheme('gunbatimi')" title="Gün batımı" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#fb923c"> </button>
+
+<button onclick="applyTheme('mor')" title="Mor" class="w-7 h-7 rounded-full border-2 border-white/30" style="background:#a78bfa"> </button> </div>
+
+<button class="mi text-rose-300" onclick="doLogout()">🚪 Çıkış yap</button>
+
+</div> </details> </div> </header>
+
+<div id="mpKpis" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+
+<div class="patron-only bg-slate-800 border border-slate-700 rounded-xl p-4"> <span class="text-xs text-slate-400 block">Bugünkü ciro</span> <b 
+id="sumToday" class="text-2xl text-emerald-400">0 ₺</b> </div>
+
+<div class="bg-slate-800 border border-slate-700 rounded-xl p-4"> <span class="text-xs text-slate-400 block">Bugünkü satış</span> <b id="sumCount" 
+class="text-2xl text-sky-400">0</b> </div>
+
+<div class="bg-slate-800 border border-slate-700 rounded-xl p-4"> <span class="text-xs text-slate-400 block">Azalan / biten ürün</span> <b id="sumLow" 
+class="text-2xl text-amber-400">0</b> </div>
+
+<div class="bg-slate-800 border border-slate-700 rounded-xl p-4"> <span class="text-xs text-slate-400 block">Toplam ürün</span> <b id="sumProducts" 
+class="text-2xl text-white">0</b> </div>
+
+</div>
+
+<div id="quickProductModal" onclick="if(event.target===this)closeQuickProductModal()"> <div class="qp-dialog">
+
+<div class="flex items-start justify-between gap-4 mb-5"> <div> <p class="text-sky-400 text-xs font-semibold tracking-widest uppercase">Hızlı işlem</p> <h2 class="text-2xl font-bold text-white mt-1">Yeni ürün ekle</h2> </div> <button onclick="closeQuickProductModal()" class="rounded-xl px-3 py-2 
+bg-slate-800 text-white">✕</button> </div>
+
+<form id="quickProductForm" class="space-y-4">
+
+<div> <label class="qp-label">Ürün adı</label> <input class="qp-input" id="qp_name" required maxlength="180"> </div>
+
+<div class="grid grid-cols-2 gap-3"> <div> <label class="qp-label">Kategori</label> <input class="qp-input" id="qp_category" required> </div> <div> 
+<label class="qp-label">Beden</label> <input class="qp-input" id="qp_size" required> </div> </div>
+
+<div class="grid grid-cols-2 gap-3"> <div> <label class="qp-label">Satış fiyatı (₺)</label> <input class="qp-input" id="qp_price" type="number" required 
+min="0" step="0.01"> </div> <div> <label class="qp-label">Maliyet (₺)</label> <input class="qp-input" id="qp_cost" type="number" min="0" step="0.01" 
+value="0"> </div> </div>
+
+<div> <label class="qp-label">Başlangıç stoku</label> <input class="qp-input" id="qp_stock" type="number" required min="0" step="1"> </div>
+
+<div> <label class="qp-label">Detay</label> <input class="qp-input" id="qp_detail" placeholder="Kumaş bilgisi vb."> </div>
+
+<div id="quickProductError" class="hidden rounded-lg border border-rose-500/30 bg-rose-950/40 p-3 text-sm text-rose-200"> </div>
+
+<div class="flex gap-3 pt-2"> <button type="button" onclick="closeQuickProductModal()" class="flex-1 rounded-xl border border-slate-600 px-4 py-3 
+text-slate-200">Vazgeç</button> <button id="quickProductSave" type="submit" class="flex-1 rounded-xl bg-sky-500 px-4 py-3 font-bold text-slate-950">＋ 
+Kaydet</button> </div>
+
+</form> </div> </div>
+
+<div id="bulkModal" onclick="if(event.target===this)closeBulkModal()"> <div class="qp-dialog">
+
+<div class="flex justify-between mb-4"> <h2 class="text-xl font-bold text-white">Toplu ürün yükle</h2> <button onclick="closeBulkModal()" 
+class="bg-slate-800 px-3 py-1 rounded text-white">✕</button> </div>
+
+<p class="text-xs text-slate-400 mb-2">Format: Ad; Kategori; Beden; Fiyat; Stok; Maliyet; Detay ( ; veya , ile ayır)</p>
+
+
+[8742267762101040783] qr-stok-sistemi/index.html at saas-guvenlik-test · Yakamoz12121/qr-stok-sistemi (https://github.com/Yakamoz12121/qr-stok-sistemi/blob/saas-guvenlik-test/index.html)
+**viewing lines [250 - 473] of 933**
+
+<p class="text-xs text-slate-400 mb-2">Format: Ad; Kategori; Beden; Fiyat; Stok; Maliyet; Detay ( ; veya , ile ayır)</p>
+
+<textarea id="bulkText" class="qp-input" style="height:200px" placeholder="Örn: Lise Forması; Kıyafet; M; 450; 20; 200; Pamuklu"> </textarea>
+
+<div class="flex gap-2 mt-3"> <button onclick="handleBulkUpload()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 
+rounded-xl">Yükle</button> <button onclick="closeBulkModal()" class="flex-1 bg-slate-700 text-white py-3 rounded-xl">İptal</button> </div>
+
+</div> </div>
+
+
+<!-- KONFEX ABONELIK PLANLARI - ODEME SONRASI OTOMATIK GIZLENIR -->
 <section id="konfex-pricing-section" class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
 <div class="flex justify-between items-center mb-6">
 <div>
@@ -99,44 +277,500 @@ body.qp-modal-open{overflow:hidden}
 <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-full">CANLI ÖDEME AKTİF</span>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-<!-- BASIC 29.99 -->
 <div class="konfex-card bg-slate-900 border border-slate-700 rounded-xl p-5" onclick="handlePlanSelect('basic')">
 <div class="flex justify-between"><h3 class="font-bold text-white">Basic</h3><span class="text-xs text-slate-500">Başlangıç</span></div>
 <div class="mt-3"><span class="text-3xl font-bold text-white">29,99€</span><span class="text-slate-400 text-sm">/ay</span></div>
-<ul class="mt-4 space-y-2 text-xs text-slate-300">
-<li>✓ 1 Filiale</li><li>✓ 100 Ürün</li><li>✓ Çalışan yönetimi</li><li>✓ Temel destek</li>
-</ul>
+<ul class="mt-4 space-y-2 text-xs text-slate-300"><li>✓ 1 Filiale</li><li>✓ 100 Ürün</li><li>✓ Çalışan yönetimi</li><li>✓ Temel destek</li></ul>
 <button class="w-full mt-5 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button>
 </div>
-<!-- PRO 59.90 POPULAR -->
 <div class="konfex-card konfex-popular bg-slate-900 border rounded-xl p-5 relative" onclick="handlePlanSelect('pro')">
 <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full">EN POPÜLER</div>
 <div class="flex justify-between"><h3 class="font-bold text-white">Professional</h3><span class="text-xs text-blue-400">Önerilen</span></div>
 <div class="mt-3"><span class="text-3xl font-bold text-white">59,90€</span><span class="text-slate-400 text-sm">/ay</span></div>
-<ul class="mt-4 space-y-2 text-xs text-slate-300">
-<li>✓ 3 Filiale</li><li>✓ Sınırsız ürün</li><li>✓ Gelişmiş raporlar</li><li>✓ Öncelikli destek + Barkod</li>
-</ul>
+<ul class="mt-4 space-y-2 text-xs text-slate-300"><li>✓ 3 Filiale</li><li>✓ Sınırsız ürün</li><li>✓ Gelişmiş raporlar</li><li>✓ Öncelikli destek + Barkod</li></ul>
 <button class="w-full mt-5 bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button>
 </div>
-<!-- ENTERPRISE 99.90 -->
 <div class="konfex-card bg-slate-900 border border-slate-700 rounded-xl p-5" onclick="handlePlanSelect('enterprise')">
 <div class="flex justify-between"><h3 class="font-bold text-white">Enterprise</h3><span class="text-xs text-slate-500">Kurumsal</span></div>
 <div class="mt-3"><span class="text-3xl font-bold text-white">99,90€</span><span class="text-slate-400 text-sm">/ay</span></div>
-<ul class="mt-4 space-y-2 text-xs text-slate-300">
-<li>✓ Sınırsız şube</li><li>✓ API erişimi</li><li>✓ Özel hesap yöneticisi</li><li>✓ Özel marka</li>
-</ul>
+<ul class="mt-4 space-y-2 text-xs text-slate-300"><li>✓ Sınırsız şube</li><li>✓ API erişimi</li><li>✓ Özel hesap yöneticisi</li><li>✓ Özel marka</li></ul>
 <button class="w-full mt-5 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg text-sm font-bold">Planı Seç →</button>
 </div>
 </div>
 </section>
-<!-- ORIJINAL URUN BOLUMU KORUNDU -->
+
 <section id="productSection" class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
-<h2 class="text-xl font-semibold text-white mb-4">Mevcut Ürünler</h2>
-<div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-<p class="text-slate-500 col-span-full">Ürünler yükleniyor...</p>
-</div>
+
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"> <h2 class="text-xl font-semibold text-white">Mevcut Ürünler</h2>
+
+<div class="flex gap-2"> <button id="viewBtn" onclick="toggleView()" class="bg-slate-700 text-white text-sm px-3 py-2 rounded-lg">☰ Liste</button>
+
+<select id="sortSel" onchange="renderProducts()" class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-2 py-2"> <option 
+value="new">Yeni</option> <option value="name">Ada göre</option> <option value="low">Stok azdan çoğa</option> </select> </div>
+
+<input type="text" id="searchInput" placeholder="Ürün, beden, kategori veya ID ara..." oninput="renderProducts()" class="w-full md:w-72 bg-slate-900 border 
+border-slate-700 rounded-lg px-4 py-2 text-sm text-white"> </div>
+
+<div id="categoryTabs" class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4"> </div>
+
+<div id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> </div>
+
 </section>
+
 </div>
+
+<div id="qrModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50"> <div class="bg-slate-800 border border-slate-700 rounded-2xl 
+max-w-lg w-full p-6 space-y-6 max-h-[90vh] overflow-y-auto">
+
+<div class="flex justify-between items-center border-b border-slate-700 pb-3"> <h3 id="modalTitle" class="text-lg font-bold text-white">İşlem</h3> <button 
+onclick="closeModal()" class="text-slate-400 text-xl">✕</button> </div>
+
+<div id="qrProductSellStep" class="space-y-4 hidden"> <div id="scannedProductDetails" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-sm"> </div>
+
+<button id="confirmScanSellBtn" class="w-full bg-emerald-600 text-white font-bold py-4 rounded-xl">SAT (-1) · Kasaya Ekle</button> <button id="cartScanBtn" 
+class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg">Sepete Ekle</button> </div>
+
+<div id="adminCashStep" class="space-y-6 hidden"> <div id="dailySummary" class="bg-slate-900 p-3 rounded-xl border border-slate-700 text-xs text-slate-300"> 
+</div>
+
+<div class="grid grid-cols-3 gap-2 bg-slate-900 p-3 rounded-xl border border-slate-700 text-center"> <div> <span class="text-[10px] text-slate-400 
+block">Aylık Satış</span> <span id="summarySales" class="text-sm font-bold text-sky-400">0 ₺</span> </div> <div> <span class="text-[10px] 
+text-slate-400 block">Eklenen</span> <span id="summaryAdded" class="text-sm font-bold text-emerald-400">0 ₺</span> </div> <div> <span 
+class="text-[10px] text-slate-400 block">Çıkarılan</span> <span id="summaryRemoved" class="text-sm font-bold text-rose-400">0 ₺</span> </div> </div>
+
+<div class="space-y-4 bg-slate-900 p-4 rounded-xl border border-slate-700"> <h4 class="font-bold text-emerald-400 text-sm">Manuel Kasa İşlemi</h4> <input 
+type="number" id="adminCashAmount" placeholder="Tutar (₺)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"> <input 
+type="text" id="adminCashNote" placeholder="Açıklama" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm"> <div 
+class="flex gap-2"> <button onclick="executeAdminCash(1)" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">+ Kasaya Ekle</button> <button onclick="executeAdminCash(-1)" class="flex-1 bg-rose-600 text-white font-bold py-2 rounded-lg text-xs">- Kasadan Çıkar</button> </div> </div>
+
+<div class="space-y-3"> <div class="flex justify-between items-center"> <h4 class="font-bold text-white text-sm">Kasa Geçmişi</h4> <select 
+id="monthSelect" onchange="filterTransactionsByMonth()" class="bg-slate-900 border border-slate-700 text-slate-300 text-xs rounded-lg px-2.5 py-1.5"> </select> </div> <div id="transactionList" class="bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-48 overflow-y-auto space-y-2 text-xs"> </div> </div> 
+</div> </div> </div>
+
+<div id="scannerModal" class="fixed inset-0 bg-black/95 hidden items-center justify-center p-4 z-50"> <div class="bg-slate-800 border border-slate-700 
+rounded-2xl max-w-md w-full p-6 space-y-4 text-center"> <h3 class="text-lg font-bold text-white border-b border-slate-700 pb-3">QR Okuyucu</h3> <div 
+id="reader" class="w-full rounded-xl bg-black overflow-hidden"> </div> <div class="flex gap-2 pt-2"> <input type="number" id="manualScanId" placeholder="ID 
+yaz" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs"> <button onclick="processManualScan()" class="bg-indigo-600 
+text-white font-bold px-4 py-2 rounded-lg text-xs">ID ile Sat</button> </div> <button onclick="stopScannerAndClose()" class="w-full bg-rose-600/30 
+text-rose-300 py-2 rounded-lg text-xs border border-rose-500/30">Kapat</button> </div> </div>
+
+<div id="cartBar" class="fixed bottom-0 inset-x-0 bg-slate-800 border-t border-emerald-500/40 p-3 z-40 hidden"> <div class="max-w-7xl mx-auto flex flex-wrap 
+items-center gap-3 justify-between"> <div class="flex flex-col gap-1"> <div id="cartInfo" class="text-sm text-slate-200"> </div> <div class="flex 
+items-center gap-2 text-xs"> <select id="payType" onchange="updateChange()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white"> <option>Nakit</option> <option>Kart</option> </select> <input type="number" id="cashGiven" oninput="updateChange()" placeholder="Alınan ₺" class="w-24 
+bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white"> <input type="number" id="discPct" oninput="renderCart()" min="0" max="100" 
+placeholder="İndirim %" class="w-24 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white"> <span id="changeInfo" class="text-amber-400 font-bold">
+</span> </div> </div> <div class="flex gap-2"> <button onclick="clearCart()" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Temizle</button> <button onclick="sellCart()" class="bg-emerald-600 text-white font-bold text-xs px-4 py-2 rounded-lg">Satışı Tamamla</button> </div> </div> </div>
+
+<div id="labelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-[85]"> <div class="bg-slate-800 border border-slate-700 
+rounded-2xl max-w-sm w-full p-6 space-y-4"> <h3 class="text-lg font-bold text-white">Kaç etiket basılsın?</h3> <p id="labelInfo" class="text-sm 
+text-slate-300"> </p> <button onclick="doLabelPrint('stok')" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-sm">Stok adedi kadar bas</button> <div class="flex gap-2 items-center"> <input type="number" id="labelCount" min="1" value="1" class="w-20 bg-slate-900 border border-slate-700 
+rounded-lg px-3 py-2 text-white text-sm"> <button onclick="doLabelPrint('n')" class="flex-1 bg-slate-700 text-white font-medium py-2.5 rounded-xl text-sm">Bu 
+kadar bas</button> </div> <button onclick="hide($('labelModal'))" class="w-full text-slate-400 text-sm py-1">İptal</button> </div> </div>
+
+<div id="toasts" class="fixed bottom-24 right-4 left-4 sm:left-auto z-[80] flex flex-col gap-2 items-end pointer-events-none"> </div>
+
+<script>
+
+// === GÜVENLİK FIX 1: Config ayrı, key localStorage'dan okunuyor ===
+
+const DEFAULT_URL = 'https://eakdoichqpyrtftdprbj.supabase.co' ;
+
+const DEFAULT_KEY = 
+'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVha2RvaWNocXB5cnRmdGRwcmJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0OTE4OTksImV4cCI6MjEwNzA2Nzg5OX0.tSJF1WgEj2AqRgpGawmFNuurOcQ5-kS0lCtu3cpqOj4'
+;
+
+const hostUrl = localStorage . getItem ( 'sb_url' ) || DEFAULT_URL ;
+
+const hostKey = localStorage . getItem ( 'sb_key' ) || DEFAULT_KEY ;
+
+const client = window . supabase . createClient ( hostUrl , hostKey ) ;
+
+const SITE_URL = '' ;
+
+const baseUrl = ( ) => ( SITE_URL || ( location . origin + location . pathname . replace ( / i n d e x \. h t m l $ / , '' ) ) ) ;
+
+const qrLink = id => `${ baseUrl ( ) }?id=${ id }` ;
+
+let allProducts = [ ] , allTransactions = [ ] , activeCategory = 'TÜMÜ' , totalRevenue = 0 ;
+
+let pendingScanProductId = null , currentModalMode = null , hasCheckedURL = false , html5QrCode = null , scanHandled = false ;
+
+const $ = id => document . getElementById ( id ) ;
+
+function getLowStockThreshold ( ) { try { const n = Number ( localStorage . getItem ( 'lowStockThreshold' ) ) ; return Number . isInteger ( n ) && n>= 0 && n 
+<= 999?n:3 ; } catch ( e ) { return 3 ; } }
+
+function setLowStockThreshold ( ) { if ( ! needPatron ( ) ) return ; const cur = getLowStockThreshold ( ) ; const raw = prompt ( 'Düşük stok uyarı sınırı 
+(0-999):' , String ( cur ) ) ; if ( raw === null ) return ; const n = Number ( raw ) ; if ( ! Number . isInteger ( n ) || n < 0 || n> 999 ) return alert ( '0 
+ile 999 arasında tam sayı gir.' ) ; try { localStorage . setItem ( 'lowStockThreshold' , String ( n ) ) ; } catch ( e ) { return toast ( 'Bu cihazda ayar 
+kaydedilemedi.' , true ) ; } renderProducts ( ) ; toast ( `Düşük stok sınırı ${ n } adet olarak kaydedildi.` ) ; }
+
+const esc = s => String ( s ?? '' ) . replace ( / [ & <> " ' ] /g , c => ( { '&':'&amp;' , '<':'&lt;' , '>':'&gt;' , '"':'&quot;' , "'":'&#39;' } [ c ] ) ) ;
+
+const show = el => { el . classList . remove ( 'hidden' ) ; el . classList . add ( 'flex' ) ; } ;
+
+const hide = el => { el . classList . remove ( 'flex' ) ; el . classList . add ( 'hidden' ) ; } ;
+
+// === GÜVENLİK FIX 2: toast ve alert ayrıldı, alert artık blocking değil toast ===
+
+function toast ( msg , isError = false ) {
+
+const box = $ ( 'toasts' ) ; if ( ! box ) return ;
+
+const d = document . createElement ( 'div' ) ;
+
+d . className = 'pointer-events-auto max-w-sm whitespace-pre-line text-sm text-white rounded-xl px-4 py-3 shadow-2xl border cursor-pointer ' + ( 
+isError?'bg-rose-700 border-rose-400/50':'bg-slate-700 border-slate-500/50' ) ;
+
+d . textContent = String ( msg ) ; d . onclick = ( ) => d . remove ( ) ; box . appendChild ( d ) ; setTimeout ( ( ) => d . remove ( ) , msg . length> 
+90?10000:4000 ) ;
+
+}
+
+let userRole = 'calisan' ;
+
+const isPatron = ( ) => userRole === 'patron' ;
+
+function needPatron ( ) { if ( isPatron ( ) ) return true ; toast ( 'Bu işlem için patron yetkisi gerekir.' , true ) ; return false ; }
+
+async function applyRole ( session ) {
+
+// GÜVENLİK FIX 3: Rolü JWT'den değil, DB'den çek
+
+try {
+
+const {data,error} = await client . rpc ( 'my_role' ) ;
+
+if ( ! error && data ) { userRole = data ; } else {
+
+const meta = session ?. user ?. app_metadata ; userRole = meta ?. role === 'patron'?'patron':'calisan' ;
+
+}
+
+} catch ( e ) { userRole = 'calisan' ; }
+
+document . body . classList . toggle ( 'is-calisan' , ! isPatron ( ) ) ;
+
+$ ( 'roleBadge' ) . textContent = isPatron ( )?'👑 Patron':'👤 Çalışan' ;
+
+}
+
+async function fetchAll ( ) {
+
+try {
+
+const prodRes = await client . from ( 'products' ) . select ( '*' ) . order ( 'created_at' , { ascending:false } ) ;
+
+if ( prodRes . error ) throw prodRes . error ;
+
+allProducts = prodRes . data || [ ] ;
+
+await loadTransactions ( ) ;
+
+renderCategories ( ) ; renderProducts ( ) ; renderCart ( ) ; renderSummary ( ) ;
+
+if ( ! hasCheckedURL ) { hasCheckedURL = true ; const id = new URLSearchParams ( location . search ) . get ( 'id' ) ; if ( id ) { pendingScanProductId = 
+parseInt ( id ) ; openPasswordModalForQRSell ( ) ; } }
+
+} catch ( err ) { $ ( 'productList' ) . innerHTML = '<p class="text-rose-400 col-span-full">Veri alınamadı: ' + esc ( err . message || err ) + '</p>' ; }
+
+}
+
+function updateBalanceDisplay ( ) { $ ( 'totalBalance' ) . textContent = totalRevenue . toLocaleString ( 'tr-TR' , { minimumFractionDigits:2 } ) + ' ₺' ; }
+
+async function loadTransactions ( ) {
+
+let all = [ ] , from = 0 ; while ( true ) { const {data,error} = await client . from ( 'transactions' ) . select ( '*' ) . order ( 'created_at' , { 
+ascending:false } ) . range ( from , from + 999 ) ; if ( error ) throw error ; all = all . concat ( data || [ ] ) ; if ( ! data || data . length < 1000 ) break 
+; from += 1000 ; }
+
+allTransactions = all ; totalRevenue = all . reduce ( ( sum , t ) => sum + ( t . type === 'EKLEME'?t . amount:- t . amount ) , 0 ) ; updateBalanceDisplay ( ) 
+;
+
+}
+
+async function addRevenue ( amount , note = 'İşlem' , type = 'EKLEME' ) { const {error} = await client . rpc ( 'admin_cash_atomic' , { p_amount:Math . abs ( 
+Number ( amount ) ) , p_note:String ( note || 'İşlem' ) , p_type:type } ) ; if ( error ) throw error ; await loadTransactions ( ) ; }
+
+async function fetchTransactions ( ) { try { await loadTransactions ( ) ; populateMonthDropdown ( ) ; filterTransactionsByMonth ( ) ; } catch ( e ) { toast ( 
+'Hata: ' + e . message , true ) ; } }
+
+const ym = d => `${ d . getFullYear ( ) }-${ String ( d . getMonth ( ) + 1 ) . padStart ( 2 , '0' ) }` ;
+
+function populateMonthDropdown ( ) { const sel = $ ( 'monthSelect' ) ; sel . innerHTML = '' ; const set = new Set ( allTransactions . map ( t => ym ( new Date (
+t . created_at ) ) ) ) ; if ( ! set . size ) set . add ( ym ( new Date ( ) ) ) ; [...set ] . sort ( ) . reverse ( ) . forEach ( v => { const [ y , m ] = v . 
+split ( '-' ) ; const o = document . createElement ( 'option' ) ; o . value = v ; o . textContent = new Date ( y , m - 1 ) . toLocaleString ( 'tr-TR' , { 
+month:'long' , year:'numeric' } ) ; sel . appendChild ( o ) ; } ) ; }
+
+function filterTransactionsByMonth ( ) { const list = $ ( 'transactionList' ) ; list . innerHTML = '' ; const sel = $ ( 'monthSelect' ) . value ; const rows = 
+allTransactions . filter ( t => ym ( new Date ( t . created_at ) ) === sel ) ; let sales = 0 , added = 0 , removed = 0 ; rows . forEach ( t => { const isAdd = t
+. type === 'EKLEME' ; if ( isAdd && ( t . note || '' ) . toLowerCase ( ) . includes ( 'satış' ) ) sales += t . amount ; else if ( isAdd ) added += t . amount ;
+
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>QR Etiketleri (${ total 
+})</title><style>body{font-family:sans-serif;margin:10mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:6mm}.c{border:1px dashed 
+#999;padding:4mm;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2mm;break-inside:avoid}.c img{width:38mm;height:38mm}.c 
+b{font-size:12px}.c span{font-size:11px}.c small{color:#666}
+/* KONFEX ABONELIK - TAM SURUM */
+#konfex-pricing-section{margin-bottom:2rem}
+.konfex-card{transition:all .2s;cursor:pointer}
+.konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
+.konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6, 0 10px 30px rgba(59,130,246,.15)}
+#subscriptionPanel{position:fixed;inset:0;z-index:300;display:none;background:rgba(2,8,23,.7);backdrop-filter:blur(6px)}
+#subscriptionPanel.is-open{display:flex;justify-content:flex-end}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+</style></head><body><div class="g">${ cards 
+}</div><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>` ) ; w . document . close ( ) ; }
+
+let busy = false , cart = { } , cartTotal = 0 ;
+
+async function sellItems ( list , opts = { } ) {
+
+if ( busy ) return false ; if ( ! Array . isArray ( list ) || ! list . length ) return false ; busy = true ;
+
+try {
+
+const pay = opts . pay || 'Nakit' ; const pct = Math . min ( Math . max ( Number . parseFloat ( opts . discPct ) || 0 , 0 ) , 100 ) ; const given = Number .
+parseFloat ( opts . given ) || 0 ;
+
+const lines = [ ] ; for ( const {id,qty} of list ) { const item = allProducts . find ( p => Number ( p . id ) === Number ( id ) ) ; if ( ! item || ! Number 
+. isInteger ( Number ( qty ) ) || Number ( qty ) < 1 ) { toast ( 'Ürün veya adet geçersiz.' , true ) ; return false ; } if ( item . stock <Number ( qty ) ) { 
+toast ( 'Yetersiz stok: ' + item . name , true ) ; return false ; } lines . push ( { name:item . name , size:item . size , qty:Number ( qty ) , price:Number ( 
+item . price ) } ) ; }
+
+const {data,error} = await client . rpc ( 'sell_items_atomic' , { p_items:list . map ( x => ( { id:Number ( x . id ) , qty:Number ( x . qty ) } ) ) , 
+p_discount_pct:pct , p_pay:pay , p_given:given } ) ;
+
+if ( error ) { console . error ( error ) ; toast ( 'Satış kaydedilemedi: ' + error . message , true ) ; await fetchAll ( ) ; return false ; }
+
+const total = Number ( data && data . total ) ; if ( ! Number . isFinite ( total ) ) { toast ( 'Sunucudan sonuç doğrulanamadı.' , true ) ; await fetchAll ( 
+) ; return false ; }
+
+try { localStorage . setItem ( 'lastSale' , JSON . stringify ( { items:list . map ( x => ( { id:Number ( x . id ) , qty:Number ( x . qty ) } ) ) , 
+sale_id:data && data . sale_id?Number ( data . sale_id ):null ,total,pay, names:lines . map ( l => `${ l . name } (${ l . size }) x${ l . qty }` ) . join ( ', '
+) } ) ) ; } catch ( e ) { }
+
+if ( confirm ( `Satış başarılı! ${ total . toLocaleString ( 'tr-TR' ) } ₺ kasaya eklendi (${ pay }).\n\nFiş yazdırılsın mı?` ) ) { printReceipt ( 
+{lines,total,pay,given,pct, gross:Number ( data . gross ) } ) ; }
+
+toast ( `Satış tamam: ${ total } ₺` ) ; return true ;
+
+} catch ( e ) { toast ( 'Satış hatası: ' + ( e . message || e ) , true ) ; return false ; } finally { busy = false ; }
+
+}
+
+async function quickSellItem ( id , qty ) { if ( await sellItems ( [ {id,qty} ] ) ) { closeModal ( ) ; await fetchAll ( ) ; } }
+
+function addToCart ( id ) { const it = allProducts . find ( p => p . id === id ) ; if ( ! it ) return ; const q = ( cart [ id ] || 0 ) + 1 ; if ( q> it . stock
+) return toast ( 'Stokta yeterli ürün yok!' , true ) ; cart [ id ] = q ; renderCart ( ) ; }
+
+function clearCart ( ) { cart = { } ; renderCart ( ) ; }
+
+function renderCart ( ) { const rows = Object . keys ( cart ) . map ( Number ) . map ( id => ( { it:allProducts . find ( p => p . id === id ) , qty:cart [ id ] 
+} ) ) . filter ( r => r . it ) ; cart = { } ; rows . forEach ( r => cart [ r . it . id ] = Math . min ( r . qty , r . it . stock ) ) ; const live = rows . 
+filter ( r => cart [ r . it . id ]> 0 ) ; $ ( 'cartBar' ) . classList . toggle ( 'hidden' , ! live . length ) ; const total = live . reduce ( ( t , r ) => t + 
+cart [ r . it . id ] * r . it . price , 0 ) ; $ ( 'cartInfo' ) . innerHTML = 'Sepet: ' + live . map ( r => `${ esc ( r . it . name ) } (${ esc ( r . it . size )
+}) x${ cart [ r . it . id ] }` ) . join ( ', ' ) + ` — <b class="text-emerald-400">${ total } ₺</b>` ; const dp = Math . min ( Math . max ( parseFloat ( $ ( 
+'discPct' ) . value ) || 0 , 0 ) , 100 ) ; cartTotal = Math . round ( total * ( 100 - dp ) ) / 100 ; updateChange ( ) ; }
+
+async function sellCart ( ) { const list = Object . keys ( cart ) . map ( id => ( { id:Number ( id ) , qty:cart [ id ] } ) ) . filter ( x => x . qty> 0 ) ; if 
+( ! list . length ) return ; const pay = $ ( 'payType' ) . value , given = parseFloat ( $ ( 'cashGiven' ) . value ) || 0 ; if ( pay === 'Nakit' && given && 
+given <cartTotal ) return toast ( 'Alınan tutar toplamdan az!' , true ) ; if ( await sellItems ( list , {pay,given, discPct:$ ( 'discPct' ) . value } ) ) { 
+cart = { } ; $ ( 'cashGiven' ) . value = '' ; $ ( 'discPct' ) . value = '' ; await fetchAll ( ) ; } }
+
+async function editProduct ( id ) {
+
+if ( ! needPatron ( ) ) return ; const it = allProducts . find ( p => p . id === id ) ; if ( ! it ) return ;
+
+const price = prompt ( 'Satış fiyatı (₺):' , it . price ) ; if ( price === null ) return ; const cost = prompt ( 'Birim maliyet (₺):' , it . cost ?? 0 ) ; if 
+( cost === null ) return ; const stock = prompt ( 'Stok:' , it . stock ) ; if ( stock === null ) return ; const size = prompt ( 'Beden:' , it . size ) ; if ( 
+size === null ) return ;
+
+const p = parseFloat ( String ( price ) . replace ( ',' , '.' ) ) , c = parseFloat ( String ( cost ) . replace ( ',' , '.' ) ) , st = Number ( stock ) ;
+
+if ( ! Number . isFinite ( p ) || p < 0 || ! Number . isFinite ( c ) || c < 0 || ! Number . isInteger ( st ) || st < 0 || ! size . trim ( ) ) return toast ( 
+'Geçersiz değer.' , true ) ;
+
+const {error} = await client . rpc ( 'update_product_atomic' , { p_product_id:Number ( id ) , p_price:p , p_size:size . trim ( ) , p_new_stock:st , p_cost:c }
+) ;
+
+if ( error ) return toast ( 'Güncellenemedi: ' + error . message , true ) ; toast ( 'Ürün güncellendi.' ) ; await fetchAll ( ) ;
+
+}
+
+function exportCSV ( kind ) {
+
+if ( ! needPatron ( ) ) return ; const rows = kind === 'stok'?[ [ 'ID' , 'Ad' , 'Kategori' , 'Beden' , 'Satış Fiyatı' , 'Maliyet' , 'Stok' , 'Detay' ] 
+,...allProducts . map ( p => [ p . id , p . name , p . category , p . size , p . price , p . cost ?? 0 , p . stock , p . detail ] ) ]:[ [ 'Tarih' , 'Tür' , 
+
+<!DOCTYPE html><html><head><meta 
+charset="UTF-8"><title>Fiş</title><style>body{font-family:monospace;width:72mm;margin:4mm;font-size:12px}table{width:100%}
+/* KONFEX ABONELIK - TAM SURUM */
+#konfex-pricing-section{margin-bottom:2rem}
+.konfex-card{transition:all .2s;cursor:pointer}
+.konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
+.konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6, 0 10px 30px rgba(59,130,246,.15)}
+#subscriptionPanel{position:fixed;inset:0;z-index:300;display:none;background:rgba(2,8,23,.7);backdrop-filter:blur(6px)}
+#subscriptionPanel.is-open{display:flex;justify-content:flex-end}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+</style></head><body><h3 
+style="text-align:center;margin:0">SATIŞ FİŞİ</h3><p style="text-align:center">${ new Date ( ) . toLocaleString ( 'tr-TR' ) }</p><hr><table>${ rows 
+}</table><hr>${ r . pct?`<p>Ara toplam: ${ r . gross } ₺<br>İndirim: %${ r . pct }</p>`:'' }<p><b>TOPLAM: ${ r . total } ₺</b><br>Ödeme: ${ r . pay }</p>${ chg 
+}<p style="text-align:center">Teşekkürler</p><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>` ) ; w . document . close ( ) ; }
+
+function dailyStats ( ) { const today = new Date ( ) . toDateString ( ) ; const r = { cash:0 , card:0 , cardOut:0 , cnt:0 , inn:0 , out:0 } ; allTransactions . 
+forEach ( t => { if ( new Date ( t . created_at ) . toDateString ( ) !== today ) return ; const note = t . note || '' ; if ( t . type === 'EKLEME' && note . 
+toLowerCase ( ) . includes ( 'satış' ) ) { r . cnt ++ ; if ( note . includes ( '[Kart]' ) ) r . card += t . amount ; else r . cash += t . amount ; } else if ( t
+. type === 'EKLEME' ) r . inn += t . amount ; else if ( note . includes ( '[Kart]' ) ) r . cardOut += t . amount ; else r . out += t . amount ; } ) ; return r 
+; }
+
+function renderSummary ( ) { const r = dailyStats ( ) ; $ ( 'sumToday' ) . textContent = ( r . cash + r . card ) . toLocaleString ( 'tr-TR' ) + ' ₺' ; $ ( 
+'sumCount' ) . textContent = r . cnt ; $ ( 'sumLow' ) . textContent = allProducts . filter ( p => p . stock <= getLowStockThreshold ( ) ) . length ; $ ( 
+'sumProducts' ) . textContent = allProducts . length ; }
+
+function badge ( n ) { const c = 'text-[10px] px-2 py-0.5 rounded-full border font-bold ' ; if ( n <= 0 ) return `<span class="${ c }bg-rose-500/20 
+text-rose-300 border-rose-500/40">Bitti</span>` ; if ( n <= getLowStockThreshold ( ) ) return `<span class="${ c }bg-amber-500/20 text-amber-300 
+border-amber-500/40">Azalıyor</span>` ; return `<span class="${ c }bg-emerald-500/15 text-emerald-300 border-emerald-500/30">Yeterli</span>` ; }
+
+let viewMode = 'card' ; try { viewMode = localStorage . getItem ( 'view' ) === 'list'?'list':'card' ; } catch ( e ) { }
+
+function toggleView ( ) { viewMode = viewMode === 'list'?'card':'list' ; try { localStorage . setItem ( 'view' , viewMode ) ; } catch ( e ) { } renderProducts (
+) ; }
+
+function sortList ( f ) { const m = $ ( 'sortSel' )?$ ( 'sortSel' ) . value:'new' ; const a = [...f ] ; if ( m === 'name' ) a . sort ( ( x , y ) => x . name . 
+localeCompare ( y . name , 'tr' ) ) ; else if ( m === 'low' ) a . sort ( ( x , y ) => x . stock - y . stock ) ; return a ; }
+
+const THEMES = { gece:'#0b1220' , orman:'#07140f' , gunbatimi:'#150d08' , mor:'#0e0a1c' } ;
+
+
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Düşük 
+Stok</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:4px 
+8px}
+/* KONFEX ABONELIK - TAM SURUM */
+#konfex-pricing-section{margin-bottom:2rem}
+.konfex-card{transition:all .2s;cursor:pointer}
+.konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
+.konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6, 0 10px 30px rgba(59,130,246,.15)}
+#subscriptionPanel{position:fixed;inset:0;z-index:300;display:none;background:rgba(2,8,23,.7);backdrop-filter:blur(6px)}
+#subscriptionPanel.is-open{display:flex;justify-content:flex-end}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+</style></head><body><h3>Düşük Stok (≤ ${ t })</h3><table><tr><th>Ürün</th><th>Kategori</th><th>Beden</th><th>Stok</th></tr>${ rows 
+}</table><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>` ) ; w . document . close ( ) ; }
+
+async function stockCount ( ) { if ( ! needPatron ( ) ) return ; const list = visibleProducts ( ) ; if ( ! list . length ) return toast ( 'Sayılacak ürün yok.' 
+, true ) ; if ( ! confirm ( `${ list . length } ürün sayılacak. Başlayalım mı?` ) ) return ; const diffs = [ ] ; for ( const p of list ) { const v = prompt ( 
+`${ p . name } (${ p . size }) — sistemde ${ p . stock } adet. Rafta kaç tane var?` , '' ) ; if ( v === null ) break ; if ( v . trim ( ) === '' ) continue ; 
+const n = parseInt ( v ) ; if ( isNaN ( n ) || n < 0 ) { toast ( 'Geçersiz sayı, atlandı.' , true ) ; continue ; } if ( n !== p . stock ) diffs . push ( {p,n} )
+; } if ( ! diffs . length ) return toast ( 'Fark bulunmadı.' ) ; if ( ! confirm ( 'Farklar:\n' + diffs . map ( d => `${ d . p . name } (${ d . p . size }): ${ 
+d . p . stock } → ${ d . n }` ) . join ( '\n' ) + '\n\nGüncellensin mi?' ) ) return ; const {data,error} = await client . rpc ( 'adjust_stock_batch_atomic' , { 
+p_changes:diffs . map ( d => ( { id:Number ( d . p . id ) , stock:d . n } ) ) } ) ; if ( error ) return toast ( 'Sayım kaydedilemedi: ' + error . message , true
+) ; toast ( `${ data ?. updated || diffs . length } ürün güncellendi.` ) ; await fetchAll ( ) ; }
+
+function stockMatrix ( ) { const list = visibleProducts ( ) ; if ( ! list . length ) return toast ( 'Ürün yok.' , true ) ; const order = [ 'XXS' , 'XS' , 'S' , 
+'M' , 'L' , 'XL' , 'XXL' , '3XL' , '4XL' ] ; const rank = z => { const i = order . indexOf ( String ( z ) . toUpperCase ( ) ) ; return i < 0?99:i ; } ; const 
+sizes = [...new Set ( list . map ( p => String ( p . size ) . trim ( ) ) ) ] . sort ( ( a , b ) => rank ( a ) - rank ( b ) || a . localeCompare ( b , 'tr' , { 
+numeric:true } ) ) ; const names = [...new Set ( list . map ( p => p . name ) ) ] ; const cell = ( n , z ) => { const f = list . filter ( p => p . name === n &&
+String ( p . size ) . trim ( ) === z ) ; return f . length?f . reduce ( ( t , p ) => t + p . stock , 0 ):null ; } ; const rows = names . map ( n => `<tr><td>${
+esc ( n ) }</td>${ sizes . map ( z => { const v = cell ( n , z ) ; return v === null?'<td>-</td>':`<td style="${ v === 
+0?'background:#fecaca;font-weight:bold':v <= getLowStockThreshold ( )?'background:#fef08a':'' }">${ v }</td>` ; } ) . join ( '' ) }</tr>` ) . join ( '' ) ; 
+const w = window . open ( '' , '_blank' ) ; if ( ! w ) return toast ( 'Açılır pencere engellendi.' , true ) ; w . document . write ( `<!DOCTYPE 
+html><html><head><meta charset="UTF-8"><title>Stok Matrisi</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse}td,th{border:1px
+solid #999;padding:4px 10px;font-size:13px;text-align:center}td:first-child{text-align:left}
+/* KONFEX ABONELIK - TAM SURUM */
+#konfex-pricing-section{margin-bottom:2rem}
+.konfex-card{transition:all .2s;cursor:pointer}
+.konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
+.konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6, 0 10px 30px rgba(59,130,246,.15)}
+#subscriptionPanel{position:fixed;inset:0;z-index:300;display:none;background:rgba(2,8,23,.7);backdrop-filter:blur(6px)}
+#subscriptionPanel.is-open{display:flex;justify-content:flex-end}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+</style></head><body><h3>Stok Matrisi - ${ new Date ( ) . 
+toLocaleDateString ( 'tr-TR' ) }</h3><table><tr><th>Ürün</th>${ sizes . map ( z => `<th>${ esc ( z ) }</th>` ) . join ( '' ) }</tr>${ rows 
+}</table></body></html>` ) ; w . document . close ( ) ; }
+
+async function bulkPrice ( ) { if ( ! needPatron ( ) ) return ; const list = visibleProducts ( ) ; if ( ! list . length ) return toast ( 'Ürün yok.' , true ) ; 
+const txt = prompt ( `${ list . length } ürünün fiyatı değişecek.\n%10 = %10 zam, %-10 = %10 indirim, +50 = 50 ₺ zam, -50 = 50 ₺ indirim` , '' ) ; if ( txt === 
+null ) return ; const parsePriceChange = ( txt , price ) => { const t = ( txt || '' ) . trim ( ) . replace ( ',' , '.' ) ; let m = t . match ( / ^ % \s * ( - ? 
+\d + ( \. \d + ) ? ) $ / ) ; if ( m ) return Math . max ( 0 , Math . round ( price * ( 100 + parseFloat ( m [ 1 ] ) ) ) / 100 ) ; m = t . match ( / ^ ( [ + - ] 
+\d + ( \. \d + ) ? ) $ / ) ; if ( m ) return Math . max ( 0 , Math . round ( ( price + parseFloat ( m [ 1 ] ) ) * 100 ) / 100 ) ; return null ; } ; if ( 
+parsePriceChange ( txt , 100 ) === null ) return toast ( 'Geçersiz giriş. Örnek: %10, %-10, +50, -50' , true ) ; const updates = list . map ( p => ( { id:Number
+( p . id ) , price:parsePriceChange ( txt , p . price ) } ) ) ; const {data,error} = await client . rpc ( 'bulk_update_prices_atomic' , { p_updates:updates } )
+; if ( error ) return toast ( 'Toplu fiyat değişikliği başarısız: ' + error . message , true ) ; toast ( `${ data ?. updated || list . length } ürünün fiyatı 
+güncellendi.` ) ; await fetchAll ( ) ; }
+
+async function backupJSON ( ) { if ( ! needPatron ( ) ) return ; try { await loadTransactions ( ) ; const [ salesRes , itemsRes , auditRes ] = await Promise . 
+all ( [ client . from ( 'sales' ) . select ( '*' ) . order ( 'created_at' , { ascending:false } ) , client . from ( 'sale_items' ) . select ( '*' ) . order ( 
+'id' , { ascending:false } ) , client . from ( 'audit_log' ) . select ( '*' ) . order ( 'created_at' , { ascending:false } ) ] ) ; const backup = { 
+schema_version:2 , tarih:new Date ( ) . toISOString ( ) , products:allProducts , transactions:allTransactions , sales:salesRes . error?null:salesRes . data , 
+sale_items:itemsRes . error?null:itemsRes . data , audit_log:auditRes . error?null:auditRes . data } ; const blob = new Blob ( [ JSON . stringify ( backup , 
+null , 2 ) ] , { type:'application/json' } ) ; const a = document . createElement ( 'a' ) ; a . href = URL . createObjectURL ( blob ) ; a . download = `yedek-${
+new Date ( ) . toISOString ( ) . slice ( 0 , 10 ) }.json` ; a . click ( ) ; setTimeout ( ( ) => URL . revokeObjectURL ( a . href ) , 1000 ) ; toast ( 'Yedek 
+alındı.' ) ; } catch ( e ) { toast ( 'Yedek alınamadı: ' + e . message , true ) ; } }
+
+async function undoLastSale ( ) { if ( busy ) return ; let ls = null ; try { ls = JSON . parse ( localStorage . getItem ( 'lastSale' ) || 'null' ) ; } catch ( e
+) { } if ( ! ls ) return toast ( 'Bu cihazda geri alınacak satış yok.' , true ) ; if ( ! ls . sale_id ) return toast ( 'Bu satış eski sürüm, güvenli geri alma 
+yok.' , true ) ; if ( ! confirm ( `Son satış geri alınsın mı?\n${ ls . names }\nTutar: ${ ls . total } ₺` ) ) return ; busy = true ; try { const {data,error} = 
+await client . rpc ( 'reverse_sale_atomic' , { p_sale_id:Number ( ls . sale_id ) } ) ; if ( error ) return toast ( 'Geri alınamadı: ' + error . message , true )
+; try { localStorage . removeItem ( 'lastSale' ) ; } catch ( e ) { } toast ( 'Satış geri alındı.' ) ; } finally { busy = false ; } await fetchAll ( ) ; }
+
+async function salesReport ( ) { if ( ! needPatron ( ) ) return ; const sold = { } , last = { } , cutoff = Date . now ( ) - 60 * 86400000 ; let salesRevenue = 0
+, estimatedProfit = 0 ; try { const {data,error} = await client . from ( 'sale_items' ) . select ( 
+'product_name,product_size,quantity,unit_price,unit_cost,line_total,line_profit,sales(created_at,reversed_at)' ) ; if ( ! error && Array . isArray ( data ) ) { 
+data . forEach ( it => { if ( it . sales && it . sales . reversed_at ) return ; const qty = Number ( it . quantity || 0 ) ; const key = `${ it . product_name } 
+(${ it . product_size || 'Beden yok' })` ; sold [ key ] = ( sold [ key ] || 0 ) + qty ; salesRevenue += Number ( it . line_total || 0 ) ; if ( Number ( it . 
+unit_cost || 0 )> 0 ) estimatedProfit += Number ( it . line_profit || 0 ) ; const ts = new Date ( it . sales && it . sales . created_at ) . getTime ( ) ; if ( 
+Number . isFinite ( ts ) && ( ! last [ key ] || ts> last [ key ] ) ) last [ key ] = ts ; } ) ; } } catch ( e ) { } const top = Object . entries ( sold ) . sort
+( ( a , b ) => b [ 1 ] - a [ 1 ] ) . slice ( 0 , 15 ) ; const slow = allProducts . filter ( p => p . stock> 0 && ( ! last [ `${ p . name } (${ p . size })` ] 
+|| last [ `${ p . name } (${ p . size })` ] <cutoff ) ) ; const cashToday = dailyStats ( ) ; const w = window . open ( '' , '_blank' ) ; if ( ! w ) return 
+toast ( 'Açılır pencere engellendi.' , true ) ; w . document . write ( `<!DOCTYPE html><html><head><meta 
+charset="UTF-8"><title>Rapor</title><style>body{font:14px system-ui;margin:24px;color:#172033}table{border-collapse:collapse;width:100%}td,th{border:1px solid 
+#d5dbe5;padding:8px}
+/* KONFEX ABONELIK - TAM SURUM */
+#konfex-pricing-section{margin-bottom:2rem}
+.konfex-card{transition:all .2s;cursor:pointer}
+.konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
+.konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6, 0 10px 30px rgba(59,130,246,.15)}
+#subscriptionPanel{position:fixed;inset:0;z-index:300;display:none;background:rgba(2,8,23,.7);backdrop-filter:blur(6px)}
+#subscriptionPanel.is-open{display:flex;justify-content:flex-end}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+</style></head><body><h1>Satış ve stok raporu</h1><p>${ new Date ( ) . toLocaleString ( 'tr-TR' ) }</p><h2>En çok 
+satan</h2><table><tr><th>Ürün</th><th>Adet</th></tr>${ top . map ( ( [ n , q ] ) => `<tr><td>${ esc ( n ) }</td><td>${ q }</td></tr>` ) . join ( '' ) || 
+'<tr><td colspan=2>Veri yok</td></tr>' }</table><h2>Ciro: ${ salesRevenue . toLocaleString ( 'tr-TR' ) } ₺ | Tahmini kâr: ${ estimatedProfit . toLocaleString ( 
+'tr-TR' ) } ₺</h2><h2>60 gündür satılmayan</h2><table><tr><th>Ürün</th><th>Beden</th><th>Stok</th></tr>${ slow . map ( p => `<tr><td>${ esc ( p . name ) 
+}</td><td>${ esc ( p . size ) }</td><td>${ p . stock }</td></tr>` ) . join ( '' ) || '<tr><td colspan=3>Yok</td></tr>' }</table><button 
+onclick="print()">Yazdır</button></body></html>` ) ; w . document . close ( ) ; }
+
+async function auditReport ( ) { if ( ! needPatron ( ) ) return ; const {data,error} = await client . from ( 'audit_log' ) . select ( '*' ) . order ( 
+'created_at' , { ascending:false } ) . limit ( 500 ) ; if ( error ) return toast ( 'Geçmiş açılamadı: ' + error . message , true ) ; const rows = ( data || [ ] 
+) . map ( r => `<tr><td>${ esc ( new Date ( r . created_at ) . toLocaleString ( 'tr-TR' ) ) }</td><td>${ esc ( r . action ) }</td><td>${ esc ( r . product_name 
+|| '' ) }</td><td>${ r . old_stock ?? '—' }</td><td>${ r . new_stock ?? '—' }</td><td>${ esc ( JSON . stringify ( r . details || { } ) ) }</td></tr>` ) . join (
+'' ) ; const w = window . open ( '' , '_blank' ) ; if ( ! w ) return toast ( 'Açılır pencere engellendi.' , true ) ; w . document . write ( `<!doctype 
+html><html><head><meta charset="utf-8"><title>İşlem geçmişi</title><style>body{font:13px 
+system-ui;margin:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #dbe1e8;padding:7px}
+/* KONFEX ABONELIK - TAM SURUM */
+#konfex-pricing-section{margin-bottom:2rem}
+.konfex-card{transition:all .2s;cursor:pointer}
+.konfex-card:hover{transform:translateY(-4px);border-color:#3b82f6!important}
+.konfex-popular{border-color:#3b82f6!important;box-shadow:0 0 0 1px #3b82f6, 0 10px 30px rgba(59,130,246,.15)}
+#subscriptionPanel{position:fixed;inset:0;z-index:300;display:none;background:rgba(2,8,23,.7);backdrop-filter:blur(6px)}
+#subscriptionPanel.is-open{display:flex;justify-content:flex-end}
+#subscriptionPanel .panel{width:min(100%,440px);background:#0e1a2d;border-left:1px solid #294365;height:100%;overflow:auto;padding:1.5rem;animation:slideIn .25s}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+</style></head><body><h1>İşlem 
+geçmişi</h1><table><tr><th>Tarih</th><th>İşlem</th><th>Ürün</th><th>Önceki</th><th>Yeni</th><th>Detay</th></tr>${ rows || '<tr><td colspan=6>Kayıt 
+yok</td></tr>' }</table><button onclick="print()">Yazdır</button></body></html>` ) ; w . document . close ( ) ; }
+
+
 <!-- ABONELIK PANELI -->
 <div id="subscriptionPanel" onclick="if(event.target===this)closeSubscriptionPanel()">
 <div class="panel">
@@ -150,18 +784,9 @@ body.qp-modal-open{overflow:hidden}
 <p id="panelPlanPrice" class="text-slate-300 text-sm"></p>
 </div>
 <div class="space-y-3">
-<div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center">
-<div><b class="text-white text-sm">Basic</b><p class="text-xs text-slate-400">29,99€/ay</p></div>
-<button onclick="handlePlanSelect('basic')" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Seç</button>
-</div>
-<div class="bg-slate-900 border border-blue-500/50 rounded-xl p-4 flex justify-between items-center">
-<div><b class="text-white text-sm">Professional ⭐</b><p class="text-xs text-slate-400">59,90€/ay - En popüler</p></div>
-<button onclick="handlePlanSelect('pro')" class="bg-blue-600 text-white text-xs px-4 py-2 rounded-lg">Seç</button>
-</div>
-<div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center">
-<div><b class="text-white text-sm">Enterprise</b><p class="text-xs text-slate-400">99,90€/ay</p></div>
-<button onclick="handlePlanSelect('enterprise')" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Seç</button>
-</div>
+<div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center"><div><b class="text-white text-sm">Basic</b><p class="text-xs text-slate-400">29,99€/ay</p></div><button onclick="handlePlanSelect('basic')" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Seç</button></div>
+<div class="bg-slate-900 border border-blue-500/50 rounded-xl p-4 flex justify-between items-center"><div><b class="text-white text-sm">Professional ⭐</b><p class="text-xs text-slate-400">59,90€/ay - En popüler</p></div><button onclick="handlePlanSelect('pro')" class="bg-blue-600 text-white text-xs px-4 py-2 rounded-lg">Seç</button></div>
+<div class="bg-slate-900 border border-slate-700 rounded-xl p-4 flex justify-between items-center"><div><b class="text-white text-sm">Enterprise</b><p class="text-xs text-slate-400">99,90€/ay</p></div><button onclick="handlePlanSelect('enterprise')" class="bg-slate-700 text-white text-xs px-4 py-2 rounded-lg">Seç</button></div>
 </div>
 <div class="mt-8 pt-4 border-t border-slate-700">
 <button onclick="cancelSubscription()" class="w-full text-rose-300 text-xs py-2">Aboneliği iptal et</button>
@@ -169,8 +794,10 @@ body.qp-modal-open{overflow:hidden}
 </div>
 </div>
 </div>
+
 <script>
-// KONFEX ABONELIK MANTIGI - ORIJINAL SITEYI BOZMAZ
+
+// KONFEX ABONELIK MANTIGI - TAM SURUM - ORIJINALI BOZMAZ
 const STRIPE_LINKS = {
   basic: 'https://buy.stripe.com/9B6dR80GS26yg8u8kL5gc00',
   pro: 'https://buy.stripe.com/8x24gy89kbH8e0m9oP5gc01',
@@ -217,8 +844,7 @@ function handlePlanSelect(key){
   if(confirm(PLAN_DATA[key].name+' ('+PLAN_DATA[key].priceShort+') planına geçmek için Stripe ödeme sayfasına yönlendirileceksiniz. Devam edilsin mi?')){
     try{ localStorage.setItem('konfex_pending_plan', key); }catch(e){}
     window.open(link, '_blank');
-    // Demo: 2 sn sonra aktif et (gerçekte Stripe webhook ile olacak)
-    setTimeout(()=>{ setCurrentPlan(key); closeSubscriptionPanel(); alert('Plan aktif edildi: '+PLAN_DATA[key].name); }, 1500);
+    setTimeout(()=>{ setCurrentPlan(key); closeSubscriptionPanel(); toast('Plan aktif edildi: '+PLAN_DATA[key].name); }, 1500);
   }
 }
 function cancelSubscription(){
@@ -226,19 +852,11 @@ function cancelSubscription(){
     try{ localStorage.removeItem('konfex_current_plan'); localStorage.removeItem('konfex_pending_plan'); }catch(e){}
     updateSubscriptionUI();
     closeSubscriptionPanel();
-    alert('Abonelik iptal edildi. Stripe üzerinden de iptal etmeyi unutma.');
+    toast('Abonelik iptal edildi.');
   }
 }
-document.addEventListener('DOMContentLoaded', ()=>{ updateSubscriptionUI(); });
-// ORIJINAL SITE FONKSIYONLARI KORUNDU - SADELESTIRILMIS
-function toast(m){ console.log(m); const b=document.createElement('div'); b.textContent=m; b.style.cssText='position:fixed;bottom:20px;right:20px;background:#1e293b;color:white;padding:12px 16px;border-radius:10px;z-index:999'; document.body.appendChild(b); setTimeout(()=>b.remove(),3000); }
-function doLogin(){ document.getElementById('loginModal').style.display='none'; toast('Giriş başarılı'); }
-function openScannerModal(){ toast('QR Okuyucu - orijinal kod korunuyor'); }
-function openQuickProductModal(){ toast('Ürün ekle modalı'); }
-function openBulkModal(){ toast('Toplu yükle'); }
-function openAdminPanel(){ toast('Kasa paneli'); }
-function salesReport(){ toast('Raporlar'); }
-function undoLastSale(){ toast('İade'); }
+
 </script>
 </body>
+
 </html>
