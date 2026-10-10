@@ -1952,28 +1952,11 @@ function renderAdminDashboard(organizations,members,users){
 async function qrAdminSyncLauncher(){
   const launcher = document.getElementById('qrAdminLauncher');
   if(!launcher) return;
-
   try {
     const { data, error } = await client.auth.getSession();
     if(error) throw error;
-
     const user = data && data.session ? data.session.user : null;
-    // UI visibility follows the same ID + email allowlist as the server.
-    const allowed = !!user &&
-      user.id === ADMIN_ID &&
-      String(user.email || '').trim().toLowerCase() === ADMIN_EMAIL;
-
-    launcher.style.display = allowed ? 'block' : 'none';
-
-    if(user &&
-       String(user.email || '').trim().toLowerCase() === ADMIN_EMAIL &&
-       user.id !== ADMIN_ID) {
-      console.error(
-        'Ana yönetici e-postası eşleşti ancak kullanıcı ID farklı. ' +
-        'Supabase Auth > Users bölümünden bu e-postanın gerçek UUID değerini doğrulayın. ' +
-        'Sunucu tarafı ADMIN_ID bu doğrulama yapılmadan değiştirilmemelidir.'
-      );
-    }
+    launcher.style.display = isMainAdmin(user) ? 'block' : 'none';
   } catch(e) {
     console.warn('Ana yönetici butonu kontrol edilemedi:', e);
     launcher.style.display = 'none';
@@ -1982,21 +1965,15 @@ async function qrAdminSyncLauncher(){
 
 window.addEventListener('load', () => {
   qrAdminSyncLauncher();
-  window.setTimeout(qrAdminSyncLauncher, 800);
-  window.setTimeout(qrAdminSyncLauncher, 2000);
+  window.setTimeout(qrAdminSyncLauncher, 1000);
+  window.setTimeout(qrAdminSyncLauncher, 2500);
 });
 
 client.auth.onAuthStateChange((event, session) => {
   window.setTimeout(() => {
     const launcher = document.getElementById('qrAdminLauncher');
     if(!launcher) return;
-
-    const user = session && session.user;
-    const allowed = !!user &&
-      user.id === ADMIN_ID &&
-      String(user.email || '').trim().toLowerCase() === ADMIN_EMAIL;
-
-    launcher.style.display = allowed ? 'block' : 'none';
+    launcher.style.display = isMainAdmin(session && session.user) ? 'block' : 'none';
   }, 0);
 });
 </script>
