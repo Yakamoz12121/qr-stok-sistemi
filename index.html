@@ -218,6 +218,18 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
     </div>
   </div>
 </div>
+<div id="labelModal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-[85]">
+  <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl">
+    <h3 class="text-lg font-bold text-white">Kaç etiket basılsın?</h3>
+    <p id="labelInfo" class="text-sm text-slate-300"></p>
+    <button onclick="doLabelPrint('stok')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm">Stok adedi kadar bas</button>
+    <div class="flex gap-2 items-center">
+      <input type="number" id="labelCount" min="1" value="1" class="w-20 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm">
+      <button onclick="doLabelPrint('n')" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2.5 rounded-xl text-sm">Her üründen bu kadar bas</button>
+    </div>
+    <button onclick="hide($('labelModal'))" class="w-full text-slate-400 text-sm py-1">İptal</button>
+  </div>
+</div>
 <div id="doneOverlay" onclick="this.classList.add('hidden');this.classList.remove('flex')" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/70">
   <div class="bg-emerald-600 rounded-3xl px-10 py-8 text-center shadow-2xl"><div class="text-7xl">✓</div><div class="text-2xl font-bold text-white mt-2">Satış tamam</div><div id="doneAmount" class="text-lg text-emerald-100 mt-1"></div></div>
 </div>
@@ -430,21 +442,29 @@ function printOneQR(id) {
   if (p) askAndPrint([p]);
 }
 
-// Kaç etiket basılacağını sorar: boş = stok adedi kadar, sayı = her üründen o kadar.
+// Kaç etiket basılacağı sayfa içi pencereden sorulur (prompt yeni sekme açılınca otomatik kapanıyordu).
+let labelItems = [];
 function askAndPrint(items) {
+  labelItems = items;
+  const stockTotal = items.reduce((t, p) => t + Math.max(p.stock, 0), 0);
+  $('labelInfo').textContent = `${items.length} ürün seçili. "Stok adedi kadar" seçersen toplam ${stockTotal} etiket çıkar.`;
+  $('labelCount').value = 1;
+  show($('labelModal'));
+}
+
+function doLabelPrint(mode) {
+  let per = null;
+  if (mode === 'n') {
+    per = parseInt($('labelCount').value);
+    if (isNaN(per) || per < 1) return alert('Geçerli bir sayı yaz.');
+  }
+  const rows = labelItems.map(p => ({ p, n: per === null ? Math.max(p.stock, 0) : per })).filter(r => r.n > 0);
+  const total = rows.reduce((t, r) => t + r.n, 0);
+  if (!total) return alert('Basılacak etiket yok (stoklar 0).');
+  if (total > 500 && !confirm(`${total} etiket basılacak. Devam edilsin mi?`)) return;
   const w = window.open('', '_blank');
   if (!w) return alert('Açılır pencere engellendi, izin verin.');
-  const v = prompt('Her üründen kaç etiket basılsın?\n• Boş bırak = stok adedi kadar (stokta 21 varsa 21 etiket)\n• Sayı yaz = her üründen o kadar (örn. 1)', '');
-  if (v === null) { w.close(); return; }
-  let per = null;
-  if (v.trim() !== '') {
-    per = parseInt(v);
-    if (isNaN(per) || per < 1) { w.close(); return alert('Geçersiz sayı.'); }
-  }
-  const rows = items.map(p => ({ p, n: per === null ? Math.max(p.stock, 0) : per })).filter(r => r.n > 0);
-  const total = rows.reduce((t, r) => t + r.n, 0);
-  if (!total) { w.close(); return alert('Basılacak etiket yok (stoklar 0).'); }
-  if (total > 500 && !confirm(`${total} etiket basılacak. Devam edilsin mi?`)) { w.close(); return; }
+  hide($('labelModal'));
   const sz = $('labelSize').value;
   const cols = sz === 'k' ? 4 : sz === 'b' ? 2 : 3, mm = sz === 'k' ? 28 : sz === 'b' ? 55 : 38;
   const cards = rows.map(r => {
