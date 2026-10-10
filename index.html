@@ -259,6 +259,7 @@ body.qp-modal-open{overflow:hidden}
           <button class="mi" onclick="undoLastSale()">↩️ Son satışı geri al</button>
           <p class="mih">STOK</p>
           <button class="mi" onclick="lowStockPrint()">⚠️ Azalan ürünler listesi</button>
+          <button class="mi patron-only" onclick="setLowStockThreshold()">⚙️ Düşük stok sınırını ayarla</button>
           <button class="mi" onclick="stockMatrix()">🧮 Beden / stok tablosu</button>
           <button class="mi patron-only" onclick="stockCount()">📋 Stok sayımı</button>
           <button class="mi patron-only" onclick="bulkPrice()">💲 Toplu fiyat değiştir</button>
@@ -454,6 +455,8 @@ let allProducts = [], allTransactions = [], activeCategory = 'TÜMÜ', totalReve
 let pendingScanProductId = null, currentModalMode = null, hasCheckedURL = false, html5QrCode = null, scanHandled = false;
 
 const $ = id => document.getElementById(id);
+function getLowStockThreshold() { try { const n = Number(localStorage.getItem('lowStockThreshold')); return Number.isInteger(n) && n >= 0 && n <= 999 ? n : 3; } catch (e) { return 3; } }
+function setLowStockThreshold() { if (!needPatron()) return; const current = getLowStockThreshold(); const raw = prompt('Düşük stok uyarı sınırı (0–999 adet):', String(current)); if (raw === null) return; const n = Number(raw); if (!Number.isInteger(n) || n < 0 || n > 999) return alert('0 ile 999 arasında tam sayı gir.'); try { localStorage.setItem('lowStockThreshold', String(n)); } catch (e) { return alert('Bu cihazda ayar kaydedilemedi.'); } renderMidnightDashboard(); renderProducts(); alert(`Düşük stok sınırı ${n} adet olarak kaydedildi (bu cihaz/tarayıcı için).`); }
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const show = el => { el.classList.remove('hidden'); el.classList.add('flex'); };
 const hide = el => { el.classList.remove('flex'); el.classList.add('hidden'); };
@@ -493,8 +496,8 @@ function renderMidnightDashboard() {
   allTransactions.forEach(t=>{if(t.type!=='EKLEME'||!(t.note||'').toLocaleLowerCase('tr-TR').includes('satış'))return;const dt=new Date(t.created_at);const row=days.find(x=>x.date.toDateString()===new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()).toDateString());if(row)row.amount+=Number(t.amount)||0;});
   const chart=$('mpSalesChart'); if(chart){const max=Math.max(1,...days.map(d=>d.amount));const W=600,H=200,L=38,R=8,T=12,B=30,plotW=W-L-R,plotH=H-T-B;const pts=days.map((d,i)=>({x:L+(plotW/(days.length-1))*i,y:T+plotH-(d.amount/max)*plotH,d}));const line=pts.map(p=>`${p.x},${p.y}`).join(' ');chart.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Son yedi gün satış tutarı grafiği">${[0,.25,.5,.75,1].map(v=>{const y=T+plotH-v*plotH;return `<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="#20334d" stroke-width="1"/><text x="${L-7}" y="${y+3}" text-anchor="end" fill="#8298b7" font-size="10">${Math.round(max*v).toLocaleString('tr-TR')}</text>`}).join('')}<polyline points="${line}" fill="none" stroke="#9b67f5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#a879ff"/><text x="${p.x}" y="${H-9}" text-anchor="middle" fill="#91a6c5" font-size="10">${esc(p.d.label)}</text>`).join('')}</svg>`;}
   const recent=$('mpRecentTransactions');if(recent){const rows=allTransactions.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,6);recent.innerHTML=rows.length?rows.map(t=>{const out=t.type!=='EKLEME';return `<div class="mp-recent-row"><div class="mp-recent-icon ${out?'out':''}">${out?'↶':'₺'}</div><div class="mp-recent-text"><b>${esc(t.note|| (out?'Kasa çıkışı':'Kasa girişi'))}</b><small>${new Date(t.created_at).toLocaleString('tr-TR',{dateStyle:'short',timeStyle:'short'})}</small></div><span class="mp-recent-amount ${out?'out':''}">${out?'−':'+'}${money(t.amount)}</span></div>`}).join(''):'<div class="mp-empty">Henüz kasa hareketi yok.</div>';}
-  const featured=$('mpFeaturedProducts');if(featured){const rows=allProducts.slice().sort((a,b)=>(Number(b.stock)||0)-(Number(a.stock)||0)).slice(0,4);featured.innerHTML=rows.length?rows.map((p,i)=>`<div class="mp-product-mini"><div class="mp-product-symbol">${['◇','▱','▰','◈'][i%4]}</div><b>${esc(p.name)}</b><small>${esc(p.size||'Beden belirtilmemiş')} · ${esc(p.category||'Diğer')}</small><strong>${money(p.price)}</strong><small style="color:${Number(p.stock)<=3?'#ffad66':'#5ce3a1'}">Stok: ${Number(p.stock)||0}</small></div>`).join(''):'<div class="mp-empty">Henüz ürün kaydı yok.</div>';}
-  const stock=$('mpStockSummary');if(stock){const low=allProducts.filter(p=>Number(p.stock)<=3).length;const zero=allProducts.filter(p=>Number(p.stock)<=0).length;const pct=allProducts.length?Math.max(0,Math.min(100,100*(allProducts.length-zero)/allProducts.length)):0;stock.innerHTML=`<div class="mp-stock-meter"><span style="width:${pct}%"></span></div><div class="mp-stock-line"><span>Toplam ürün çeşidi</span><b>${allProducts.length}</b></div><div class="mp-stock-line"><span>Toplam stok adedi</span><b>${totalQty}</b></div><div class="mp-stock-line"><span>Azalan stok (≤ 3)</span><b style="color:#ffb454">${low}</b></div><div class="mp-stock-line"><span>Stokta yok</span><b style="color:#ff7f8b">${zero}</b></div>`;}
+  const featured=$('mpFeaturedProducts');if(featured){const rows=allProducts.slice().sort((a,b)=>(Number(b.stock)||0)-(Number(a.stock)||0)).slice(0,4);featured.innerHTML=rows.length?rows.map((p,i)=>`<div class="mp-product-mini"><div class="mp-product-symbol">${['◇','▱','▰','◈'][i%4]}</div><b>${esc(p.name)}</b><small>${esc(p.size||'Beden belirtilmemiş')} · ${esc(p.category||'Diğer')}</small><strong>${money(p.price)}</strong><small style="color:${Number(p.stock)<=getLowStockThreshold()?'#ffad66':'#5ce3a1'}">Stok: ${Number(p.stock)||0}</small></div>`).join(''):'<div class="mp-empty">Henüz ürün kaydı yok.</div>';}
+  const stock=$('mpStockSummary');if(stock){const threshold=getLowStockThreshold();const low=allProducts.filter(p=>Number(p.stock)<=threshold).length;const zero=allProducts.filter(p=>Number(p.stock)<=0).length;const pct=allProducts.length?Math.max(0,Math.min(100,100*(allProducts.length-zero)/allProducts.length)):0;stock.innerHTML=`<div class="mp-stock-meter"><span style="width:${pct}%"></span></div><div class="mp-stock-line"><span>Toplam ürün çeşidi</span><b>${allProducts.length}</b></div><div class="mp-stock-line"><span>Toplam stok adedi</span><b>${totalQty}</b></div><div class="mp-stock-line"><span>Azalan stok (≤ ${threshold})</span><b style="color:#ffb454">${low}</b></div><div class="mp-stock-line"><span>Stokta yok</span><b style="color:#ff7f8b">${zero}</b></div>`;}
 }
 
 function updateBalanceDisplay() {
@@ -607,7 +610,7 @@ function renderProducts() {
   $('viewBtn').textContent = viewMode === 'list' ? '▦ Kart' : '☰ Liste';
   allProducts.forEach(p => (sizeMap[p.name] = sizeMap[p.name] || []).push(`${p.size}:${p.stock}`));
   filtered.forEach(item => {
-    const low = item.stock <= 3;
+    const low = item.stock <= getLowStockThreshold();
     const box = document.createElement('div');
     box.className = `bg-slate-900 p-4 rounded-lg border ${low ? 'border-rose-500/80 shadow-lg' : 'border-slate-700'} flex flex-col items-center text-center justify-between`;
     box.innerHTML = `
@@ -621,7 +624,7 @@ function renderProducts() {
           <p>ID: <span class="text-white">${item.id}</span></p>
           <p>Beden: <span class="text-white">${esc(item.size)}</span></p>
           <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
-          <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-1.5 rounded-full ${item.stock <= 0 ? 'bg-rose-500' : item.stock <= 3 ? 'bg-amber-400' : 'bg-emerald-500'}" style="width:${Math.min(100, Math.max(item.stock > 0 ? 4 : 0, item.stock / maxStock * 100))}%"></div></div>
+          <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-1.5 rounded-full ${item.stock <= 0 ? 'bg-rose-500' : item.stock <= getLowStockThreshold() ? 'bg-amber-400' : 'bg-emerald-500'}" style="width:${Math.min(100, Math.max(item.stock > 0 ? 4 : 0, item.stock / maxStock * 100))}%"></div></div>
           <p>Fiyat: <span class="text-white">${Number(item.price).toLocaleString('tr-TR')} ₺</span></p>
           ${sizeMap[item.name].length > 1 ? `<p class="sizeinfo text-xs text-slate-500">Tüm bedenler: ${esc(sizeMap[item.name].join("  "))}</p>` : ''}
         </div>
@@ -915,7 +918,7 @@ function proceedAfterAuth() {
     const item = allProducts.find(p => p.id === pendingScanProductId);
     const det = $('scannedProductDetails'), btn = $('confirmScanSellBtn');
     if (item) {
-      det.innerHTML = `<p class="text-xs text-slate-400">Ürün</p><p class="text-2xl font-bold text-white">${esc(item.name)}</p><div class="flex gap-6 mt-2"><div><p class="text-xs text-slate-400">Beden</p><p class="text-xl font-bold text-sky-300">${esc(item.size)}</p></div><div><p class="text-xs text-slate-400">Fiyat</p><p class="text-xl font-bold text-emerald-300">${item.price} ₺</p></div><div><p class="text-xs text-slate-400">Stok</p><p class="text-xl font-bold ${item.stock <= 3 ? 'text-amber-300' : 'text-white'}">${item.stock}</p></div></div>`;
+      det.innerHTML = `<p class="text-xs text-slate-400">Ürün</p><p class="text-2xl font-bold text-white">${esc(item.name)}</p><div class="flex gap-6 mt-2"><div><p class="text-xs text-slate-400">Beden</p><p class="text-xl font-bold text-sky-300">${esc(item.size)}</p></div><div><p class="text-xs text-slate-400">Fiyat</p><p class="text-xl font-bold text-emerald-300">${item.price} ₺</p></div><div><p class="text-xs text-slate-400">Stok</p><p class="text-xl font-bold ${item.stock <= getLowStockThreshold() ? 'text-amber-300' : 'text-white'}">${item.stock}</p></div></div>`;
       btn.classList.remove('hidden');
       btn.onclick = () => quickSellItem(item.id, 1);
       $('cartScanBtn').classList.remove('hidden');
@@ -1072,12 +1075,17 @@ function renderDaily() {
 function cashClose() {
   if (!needPatron()) return;
   const s = dailyStats();
-  const open = prompt('Sabah çekmecedeki açılış nakdi (₺):', '0'); if (open === null) return;
-  const counted = prompt('Şimdi çekmecede saydığın nakit (₺):', ''); if (counted === null) return;
-  const o = parseFloat(open.replace(',', '.')), c = parseFloat(counted.replace(',', '.'));
-  if (isNaN(o) || isNaN(c)) return alert('Geçersiz tutar.');
+  const openRaw = prompt('Sabah çekmecedeki açılış nakdi (₺):', '0'); if (openRaw === null) return;
+  const countedRaw = prompt('Şimdi çekmecede saydığın nakit (₺):', ''); if (countedRaw === null) return;
+  const o = Number(String(openRaw).trim().replace(',', '.')), c = Number(String(countedRaw).trim().replace(',', '.'));
+  if (!Number.isFinite(o) || !Number.isFinite(c) || o < 0 || c < 0) return alert('Açılış ve sayılan nakit 0 veya daha büyük geçerli tutarlar olmalı.');
   const exp = Math.round((o + s.cash + s.inn - s.out) * 100) / 100, diff = Math.round((c - exp) * 100) / 100;
-  alert(`Olması gereken nakit: ${exp} ₺\nSayılan: ${c} ₺\nFark: ${diff > 0 ? '+' : ''}${diff} ₺ ${diff === 0 ? '(tam tutuyor)' : diff > 0 ? '(fazla)' : '(eksik)'}\n\nBugün ${s.cnt} satış · Kart: ${s.card - s.cardOut} ₺`);
+  const status = diff === 0 ? 'Kasa tutuyor' : diff > 0 ? 'Kasada fazla' : 'Kasada eksik';
+  const money = n => `${Number(n).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})} ₺`;
+  const w = window.open('', '_blank');
+  if (!w) return alert(`Kapanış hesaplandı fakat rapor penceresi engellendi.\nOlması gereken: ${money(exp)}\nSayılan: ${money(c)}\nFark: ${money(diff)}\nTarayıcıda açılır pencerelere izin ver.`);
+  w.document.write(`<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gün Sonu Kasa Raporu</title><style>body{font:15px system-ui,sans-serif;color:#172033;max-width:850px;margin:28px auto;padding:0 18px}h1{margin-bottom:4px}.sub{color:#64748b}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{border:1px solid #dbe2ea;border-radius:12px;padding:14px}.card small{color:#64748b}.card b{display:block;font-size:21px;margin-top:5px}.status{padding:12px;border-radius:10px;background:${diff===0?'#dcfce7':diff>0?'#fef3c7':'#fee2e2'};margin:16px 0;font-weight:700}table{border-collapse:collapse;width:100%;margin-top:20px}td{padding:10px;border-bottom:1px solid #e2e8f0}td:last-child{text-align:right;font-weight:650}.actions{margin:18px 0}@media(max-width:520px){.grid{grid-template-columns:1fr}}@media print{.actions{display:none}}</style></head><body><h1>Gün Sonu Kasa Raporu</h1><p class="sub">${new Date().toLocaleString('tr-TR')} · Üniforma QR Stok & Kasa Yönetimi</p><div class="status">${status}: ${diff>0?'+':''}${money(diff)}</div><div class="grid"><div class="card"><small>Açılış nakdi</small><b>${money(o)}</b></div><div class="card"><small>Olması gereken nakit</small><b>${money(exp)}</b></div><div class="card"><small>Sayılan nakit</small><b>${money(c)}</b></div><div class="card"><small>Bugünkü satış sayısı</small><b>${s.cnt}</b></div></div><table><tr><td>Nakit satış</td><td>${money(s.cash)}</td></tr><tr><td>Kart satış (net, mevcut hareket notlarına göre)</td><td>${money(s.card-s.cardOut)}</td></tr><tr><td>Manuel kasa girişi</td><td>${money(s.inn)}</td></tr><tr><td>Kasa çıkışı / nakit iade</td><td>${money(s.out)}</td></tr><tr><td><b>Beklenen nakit</b></td><td><b>${money(exp)}</b></td></tr><tr><td><b>Sayılan nakit</b></td><td><b>${money(c)}</b></td></tr><tr><td><b>Fark</b></td><td><b>${diff>0?'+':''}${money(diff)}</b></td></tr></table><p class="sub">Rapor mevcut kasa hareketleri ve işlem notlarından hesaplanır. Kart iadeleri/ödeme türleri notlarda ayrıştırılmıyorsa sonuç kontrol edilmelidir.</p><div class="actions"><button onclick="print()">Yazdır / PDF kaydet</button></div></body></html>`);
+  w.document.close();
 }
 
 function parsePriceChange(txt, price) {
@@ -1113,10 +1121,10 @@ function stockMatrix() {
   const sizes = [...new Set(list.map(p => String(p.size).trim()))].sort((a, b) => rank(a) - rank(b) || a.localeCompare(b, 'tr', { numeric: true }));
   const names = [...new Set(list.map(p => p.name))];
   const cell = (n, z) => { const f = list.filter(p => p.name === n && String(p.size).trim() === z); return f.length ? f.reduce((t, p) => t + p.stock, 0) : null; };
-  const rows = names.map(n => `<tr><td>${esc(n)}</td>${sizes.map(z => { const v = cell(n, z); return v === null ? '<td>-</td>' : `<td style="${v === 0 ? 'background:#fecaca;font-weight:bold' : v <= 3 ? 'background:#fef08a' : ''}">${v}</td>`; }).join('')}</tr>`).join('');
+  const rows = names.map(n => `<tr><td>${esc(n)}</td>${sizes.map(z => { const v = cell(n, z); return v === null ? '<td>-</td>' : `<td style="${v === 0 ? 'background:#fecaca;font-weight:bold' : v <= getLowStockThreshold() ? 'background:#fef08a' : ''}">${v}</td>`; }).join('')}</tr>`).join('');
   const w = window.open('', '_blank');
   if (!w) return alert('Açılır pencere engellendi, izin verin.');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Stok Matrisi</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse}td,th{border:1px solid #999;padding:4px 10px;font-size:13px;text-align:center}td:first-child{text-align:left}</style></head><body><h3>Stok Matrisi - ${new Date().toLocaleDateString('tr-TR')}</h3><p style="font-size:12px">Kırmızı: stok yok · Sarı: 3 ve altı</p><table><tr><th>Ürün</th>${sizes.map(z => `<th>${esc(z)}</th>`).join('')}</tr>${rows}</table></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Stok Matrisi</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse}td,th{border:1px solid #999;padding:4px 10px;font-size:13px;text-align:center}td:first-child{text-align:left}</style></head><body><h3>Stok Matrisi - ${new Date().toLocaleDateString('tr-TR')}</h3><p style="font-size:12px">Kırmızı: stok yok · Sarı: ayarlanan düşük stok sınırı ve altı</p><table><tr><th>Ürün</th>${sizes.map(z => `<th>${esc(z)}</th>`).join('')}</tr>${rows}</table></body></html>`);
   w.document.close();
 }
 
@@ -1130,12 +1138,13 @@ function checkBackup() {
 }
 
 function lowStockPrint() {
-  const low = allProducts.filter(p => p.stock <= 3).sort((a, b) => a.stock - b.stock);
+  const threshold = getLowStockThreshold();
+  const low = allProducts.filter(p => Number(p.stock) <= threshold).sort((a, b) => a.stock - b.stock);
   if (!low.length) return alert('Düşük stoklu ürün yok.');
   const w = window.open('', '_blank');
   if (!w) return alert('Açılır pencere engellendi, izin verin.');
   const rows = low.map(p => `<tr><td>${esc(p.name)}</td><td>${esc(p.category)}</td><td>${esc(p.size)}</td><td>${p.stock}</td></tr>`).join('');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Düşük Stok</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:4px 8px;font-size:13px;text-align:left}</style></head><body><h3>Düşük Stok Listesi - ${new Date().toLocaleDateString('tr-TR')}</h3><table><tr><th>Ürün</th><th>Kategori</th><th>Beden</th><th>Stok</th></tr>${rows}</table><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`);
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Düşük Stok</title><style>body{font-family:sans-serif;margin:10mm}table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:4px 8px;font-size:13px;text-align:left}</style></head><body><h3>Düşük Stok Listesi (≤ ${threshold}) - ${new Date().toLocaleDateString('tr-TR')}</h3><table><tr><th>Ürün</th><th>Kategori</th><th>Beden</th><th>Stok</th></tr>${rows}</table><script>window.onload=()=>setTimeout(()=>print(),300)<\/script></body></html>`);
   w.document.close();
 }
 
@@ -1275,7 +1284,7 @@ function applyRole(session) {
 function badge(n) {
   const c = 'text-[10px] px-2 py-0.5 rounded-full border font-bold ';
   if (n <= 0) return `<span class="${c}bg-rose-500/20 text-rose-300 border-rose-500/40">Bitti</span>`;
-  if (n <= 3) return `<span class="${c}bg-amber-500/20 text-amber-300 border-amber-500/40">Azalıyor</span>`;
+  if (n <= getLowStockThreshold()) return `<span class="${c}bg-amber-500/20 text-amber-300 border-amber-500/40">Azalıyor</span>`;
   return `<span class="${c}bg-emerald-500/15 text-emerald-300 border-emerald-500/30">Yeterli</span>`;
 }
 
@@ -1283,7 +1292,7 @@ function renderSummary() {
   const r = dailyStats();
   $('sumToday').textContent = (r.cash + r.card).toLocaleString('tr-TR') + ' ₺';
   $('sumCount').textContent = r.cnt;
-  $('sumLow').textContent = allProducts.filter(p => p.stock <= 3).length;
+  $('sumLow').textContent = allProducts.filter(p => p.stock <= getLowStockThreshold()).length;
   $('sumProducts').textContent = allProducts.length;
 }
 
