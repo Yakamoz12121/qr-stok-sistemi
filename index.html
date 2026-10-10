@@ -12,6 +12,12 @@ body.bg-slate-900{font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-se
 .border-slate-700{border-color:#22304a!important}
 section.bg-slate-800{box-shadow:0 8px 30px rgba(0,0,0,.25)}
 details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}
+#productList>div{transition:transform .15s,box-shadow .15s}#productList>div:hover{transform:translateY(-2px)}
+#productList.list-mode{grid-template-columns:1fr!important;gap:.5rem!important}
+#productList.list-mode>div{flex-direction:row!important;align-items:center!important;flex-wrap:wrap;gap:.75rem;padding:.6rem .9rem!important;text-align:left!important}
+#productList.list-mode .qrbox,#productList.list-mode .qrdl,#productList.list-mode .sizeinfo{display:none!important}
+#productList.list-mode>div>div:first-child{flex:1 1 220px;margin:0!important}
+#productList.list-mode>div>div:last-child{flex:1 1 260px;margin:0!important}
 </style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -103,6 +109,10 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
   <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
       <h2 class="text-xl font-semibold text-white">Mevcut Ürünler ve Kategoriler</h2>
+      <div class="flex gap-2 w-full md:w-auto">
+      <button id="viewBtn" onclick="toggleView()" class="bg-slate-700 hover:bg-slate-600 text-white text-sm px-3 py-2 rounded-lg whitespace-nowrap">☰ Liste</button>
+      <select id="sortSel" onchange="renderProducts()" class="bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg px-2 py-2"><option value="new">Yeni</option><option value="name">Ada göre</option><option value="low">Stok azdan çoğa</option></select>
+      </div>
       <input type="text" id="searchInput" placeholder="Ürün adıyla ara..." oninput="renderProducts()" class="w-full md:w-72 bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm text-white">
     </div>
     <div id="categoryTabs" class="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4"></div>
@@ -120,7 +130,7 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
     <div id="authStep" class="hidden"></div>
     <div id="qrProductSellStep" class="space-y-4 hidden">
       <div id="scannedProductDetails" class="bg-slate-900 p-4 rounded-xl border border-slate-700 text-sm space-y-2"></div>
-      <button id="confirmScanSellBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-lg text-sm">Bu Ürünü Sat ve Kasaya Ekle (-1)</button>
+      <button id="confirmScanSellBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-xl text-lg">SAT (-1) · Kasaya Ekle</button>
       <button id="cartScanBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-lg text-sm">Sepete Ekle</button>
     </div>
     <div id="adminCashStep" class="space-y-6 hidden">
@@ -182,6 +192,9 @@ details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-
       <button onclick="sellCart()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-lg">Satışı Tamamla</button>
     </div>
   </div>
+</div>
+<div id="doneOverlay" onclick="this.classList.add('hidden');this.classList.remove('flex')" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/70">
+  <div class="bg-emerald-600 rounded-3xl px-10 py-8 text-center shadow-2xl"><div class="text-7xl">✓</div><div class="text-2xl font-bold text-white mt-2">Satış tamam</div><div id="doneAmount" class="text-lg text-emerald-100 mt-1"></div></div>
 </div>
 <div id="toasts" class="fixed bottom-24 right-4 left-4 sm:left-auto z-[80] flex flex-col gap-2 items-end pointer-events-none"></div>
 <script>
@@ -303,7 +316,7 @@ function visibleProducts() {
   const q = $('searchInput').value.toLowerCase().trim();
   let f = activeCategory === 'TÜMÜ' ? allProducts : allProducts.filter(p => (p.category || 'Genel').trim() === activeCategory);
   if (q) f = f.filter(p => p.name.toLowerCase().includes(q));
-  return f;
+  return sortList(f);
 }
 
 function makeQR(el, id) {
@@ -325,7 +338,9 @@ function renderProducts() {
   const filtered = visibleProducts();
   if (!filtered.length) { list.innerHTML = '<p class="text-slate-500 col-span-full">Henüz kayıtlı ürün bulunmuyor.</p>'; return; }
 
-  const sizeMap = {};
+  const sizeMap = {}, maxStock = Math.max(10, ...allProducts.map(p => p.stock));
+  list.classList.toggle('list-mode', viewMode === 'list');
+  $('viewBtn').textContent = viewMode === 'list' ? '▦ Kart' : '☰ Liste';
   allProducts.forEach(p => (sizeMap[p.name] = sizeMap[p.name] || []).push(`${p.size}:${p.stock}`));
   filtered.forEach(item => {
     const low = item.stock <= 3;
@@ -337,17 +352,18 @@ function renderProducts() {
           <h3 class="font-bold text-white text-lg">${esc(item.name)}</h3>
           ${badge(item.stock)}
         </div>
-        <span class="inline-block bg-sky-950 text-sky-400 text-xs px-2.5 py-1 rounded-full border border-sky-800/50 mt-1">${esc(item.category)}</span>
+        <span class="inline-block text-xs px-2.5 py-1 rounded-full border mt-1" style="${catStyle(item.category)}">${esc(item.category)}</span>
         <div class="mt-3 text-sm text-slate-400 space-y-1">
           <p>ID: <span class="text-white">${item.id}</span></p>
           <p>Beden: <span class="text-white">${esc(item.size)}</span></p>
           <p>Stok: <span class="text-white font-bold">${item.stock} adet</span></p>
+          <div class="h-1.5 bg-slate-700 rounded-full"><div class="h-1.5 rounded-full ${item.stock <= 0 ? 'bg-rose-500' : item.stock <= 3 ? 'bg-amber-400' : 'bg-emerald-500'}" style="width:${Math.min(100, Math.max(item.stock > 0 ? 4 : 0, item.stock / maxStock * 100))}%"></div></div>
           <p>Fiyat: <span class="text-white">${item.price} ₺</span></p>
-          ${sizeMap[item.name].length > 1 ? `<p class="text-xs text-slate-500">Tüm bedenler: ${esc(sizeMap[item.name].join("  "))}</p>` : ''}
+          ${sizeMap[item.name].length > 1 ? `<p class="sizeinfo text-xs text-slate-500">Tüm bedenler: ${esc(sizeMap[item.name].join("  "))}</p>` : ''}
         </div>
       </div>
-      <div class="bg-white p-3 rounded-lg mb-2 inline-block"><div id="qr-${item.id}"></div></div>
-      <button onclick="downloadQR(${item.id})" class="text-xs text-sky-400 hover:text-sky-300 underline mb-3">QR'ı indir (PNG)</button>
+      <div class="qrbox bg-white p-3 rounded-lg mb-2 inline-block"><div id="qr-${item.id}"></div></div>
+      <button onclick="downloadQR(${item.id})" class="qrdl text-xs text-sky-400 hover:text-sky-300 underline mb-3">QR'ı indir (PNG)</button>
       <div class="w-full space-y-2 mt-auto">
         <div class="patron-only flex gap-2">
           <button onclick="updateStock(${item.id}, ${item.stock - 1})" class="flex-1 bg-red-600/30 text-red-300 text-xs py-1.5 rounded border border-red-500/30">- Stok</button>
@@ -418,6 +434,7 @@ async function sellItems(list, opts = {}) {
     catch (e) { await rollback(done); alert('Kasa kaydı yapılamadı, satış iptal edildi: ' + e.message); return false; }
     try { localStorage.setItem('lastSale', JSON.stringify({ items: list.map(x => ({ id: x.id, qty: x.qty })), total, pay, names: names.join(', ') })); } catch (e) {}
     if (confirm(`Satış başarılı! ${total} ₺ kasaya eklendi (${pay}).\n\nFiş yazdırılsın mı?`)) printReceipt({ lines, total, pay, given: opts.given || 0, pct, gross });
+    showDone(total, pay);
     return true;
   } finally { busy = false; }
 }
@@ -523,7 +540,7 @@ function proceedAfterAuth() {
     const item = allProducts.find(p => p.id === pendingScanProductId);
     const det = $('scannedProductDetails'), btn = $('confirmScanSellBtn');
     if (item) {
-      det.innerHTML = `<p class="text-white font-bold">Ürün: ${esc(item.name)}</p><p>Beden: ${esc(item.size)} | Fiyat: ${item.price} ₺</p><p>Stok: ${item.stock}</p>`;
+      det.innerHTML = `<p class="text-xs text-slate-400">Ürün</p><p class="text-2xl font-bold text-white">${esc(item.name)}</p><div class="flex gap-6 mt-2"><div><p class="text-xs text-slate-400">Beden</p><p class="text-xl font-bold text-sky-300">${esc(item.size)}</p></div><div><p class="text-xs text-slate-400">Fiyat</p><p class="text-xl font-bold text-emerald-300">${item.price} ₺</p></div><div><p class="text-xs text-slate-400">Stok</p><p class="text-xl font-bold ${item.stock <= 3 ? 'text-amber-300' : 'text-white'}">${item.stock}</p></div></div>`;
       btn.classList.remove('hidden');
       btn.onclick = () => quickSellItem(item.id, 1);
       $('cartScanBtn').classList.remove('hidden');
@@ -855,6 +872,35 @@ document.addEventListener('click', e => {
   const m = $('opsMenu');
   if (m && m.open && (!e.target.closest('#opsMenu') || e.target.closest('#opsMenu button'))) m.open = false;
 });
+
+let viewMode = 'card';
+try { viewMode = localStorage.getItem('view') === 'list' ? 'list' : 'card'; } catch (e) {}
+function toggleView() {
+  viewMode = viewMode === 'list' ? 'card' : 'list';
+  try { localStorage.setItem('view', viewMode); } catch (e) {}
+  renderProducts();
+}
+
+function sortList(f) {
+  const m = $('sortSel') ? $('sortSel').value : 'new';
+  const a = [...f];
+  if (m === 'name') a.sort((x, y) => x.name.localeCompare(y.name, 'tr') || String(x.size).localeCompare(String(y.size), 'tr', { numeric: true }));
+  else if (m === 'low') a.sort((x, y) => x.stock - y.stock);
+  return a;
+}
+
+function catStyle(c) {
+  const h = ([...String(c || 'Genel')].reduce((a, ch) => a + ch.charCodeAt(0), 0) * 37) % 360;
+  return `background:hsl(${h} 55% 18%);color:hsl(${h} 85% 78%);border-color:hsl(${h} 45% 35%)`;
+}
+
+function showDone(total, pay) {
+  const o = $('doneOverlay');
+  $('doneAmount').textContent = total.toLocaleString('tr-TR') + ' ₺ · ' + pay;
+  o.classList.remove('hidden'); o.classList.add('flex');
+  try { if (navigator.vibrate) navigator.vibrate(120); } catch (e) {}
+  setTimeout(() => { o.classList.remove('flex'); o.classList.add('hidden'); }, 1800);
+}
 
 async function doLogin() {
   const err = $('loginError'); err.classList.add('hidden');
