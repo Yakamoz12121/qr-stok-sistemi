@@ -1521,6 +1521,8 @@ async function getBillingContext(){
   if(sessionError||!session) throw new Error('Önce giriş yapmalısın.');
   const {data:orgs,error}=await client.from('organization_members').select('organization_id,role').eq('user_id',session.user.id);
   if(error) throw new Error('İşletme bilgisi alınamadı: '+error.message);
+  const employeeMembership=(orgs||[]).some(x=>String(x.role||'').toLowerCase()==='calisan');
+  if(employeeMembership) throw new Error('Çalışan hesapları abonelik yönetemez; işletme aboneliğini patron yönetir.');
   const {data:owned,error:ownedError}=await client.from('organizations').select('id').eq('owner_user_id',session.user.id);
   if(ownedError) throw new Error('İşletme bilgisi alınamadı: '+ownedError.message);
   const ids=[...new Set([...(orgs||[]).map(x=>x.organization_id),...(owned||[]).map(x=>x.id)].filter(Boolean))];
@@ -1560,6 +1562,19 @@ async function enforceSubscriptionAccess(){
   if(currentSession && currentSession.user && currentSession.user.id==='6fca2729-3645-4cb6-9911-1961a44da015' && String(currentSession.user.email||'').trim().toLowerCase()==='yakamoz123cetinkaya@gmail.com'){
     window.subscriptionAccessGranted=true; hideSubscriptionGate(); return true;
   }
+  if(currentSession && currentSession.user){
+    try{
+      const {data:memberships,error:membershipError}=await client.from('organization_members').select('role').eq('user_id',currentSession.user.id);
+      if(membershipError) throw membershipError;
+      if((memberships||[]).some(m=>String(m.role||'').toLowerCase()==='calisan')){
+        window.subscriptionAccessGranted=true;
+        hideSubscriptionGate();
+        const pricing=document.getElementById('konfex-pricing-section');
+        if(pricing) pricing.style.display='none';
+        return true;
+      }
+    }catch(roleError){console.error('Employee role check failed:',roleError);}
+  }
   subscriptionGateBusy=true;
   window.subscriptionAccessGranted=false;
   try{
@@ -1584,6 +1599,21 @@ async function enforceSubscriptionAccess(){
 function getCurrentPlan(){return null}
 function setCurrentPlan(){return}
 async function updateSubscriptionUI(){
+  const {data:{session:uiSession}}=await client.auth.getSession();
+  if(uiSession && uiSession.user){
+    const {data:uiMemberships,error:uiRoleError}=await client.from('organization_members').select('role').eq('user_id',uiSession.user.id);
+    if(!uiRoleError && (uiMemberships||[]).some(m=>String(m.role||'').toLowerCase()==='calisan')){
+      const employeePricing=document.getElementById('konfex-pricing-section');
+      const employeeCur=document.getElementById('currentPlanDisplay');
+      const employeeBadge=document.getElementById('subscriptionBadge');
+      const employeePanel=document.getElementById('panelCurrentPlan');
+      if(employeePricing) employeePricing.style.display='none';
+      if(employeeCur) employeeCur.style.display='none';
+      if(employeeBadge) employeeBadge.textContent='Çalışan hesabı · Abonelik patron tarafından yönetilir';
+      if(employeePanel) employeePanel.classList.add('hidden');
+      return;
+    }
+  }
   const pricing=document.getElementById('konfex-pricing-section');
   const cur=document.getElementById('currentPlanDisplay');
   const badge=document.getElementById('subscriptionBadge');
