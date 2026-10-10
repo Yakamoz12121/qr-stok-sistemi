@@ -172,6 +172,17 @@ body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-grad
 @media(max-width:760px){body.bg-slate-900{padding:12px 10px 100px!important}#mpSidebar{position:static;width:auto;inset:auto;margin:-12px -10px 10px;padding:10px 12px;gap:8px;border-right:0;border-bottom:1px solid #1b2e49} .mp-brand{padding:0}.mp-brand-mark{font-size:27px}.mp-brand b{font-size:14px}.mp-brand small{font-size:9px}.mp-nav{flex-direction:row;overflow-x:auto;padding:2px 0 4px;gap:5px}.mp-nav a,.mp-nav button{flex:none;min-height:34px;padding:8px 10px;font-size:10px}.mp-nav .patron-only{display:none!important}.mp-store,.mp-version{display:none}#mpMain{gap:12px!important}#mpMain>header{position:relative;top:auto;flex-wrap:wrap!important;padding:12px!important;gap:10px!important}#mpMain>header>div:first-child{width:100%}#mpMain>header h1{font-size:19px!important}#mpMain>header p{font-size:10px}#mpMain>header .flex.items-center.gap-3{width:100%;justify-content:space-between;flex-wrap:wrap!important}#mpKpis{gap:8px!important}#mpKpis>div{padding:12px!important;min-height:78px}#mpKpis>div b{font-size:21px!important}#mpDashboard{grid-template-columns:minmax(0,1fr);grid-template-areas:'sales' 'category' 'recent' 'products' 'stock' 'quick';gap:10px}.mp-chart-card{padding:13px}.mp-sales-chart{height:185px}.mp-recent-list{display:flex}.mp-featured-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mp-product-symbol{height:50px}.patron-only.grid{grid-template-columns:minmax(0,1fr)!important}#productSection{padding:14px!important}#productSection>div:first-child{gap:10px}#productSection>div:first-child>div{flex-wrap:wrap}#productSection #searchInput{width:100%}}
 @media(prefers-reduced-motion:reduce){#mpSidebar *{scroll-behavior:auto!important;transition:none!important}}
 
+
+/* Quick product-entry modal */
+#quickProductModal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:1rem;background:rgba(2,8,23,.78);backdrop-filter:blur(8px)}
+#quickProductModal.is-open{display:flex}
+#quickProductModal .qp-dialog{width:min(100%,620px);max-height:min(92vh,820px);overflow:auto;background:#0e1a2d;border:1px solid #294365;border-radius:22px;box-shadow:0 28px 90px #0009;padding:clamp(1rem,3vw,1.7rem)}
+#quickProductModal .qp-input{width:100%;background:#07131f;border:1px solid #29405b;border-radius:10px;padding:.75rem .85rem;color:#f1f5f9;outline:none}
+#quickProductModal .qp-input:focus{border-color:#38bdf8;box-shadow:0 0 0 3px #38bdf822}
+#quickProductModal .qp-label{display:block;font-size:.78rem;color:#a8bad2;margin:0 0 .35rem}
+body.qp-modal-open{overflow:hidden}
+@media(max-width:520px){#quickProductModal{padding:.5rem;align-items:flex-end}#quickProductModal .qp-dialog{max-height:94dvh;border-radius:20px 20px 12px 12px;padding:1rem}#quickProductModal .qp-grid{grid-template-columns:1fr}}
+
 </style>
 <title>Üniforma QR Stok ve Kasa Yönetimi</title>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -196,7 +207,7 @@ body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-grad
     <a class="active" href="#mpDashboard">⌂ <span>Ana Sayfa</span></a>
     <button onclick="openScannerModal()">🛒 <span>Satış Yap</span></button>
     <a href="#productSection">◇ <span>Ürünler</span></a>
-    <a href="#productForm">＋ <span>Stok / Ürün Ekle</span></a>
+    <button type="button" onclick="openQuickProductModal()">＋ <span>Stok / Ürün Ekle</span></button>
     <button onclick="openAdminPanel()">▣ <span>Kasa</span></button>
     <button onclick="salesReport()" class="patron-only">▥ <span>Raporlar</span></button>
     <button onclick="undoLastSale()">↶ <span>İade / Geri Al</span></button>
@@ -283,10 +294,25 @@ body.bg-slate-900{padding:18px 22px 110px 218px!important;background:radial-grad
     <div class="mp-chart-card mp-quick-card">
       <div class="mp-card-head"><div><h2>Hızlı İşlemler</h2><p>Sık kullanılan kısayollar</p></div></div>
       <button class="mp-quick-action green" onclick="openScannerModal()"><span>▣</span><div><b>Satış Yap</b><small>QR veya manuel satış</small></div><strong>›</strong></button>
-      <button class="mp-quick-action blue" onclick="document.getElementById('productForm').scrollIntoView({behavior:'smooth',block:'center'});document.getElementById('p_name').focus()"><span>＋</span><div><b>Ürün / Stok Ekle</b><small>Yeni ürün kaydı oluştur</small></div><strong>›</strong></button>
+      <button class="mp-quick-action blue" onclick="openQuickProductModal()"><span>＋</span><div><b>Ürün / Stok Ekle</b><small>Yeni ürün kaydı oluştur</small></div><strong>›</strong></button>
       <button class="mp-quick-action purple" onclick="salesReport()"><span>▥</span><div><b>Raporlar</b><small>Satış ve stok analizleri</small></div><strong>›</strong></button>
     </div>
   </section>
+
+  <div id="quickProductModal" role="dialog" aria-modal="true" aria-labelledby="quickProductTitle" onclick="if(event.target===this)closeQuickProductModal()">
+    <div class="qp-dialog">
+      <div class="flex items-start justify-between gap-4 mb-5"><div><p class="text-sky-400 text-xs font-semibold tracking-widest uppercase">Hızlı işlem</p><h2 id="quickProductTitle" class="text-2xl font-bold text-white mt-1">Yeni ürün ekle</h2><p class="text-slate-400 text-sm mt-1">Ürün bilgilerini girip kaydet.</p></div><button type="button" aria-label="Pencereyi kapat" onclick="closeQuickProductModal()" class="rounded-xl px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white">✕</button></div>
+      <form id="quickProductForm" class="space-y-4">
+        <div><label class="qp-label" for="qp_name">Ürün adı</label><input class="qp-input" id="qp_name" required maxlength="180" autocomplete="off"></div>
+        <div class="qp-grid grid grid-cols-2 gap-3"><div><label class="qp-label" for="qp_category">Kategori</label><input class="qp-input" id="qp_category" required placeholder="Örn: Kıyafet"></div><div><label class="qp-label" for="qp_size">Beden</label><input class="qp-input" id="qp_size" required placeholder="Örn: S, M, L"></div></div>
+        <div class="qp-grid grid grid-cols-2 gap-3"><div><label class="qp-label" for="qp_price">Satış fiyatı (₺)</label><input class="qp-input" id="qp_price" type="number" required min="0" step="0.01"></div><div><label class="qp-label" for="qp_cost">Maliyet (₺)</label><input class="qp-input" id="qp_cost" type="number" min="0" step="0.01" value="0"></div></div>
+        <div><label class="qp-label" for="qp_stock">Başlangıç stoku</label><input class="qp-input" id="qp_stock" type="number" required min="0" step="1"></div>
+        <div><label class="qp-label" for="qp_detail">Detay (isteğe bağlı)</label><input class="qp-input" id="qp_detail" placeholder="Kumaş bilgisi vb."></div>
+        <div id="quickProductError" class="hidden rounded-lg border border-rose-500/30 bg-rose-950/40 p-3 text-sm text-rose-200"></div>
+        <div class="flex gap-3 pt-2"><button type="button" onclick="closeQuickProductModal()" class="flex-1 rounded-xl border border-slate-600 px-4 py-3 text-slate-200 hover:bg-slate-800">Vazgeç</button><button id="quickProductSave" type="submit" class="flex-1 rounded-xl bg-sky-500 px-4 py-3 font-bold text-slate-950 hover:bg-sky-400">＋ Ürünü kaydet</button></div>
+      </form>
+    </div>
+  </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <section class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl">
@@ -988,6 +1014,38 @@ async function deleteProduct(id) {
   alert('Ürün silindi.');
   await fetchAll();
 }
+
+function openQuickProductModal() {
+  const modal = $('quickProductModal');
+  if (!modal) return;
+  $('quickProductError').classList.add('hidden');
+  modal.classList.add('is-open'); document.body.classList.add('qp-modal-open');
+  setTimeout(() => $('qp_name').focus(), 30);
+}
+function closeQuickProductModal() {
+  $('quickProductModal').classList.remove('is-open'); document.body.classList.remove('qp-modal-open');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('quickProductModal')?.classList.contains('is-open')) closeQuickProductModal(); });
+$('quickProductForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const save = $('quickProductSave'), errorBox = $('quickProductError');
+  errorBox.classList.add('hidden'); save.disabled = true; save.textContent = 'Kaydediliyor…';
+  try {
+    if (!client.auth) throw new Error('Oturum doğrulanamadı. Lütfen yeniden giriş yap.');
+    const payload = {
+      name: $('qp_name').value.trim(), category: $('qp_category').value.trim(), size: $('qp_size').value.trim(),
+      price: Number($('qp_price').value), cost: Number($('qp_cost').value || '0'), stock: Number($('qp_stock').value), detail: $('qp_detail').value.trim()
+    };
+    if (!payload.name || !payload.category || !payload.size || !Number.isFinite(payload.price) || payload.price < 0 || !Number.isInteger(payload.stock) || payload.stock < 0 || !Number.isFinite(payload.cost) || payload.cost < 0) throw new Error('Alanları kontrol et. Fiyat ve maliyet negatif olamaz; stok tam sayı olmalı.');
+    const { error } = await client.rpc('create_product_atomic', { p_product: payload });
+    if (error) throw new Error('Ürün kaydedilemedi: ' + error.message + (error.message.includes('patron yetkisi') ? ' · Supabase SQL düzeltmesini de uygulamalısın.' : ''));
+    alert('Ürün başarıyla eklendi.');
+    closeQuickProductModal(); $('quickProductForm').reset();
+    await fetchAll();
+  } catch (err) {
+    errorBox.textContent = err.message || 'Ürün kaydedilemedi.'; errorBox.classList.remove('hidden');
+  } finally { save.disabled = false; save.textContent = '＋ Ürünü kaydet'; }
+});
 
 $('productForm').addEventListener('submit', async e => {
   e.preventDefault();
