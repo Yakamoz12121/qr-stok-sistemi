@@ -80,15 +80,38 @@ async function callBillingFunction(name,payload){
 }
 function getCurrentPlan(){return null}
 function setCurrentPlan(){return}
-function updateSubscriptionUI(){
+async function updateSubscriptionUI(){
   const pricing=document.getElementById('konfex-pricing-section');
   const cur=document.getElementById('currentPlanDisplay');
   const badge=document.getElementById('subscriptionBadge');
   const panel=document.getElementById('panelCurrentPlan');
   if(pricing) pricing.style.display='block';
   if(cur) cur.style.display='none';
-  if(badge) badge.innerHTML='<i style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#94a3b8;margin-right:4px"></i> Abonelik durumu sunucudan kontrol edilir';
+  if(badge) badge.textContent='Abonelik durumu kontrol ediliyor…';
   if(panel) panel.classList.add('hidden');
+  try{
+    const context=await getBillingContext();
+    const status=await callBillingFunction('billing-status',{organization_id:context.organization_id});
+    const active=['active','trialing','past_due'].includes(status.status);
+    const plan=PLAN_DATA[status.plan_key];
+    if(badge) badge.textContent=active?'Abonelik: '+(plan?plan.name:'Aktif'):'Abonelik aktif değil';
+    if(active && plan){
+      if(cur) cur.style.display='block';
+      const name=document.getElementById('currentPlanName');
+      const price=document.getElementById('currentPlanPrice');
+      if(name) name.textContent=plan.name;
+      if(price) price.textContent=plan.priceShort;
+      if(panel) panel.classList.remove('hidden');
+      const panelName=document.getElementById('panelPlanName');
+      const panelPrice=document.getElementById('panelPlanPrice');
+      if(panelName) panelName.textContent=plan.name;
+      if(panelPrice) panelPrice.textContent=plan.priceShort+(status.cancel_at_period_end?' · Dönem sonunda iptal edilecek':'');
+      if(pricing) pricing.style.display='none';
+    }
+  }catch(e){
+    console.warn('Billing status could not be loaded:',e);
+    if(badge) badge.textContent='Abonelik durumu yüklenemedi';
+  }
 }
 function openSubscriptionPanel(){document.getElementById('subscriptionPanel').classList.add('is-open');updateSubscriptionUI()}
 function closeSubscriptionPanel(){document.getElementById('subscriptionPanel').classList.remove('is-open')}
