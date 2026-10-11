@@ -1763,8 +1763,9 @@ document.addEventListener('DOMContentLoaded',updateSubscriptionUI);
   const data=await res.json().catch(()=>({}));
   if(!res.ok) throw new Error(data.error||'İşlem başarısız ('+res.status+').');
   return data;
- 
-window.qrAdminOpen = async function(){
+ }
+
+ window.qrAdminOpen = async function(){
   try {
     const user = await sessionUser();
 
@@ -1920,17 +1921,7 @@ function renderAdminDashboard(organizations,members,users){
     });
   });
 };
-  try{
-   status('Yükleniyor…');const data=await invoke({action:'list'});organizations=data.organizations||[];
-   el('qraOrg').innerHTML='<option value="">İşletme seç</option>'+organizations.map(o=>'<option value="'+String(o.id).replace(/"/g,'&quot;')+'">'+String(o.name||'İsimsiz işletme').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))+'</option>').join('');
-   const members=data.members||[],users=data.users||[];
-   const orgRows=organizations.map(o=>'<tr><td>'+escText(o.name)+'</td><td>'+escText(o.id)+'</td><td>'+members.filter(m=>m.organization_id===o.id).length+'</td><td>'+ (o.is_active?'Aktif':'Pasif')+'</td><td><button type="button" style="background:#991b1b;color:#fff" onclick="qrAdminDeleteOrganization(\''+escText(o.id)+'\')">İşletmeyi sil</button></td></tr>').join('');
-   const userRows=users.map(u=>'<tr><td>'+escText(u.email||'—')+'</td><td>'+escText(u.id)+'</td><td>'+escText(u.email_confirmed_at?'Onaylı':'Davet/onay bekliyor')+'</td><td><button type="button" style="background:#991b1b;color:#fff" onclick="qrAdminDeleteUser(\''+escText(u.id)+'\',\''+escText(u.email||'')+'\')">Kullanıcıyı sil</button></td></tr>').join('');
-   el('qraLists').innerHTML='<h3 style="font-weight:800;margin:10px 0">İşletmeler ('+organizations.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">İşletme</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Üye</th><th style="text-align:left;padding:7px">Durum</th><th style="text-align:left;padding:7px">İşlem</th></tr></thead><tbody>'+orgRows+'</tbody></table><h3 style="font-weight:800;margin:20px 0 10px">Kullanıcılar ('+users.length+')</h3><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr><th style="text-align:left;padding:7px">E-posta</th><th style="text-align:left;padding:7px">ID</th><th style="text-align:left;padding:7px">Durum</th></tr></thead><tbody>'+userRows+'</tbody></table>';
-   status('Liste güncellendi.');
-  }catch(e){status(e.message||'Liste alınamadı.',true);}
- };
- function escText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function escText(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
  el('qraRole').addEventListener('change',function(){
   const staff=this.value==='calisan';el('qraOrgNameWrap').style.display=staff?'none':'block';el('qraOrgWrap').style.display=staff?'block':'none';
   el('qraOrgName').required=!staff;el('qraOrg').required=staff;
@@ -1974,6 +1965,7 @@ client.auth.onAuthStateChange((event, session) => {
     launcher.style.display = isMainAdmin(session && session.user) ? 'block' : 'none';
   }, 0);
 });
+})();
 </script>
 
 </body>
